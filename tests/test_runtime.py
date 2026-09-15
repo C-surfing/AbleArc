@@ -47,6 +47,37 @@ class LearningRuntimeTests(unittest.TestCase):
             },
         )
 
+    def advance_payload(self):
+        return {
+            "assessment": {
+                "level": "explanation",
+                "outcome": "supports",
+                "result_summary": "You used the base rate correctly; the denominator explanation is still incomplete.",
+                "scaffolding": "none",
+                "context": "same",
+                "delay": "immediate",
+                "independence": "same_form",
+                "supports": ["uses the prior in posterior reasoning"],
+                "contradicts": [],
+                "confidence": "medium",
+                "assessor": "teach-agent:test",
+            },
+            "next_decision": {
+                "target": "Explain the Bayes denominator",
+                "frontier_hypothesis": "The learner uses the prior but has not explained the competing populations.",
+                "uncertainty": "medium",
+                "move": "derive",
+                "rationale": "Reconstructing the denominator tests the remaining causal gap.",
+                "learner_action": "Explain why true and false positives both appear in the denominator.",
+                "representation": {
+                    "kind": "frequency_tree",
+                    "purpose": "Keep both competing populations visible.",
+                },
+                "expected_evidence": "The learner names both positive branches and their roles.",
+                "falsification_signal": "The learner includes only true positives in the denominator.",
+            },
+        }
+
     def evidence(
         self,
         *,
@@ -155,6 +186,48 @@ class LearningRuntimeTests(unittest.TestCase):
             runtime.record_learner_response(self.root, decision["id"], "   ")
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.record_learner_response(self.root, decision["id"], "x" * 12001)
+
+    def test_pending_turn_exposes_response_and_clears_after_agent_advance(self):
+        decision = self.decision()
+        response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")
+
+        pending = runtime.pending_learner_turn(self.root)
+        self.assertEqual(pending["decision"]["id"], decision["id"])
+        self.assertEqual(pending["observation"]["id"], response["id"])
+
+        runtime.advance_learning_turn(self.root, decision["id"], self.advance_payload())
+        self.assertIsNone(runtime.pending_learner_turn(self.root))
+
+    def test_agent_advance_records_feedback_closes_turn_and_issues_grounded_next_move(self):
+        decision = self.decision()
+        response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")
+
+        result = runtime.advance_learning_turn(self.root, decision["id"], self.advance_payload())
+
+        self.assertEqual(result["evidence"]["observation_id"], response["id"])
+        self.assertEqual(result["turn"]["decision_id"], decision["id"])
+        self.assertEqual(result["turn"]["outcome"], "completed")
+        self.assertIn(result["evidence"]["id"], result["next_decision"]["evidence_used"])
+        self.assertEqual(result["next_decision"]["mode"], decision["mode"])
+        self.assertEqual(result["next_decision"]["concept_ids"], decision["concept_ids"])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.advance_learning_turn(self.root, decision["id"], self.advance_payload())
+
+    def test_invalid_next_move_is_rejected_before_feedback_is_persisted(self):
+        decision = self.decision()
+        response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")
+        payload = self.advance_payload()
+        del payload["next_decision"]["learner_action"]
+
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.advance_learning_turn(self.root, decision["id"], payload)
+
+        self.assertFalse([
+            item for item in runtime.list_receipts(self.root, "evidence")
+            if item["observation_id"] == response["id"]
+        ])
 
     def test_single_immediate_answer_cannot_promote_developing_to_stable(self):
         self.promote_to_developing()

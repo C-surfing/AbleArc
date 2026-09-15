@@ -55,6 +55,8 @@ Default decisions:
 
 ## Current slice
 
-The first user-facing runtime bridge activates the existing **Your move** surface. A learner can submit one response to the current structured decision. The response is stored locally as an observation and visibly acknowledged, but it is not auto-graded and does not auto-promote mastery.
+The user-facing runtime bridge activates the existing **Your move** surface. A learner can submit one response to the current structured decision. The response is stored locally as an observation and visibly acknowledged, but it is not auto-graded and does not auto-promote mastery.
 
-This deliberately stops before model transport. It proves the UI/runtime boundary and preserves the learner's action without coupling the product to a provider. The next slice should consume that observation, return information-rich feedback, and select the next move through the Teach/Study protocol.
+The agent-facing bridge now exposes the newest unanswered response and accepts one compact assessment + next-decision payload. It reuses the existing evidence, turn, and decision receipts; the Workspace joins those records into a learner-visible feedback card and unlocks the next move. A provider transport remains an adapter concern rather than a dependency of the learning runtime.
+
+The next product slice is a typed `LearningArtifact` payload and one renderer proven against a real concept. Do not expand the learner-state infrastructure first.

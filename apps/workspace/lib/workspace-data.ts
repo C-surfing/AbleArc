@@ -3,6 +3,7 @@ import path from "node:path";
 import type {
   DecisionTrace,
   EvidenceItem,
+  LearnerExchange,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
@@ -179,6 +180,44 @@ function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
     expectedEvidence: String(item.expected_evidence || "Evidence expectation not recorded."),
     falsificationSignal: String(item.falsification_signal || "Falsification signal not recorded."),
     hasLearnerResponse,
+  };
+}
+
+function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefined {
+  const observations = readReceiptDirectory(runtimeRoot, "observations");
+  const observation = observations.filter((item) => item.source === "learner").at(-1);
+  if (!observation) return undefined;
+
+  const evidence = readReceiptDirectory(runtimeRoot, "evidence")
+    .filter((item) => item.observation_id === observation.id)
+    .at(-1);
+  const nextDecision = evidence
+    ? readReceiptDirectory(runtimeRoot, "decisions").find((item) => (
+        Array.isArray(item.evidence_used) && item.evidence_used.includes(evidence.id)
+      ))
+    : undefined;
+  const validLevel = ["recognition", "recall", "explanation", "application", "transfer"];
+  const validOutcome = ["supports", "contradicts", "inconclusive"];
+  const validConfidence = ["low", "medium", "high"];
+
+  return {
+    decisionId: String(observation.decision_id),
+    observationId: observation.id,
+    response: String(observation.observed_result || ""),
+    status: evidence ? "assessed" : "awaiting_assessment",
+    feedback: evidence ? String(evidence.result_summary || "Assessment recorded.") : undefined,
+    outcome: evidence && validOutcome.includes(String(evidence.outcome))
+      ? evidence.outcome as LearnerExchange["outcome"]
+      : undefined,
+    level: evidence && validLevel.includes(String(evidence.level))
+      ? evidence.level as LearnerExchange["level"]
+      : undefined,
+    confidence: evidence && validConfidence.includes(String(evidence.confidence))
+      ? evidence.confidence as LearnerExchange["confidence"]
+      : undefined,
+    supports: evidence && Array.isArray(evidence.supports) ? evidence.supports.map(String) : [],
+    contradicts: evidence && Array.isArray(evidence.contradicts) ? evidence.contradicts.map(String) : [],
+    nextDecisionId: nextDecision?.id,
   };
 }
 
@@ -411,6 +450,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const structuredState = readJsonOptional<RuntimeState>(path.join(runtimeRoot, "state.json"));
   const structuredEvidence = runtimeEvidence(runtimeRoot);
   const decision = runtimeDecision(runtimeRoot);
+  const latestExchange = runtimeLearnerExchange(runtimeRoot);
   const latestStateDecision = runtimeStateDecision(runtimeRoot);
   const structuredTimeline = runtimeTimeline(runtimeRoot);
 
@@ -443,6 +483,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     activeArc: timeline.activeArc,
     runtimeRevision: structuredState?.revision,
     decision,
+    latestExchange,
     latestStateDecision,
   };
 }

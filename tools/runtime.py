@@ -229,10 +229,16 @@ def _save(repo_root: Path, kind: str, receipt: dict[str, Any]) -> dict[str, Any]
     return receipt
 
 
-def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+def _prepare_decision(
+    repo_root: Path,
+    data: dict[str, Any],
+    *,
+    available_evidence_ids: set[str] | None = None,
+) -> dict[str, Any]:
     receipt = _base("decision", data)
     evidence_used = _string_list(data, "evidence_used")
-    _require_refs(repo_root, "evidence", evidence_used)
+    available = available_evidence_ids or set()
+    _require_refs(repo_root, "evidence", [item for item in evidence_used if item not in available])
     representation = data.get("representation")
     if not isinstance(representation, dict):
         raise RuntimeContractError("representation must be an object")
@@ -256,7 +262,11 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
             "falsification_signal": _required_string(data, "falsification_signal"),
         }
     )
-    return _save(repo_root, "decision", receipt)
+    return receipt
+
+
+def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+    return _save(repo_root, "decision", _prepare_decision(repo_root, data))
 
 
 def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -314,7 +324,7 @@ def record_learner_response(
     )
 
 
-def record_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     receipt = _base("evidence", data)
     observation_id = _required_string(data, "observation_id")
     observation = load_receipt(repo_root, "observation", observation_id)
@@ -338,7 +348,118 @@ def record_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
             "assessor": _required_string(data, "assessor"),
         }
     )
-    return _save(repo_root, "evidence", receipt)
+    return receipt
+
+
+def record_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+    return _save(repo_root, "evidence", _prepare_evidence(repo_root, data))
+
+
+def _learner_observation_for_decision(repo_root: Path, decision_id: str) -> dict[str, Any]:
+    matches = [
+        item
+        for item in list_receipts(repo_root, "observation")
+        if item.get("decision_id") == decision_id and item.get("source") == "learner"
+    ]
+    if not matches:
+        raise RuntimeContractError(f"decision has no learner response: {decision_id}")
+    return matches[-1]
+
+
+def pending_learner_turn(repo_root: Path) -> dict[str, Any] | None:
+    """Return the newest learner response that still needs an agent assessment."""
+    assessed_observations = {
+        item.get("observation_id") for item in list_receipts(repo_root, "evidence")
+    }
+    pending = [
+        item
+        for item in list_receipts(repo_root, "observation")
+        if item.get("source") == "learner" and item.get("id") not in assessed_observations
+    ]
+    if not pending:
+        return None
+    observation = pending[-1]
+    decision = load_receipt(repo_root, "decision", observation["decision_id"])
+    return {
+        "decision": decision,
+        "observation": observation,
+        "learner_state": _current_state(repo_root),
+    }
+
+
+def advance_learning_turn(
+    repo_root: Path,
+    decision_id: str,
+    data: dict[str, Any],
+) -> dict[str, Any]:
+    """Agent-facing façade: assess one response, close its turn, and issue the next move.
+
+    This deliberately reuses EvidenceReceipt, TurnReceipt, and DecisionProposal.
+    The compact input is an integration boundary; it is not a seventh receipt type.
+    """
+    current_decision = load_receipt(repo_root, "decision", decision_id)
+    observation = _learner_observation_for_decision(repo_root, decision_id)
+    previous_assessments = [
+        item
+        for item in list_receipts(repo_root, "evidence")
+        if item.get("observation_id") == observation["id"]
+    ]
+    if previous_assessments:
+        raise RuntimeContractError(
+            f"learner response already has an assessment: {previous_assessments[-1]['id']}"
+        )
+
+    assessment = data.get("assessment")
+    next_move = data.get("next_decision")
+    if not isinstance(assessment, dict):
+        raise RuntimeContractError("assessment must be an object")
+    if not isinstance(next_move, dict):
+        raise RuntimeContractError("next_decision must be an object")
+
+    evidence_id = data.get("evidence_id") or _new_id("evidence")
+    evidence_data = {
+        **assessment,
+        "id": evidence_id,
+        "observation_id": observation["id"],
+        "concept_ids": observation["concept_ids"],
+    }
+    prepared_evidence = _prepare_evidence(repo_root, evidence_data)
+
+    requested_evidence = _string_list(next_move, "evidence_used")
+    evidence_used = list(dict.fromkeys([*requested_evidence, evidence_id]))
+    next_data = {
+        **next_move,
+        "mode": next_move.get("mode", current_decision["mode"]),
+        "concept_ids": next_move.get("concept_ids", current_decision["concept_ids"]),
+        "evidence_used": evidence_used,
+    }
+    prepared_next = _prepare_decision(
+        repo_root,
+        next_data,
+        available_evidence_ids={evidence_id},
+    )
+
+    evidence = _save(repo_root, "evidence", prepared_evidence)
+    next_decision = _save(repo_root, "decision", prepared_next)
+    representation = current_decision.get("representation", {})
+    artifact_refs = []
+    if isinstance(representation, dict) and isinstance(representation.get("artifact_ref"), str):
+        artifact_refs.append(representation["artifact_ref"])
+    turn = record_turn(
+        repo_root,
+        {
+            **({"id": data["turn_id"]} if data.get("turn_id") else {}),
+            "decision_id": decision_id,
+            "observation_ids": [observation["id"]],
+            "evidence_ids": [evidence["id"]],
+            "state_proposal_ids": [],
+            "state_decision_ids": [],
+            "artifact_refs": artifact_refs,
+            "outcome": "completed",
+            "summary": evidence["result_summary"],
+        },
+    )
+    return {"evidence": evidence, "turn": turn, "next_decision": next_decision}
 
 
 def record_state_proposal(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -640,6 +761,10 @@ def build_parser() -> argparse.ArgumentParser:
     respond = sub.add_parser("respond", help="record one learner response to a decision")
     respond.add_argument("decision_id")
     respond.add_argument("response", help="response text or - for stdin")
+    sub.add_parser("pending", help="print the newest learner response awaiting assessment")
+    advance = sub.add_parser("advance", help="assess a response and issue the next learning move")
+    advance.add_argument("decision_id")
+    advance.add_argument("payload", help="compact assessment/next-decision JSON file or - for stdin")
     sub.add_parser("state", help="print the current machine-operable state projection")
     sub.add_parser("verify", help="verify the ledger and its references")
     return parser
@@ -670,6 +795,11 @@ def main(argv: list[str] | None = None) -> int:
             response = sys.stdin.read() if args.response == "-" else args.response
             receipt = record_learner_response(repo_root, args.decision_id, response)
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "pending":
+            print(json.dumps(pending_learner_turn(repo_root), ensure_ascii=False, indent=2))
+        elif args.command == "advance":
+            result = advance_learning_turn(repo_root, args.decision_id, _load_payload(args.payload))
+            print(json.dumps(result, ensure_ascii=False, indent=2))
         elif args.command == "state":
             print(json.dumps(_current_state(repo_root), ensure_ascii=False, indent=2))
         elif args.command == "verify":

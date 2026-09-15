@@ -96,6 +96,20 @@ python tools/runtime.py --repo . respond dec_example -
 
 The response is read from stdin, inherits its concept IDs and expected action from the decision, and becomes one local observation. This is the same path used by the Workspace; the learner never supplies receipt metadata.
 
+Read the next response awaiting assessment:
+
+```bash
+python tools/runtime.py --repo . pending
+```
+
+After interpreting it, an agent can atomically validate the next transition at the integration boundary:
+
+```bash
+python tools/runtime.py --repo . advance dec_example assessment.json
+```
+
+The compact payload contains an `assessment` using the EvidenceReceipt fields and a `next_decision` using the DecisionProposal fields. The runtime derives the observation and concept references, adds the new evidence to the next decision, closes the old turn, and returns all three receipts. Invalid next moves are rejected before feedback is persisted. This façade introduces no new receipt kind and never mutates mastery state.
+
 Accept or reject a proposal:
 
 ```bash
@@ -115,6 +129,6 @@ The cross-agent JSON contract is published at [`../schemas/runtime-v0.1.json`](.
 
 ## Integration rule
 
-When `.learning/runtime/manifest.json` exists, Teach/Study agents should use the runtime for meaningful learning turns. They should record the decision before presenting the move; record observations and evidence only after learner action; propose state changes only when evidence changes a future teaching decision; and close the chain with a `TurnReceipt`.
+When `.learning/runtime/manifest.json` exists, Teach/Study agents should use the runtime for meaningful learning turns. Before asking the learner to repeat an answer, call `pending`. When it returns a response, assess it and prefer the high-level `advance` path for feedback plus the next move. Propose state changes separately, and only when evidence changes a future teaching decision.
 
 A turn may end as `awaiting_evidence`. This is preferable to fabricating an observation or prematurely updating the learner model.

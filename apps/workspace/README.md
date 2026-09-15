@@ -35,19 +35,22 @@ Implemented:
 - latest decision and authority trace;
 - active **Your move** response composer backed by the local runtime;
 - local acknowledgment without premature grading or mastery promotion;
+- learner-visible feedback joined to the previous response;
+- automatic composer reset when an evidence-grounded next decision arrives;
+- agent inbox/advance CLI bridge without provider coupling;
 - demo fallback for design review.
 
 Not implemented yet:
 
 - model/provider connection;
-- model feedback / next-move transport;
+- hosted model/provider transport;
 - client-side authoritative writes to `.learning/` (writes remain in the local runtime CLI/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - structured math/diagram renderer payloads;
 - scheduler or cloud persistence.
 
-The composer records one response to the current structured learning decision. It deliberately does not fabricate an assistant answer: feedback and the next move must come through the Teach/Study protocol and evidence-backed learner-state update path.
+The composer records one response to the current structured learning decision. The Teach/Study agent can consume it through `runtime.py pending`, then commit feedback plus the next move through `runtime.py advance`. The Workspace renders the feedback and enables the new decision without exposing receipt mechanics or silently changing mastery.
 
 ## Architecture boundary
 
@@ -63,6 +66,6 @@ workspace filesystem adapter
 Visual Learning Workspace
 ```
 
-The next slice should connect an agent/model transport to the existing authority-aware local runtime, not move teaching policy into React components.
+The next slice should render one typed LearningArtifact selected by the Teach/Study agent. Hosted model transport can remain an adapter over the same local boundary.
 
 See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the product specification.

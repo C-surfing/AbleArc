@@ -77,6 +77,20 @@ export interface StateDecisionTrace {
   policyOverridden: boolean;
 }
 
+export interface LearnerExchange {
+  decisionId: string;
+  observationId: string;
+  response: string;
+  status: "awaiting_assessment" | "assessed";
+  feedback?: string;
+  outcome?: "supports" | "contradicts" | "inconclusive";
+  level?: EvidenceLevel;
+  confidence?: "low" | "medium" | "high";
+  supports: string[];
+  contradicts: string[];
+  nextDecisionId?: string;
+}
+
 export interface WorkspaceSnapshot {
   source: "local" | "demo";
   mission: string;
@@ -94,5 +108,6 @@ export interface WorkspaceSnapshot {
   activeArc?: string;
   runtimeRevision?: number;
   decision?: DecisionTrace;
+  latestExchange?: LearnerExchange;
   latestStateDecision?: StateDecisionTrace;
 }

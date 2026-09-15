@@ -168,7 +168,7 @@ The LLM still selects moves and interprets rich behavior. The runtime makes thos
 
 See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), [`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json), and [`tools/runtime.py`](tools/runtime.py).
 
-The Workspace now exposes the first learner-facing bridge: **Your move** accepts one response to the current decision, stores it locally as an observation, and acknowledges it without auto-grading or silently changing mastery. The ledger remains an internal audit layer rather than part of the learner's workflow.
+The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. The Workspace renders the feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
 
 ## Local runner
 
@@ -222,4 +222,4 @@ The project intentionally does not clone any one of those systems. It turns comp
 
 **v0.1 — complete first usable protocol.** Teach + Study, persistent learner state, dynamic roadmap, evidence-aware mastery, Feynman model debugging, teaching taste, bootstrap/agent metadata, and behavioral acceptance scenarios are in place.
 
-**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The Workspace can project accepted structured state, decision rationale, and evidence provenance while retaining Markdown compatibility. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Model/provider transport, automatic artifact rendering, scheduling, and specialized subagents remain deferred until evidence justifies them.
+**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop now works locally across agents and the Workspace. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Hosted provider transport, automatic artifact rendering, scheduling, and specialized subagents remain deferred until evidence justifies them.

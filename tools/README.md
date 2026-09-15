@@ -36,6 +36,15 @@ python tools/runtime.py --repo . respond <decision-id> -
 
 It reads response text from stdin and derives concept/action context from the decision. The lower-level `record` commands exist for agents and debugging, not for learners.
 
+Agents can consume the next unanswered response and advance the learning loop without manually assembling receipts:
+
+```bash
+python tools/runtime.py --repo . pending
+python tools/runtime.py --repo . advance <decision-id> assessment.json
+```
+
+`advance` validates the assessment and next move before writing anything, then records feedback as evidence, closes the completed turn, and grounds the next decision in that evidence. It does not change mastery state.
+
 ## Start a real longitudinal arc
 
 ```bash

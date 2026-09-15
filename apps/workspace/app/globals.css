@@ -808,6 +808,106 @@ button {
   background: #d0d1cc;
 }
 
+.feedback-card {
+  max-width: 920px;
+  margin: 18px auto 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(51, 112, 94, 0.24);
+  border-left: 3px solid var(--stable);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.feedback-card__header,
+.feedback-card__meta,
+.composer-actions {
+  display: flex;
+  align-items: center;
+}
+
+.feedback-card__header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.feedback-card__header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.feedback-card__header strong {
+  font-size: 12px;
+}
+
+.feedback-outcome {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.feedback-outcome--supports {
+  background: rgba(51, 112, 94, 0.11);
+  color: var(--stable);
+}
+
+.feedback-outcome--contradicts {
+  background: rgba(154, 91, 66, 0.11);
+  color: var(--warning);
+}
+
+.feedback-card__response {
+  margin: 14px 0 8px;
+  padding-left: 11px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.feedback-card__message {
+  margin: 0;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.feedback-card__meta {
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.feedback-card__meta span {
+  padding: 3px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.feedback-card__implications {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.feedback-card__implications p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.feedback-card__implications strong {
+  margin-right: 5px;
+  color: var(--ink);
+}
+
 .composer-shell {
   max-width: 920px;
   margin: 18px auto 0;
@@ -879,6 +979,21 @@ button {
   background: #d2d2cd;
   color: #858885;
   cursor: default;
+}
+
+.composer-actions {
+  gap: 6px;
+}
+
+.composer-status .composer-refresh {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.composer-status .composer-refresh:hover {
+  border-color: #c3c4bd;
+  color: var(--ink);
 }
 
 .composer-shell.is-submitted {

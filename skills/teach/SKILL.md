@@ -72,7 +72,7 @@ DecisionProposal → Observation → EvidenceReceipt → StateProposal → autho
 
 The learner-facing interaction should remain natural. Do not print IDs or receipt mechanics unless the learner asks to inspect the decision trail.
 
-When the Workspace has captured a learner response for the current decision, assess that observation before issuing another major move. Do not ask the learner to re-enter receipt metadata or repeat an answer already stored locally.
+When the Workspace may have captured a learner response, call `python tools/runtime.py --repo . pending` before asking the learner to repeat it. If a response is pending, assess it and use `python tools/runtime.py --repo . advance <decision-id> <payload>` to record information-rich feedback, close the old turn, and issue an evidence-grounded next move. Do not ask the learner to enter receipt metadata. State proposals remain a separate, conservative action.
 
 ### MISSION.md
 
