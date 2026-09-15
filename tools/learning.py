@@ -284,7 +284,11 @@ def doctor(repo_root: Path) -> list[str]:
             problems.append(f"missing evaluation/arcs/{filename}")
 
     for required in (
+        "tools/project_store.py",
         "tools/runtime.py",
+        "schemas/workspace-v0.2.json",
+        "schemas/project-v0.2.json",
+        "schemas/mission-v0.2.json",
         "schemas/runtime-v0.1.json",
         "schemas/learning-artifact-v0.1.json",
         "schemas/learning-artifact-v0.2.json",

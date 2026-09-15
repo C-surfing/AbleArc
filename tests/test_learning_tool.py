@@ -42,8 +42,12 @@ class LearningToolTests(unittest.TestCase):
             )
 
         (self.root / "tools").mkdir(exist_ok=True)
+        (self.root / "tools" / "project_store.py").write_text("# project store\n", encoding="utf-8")
         (self.root / "tools" / "runtime.py").write_text("# runtime\n", encoding="utf-8")
         (self.root / "schemas").mkdir()
+        (self.root / "schemas" / "workspace-v0.2.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "project-v0.2.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "mission-v0.2.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "runtime-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.2.json").write_text("{}\n", encoding="utf-8")

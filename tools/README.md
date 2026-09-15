@@ -4,6 +4,12 @@
 
 Its job is to remove bookkeeping friction while preserving the project's privacy and evidence boundaries.
 
+`tools/project_store.py` is the read-only storage resolver shared by upcoming
+project-aware operations. It distinguishes an uninitialized workspace, the
+existing unscoped v0.1 layout, and the canonical v0.2
+Workspace/Project/Mission layout without creating or migrating data. See
+[`../docs/PROJECT-STORAGE.md`](../docs/PROJECT-STORAGE.md).
+
 ## Initialize learner state
 
 ```bash
