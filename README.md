@@ -191,6 +191,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 ## Design and evaluation documents
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — state model, control loop, persistence, mode selection.
+- [`docs/adr/`](docs/adr/) — accepted product/runtime boundaries and compatibility consequences.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
 - [`docs/VISUAL-TEACHING.md`](docs/VISUAL-TEACHING.md) — representations as cognitive instruments, semantic contracts, and visual audits.
