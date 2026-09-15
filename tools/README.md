@@ -45,6 +45,14 @@ python tools/runtime.py --repo . advance <decision-id> assessment.json
 
 `advance` validates the assessment and next move before writing anything, then records feedback as evidence, closes the completed turn, and grounds the next decision in that evidence. It does not change mastery state.
 
+Create a validated learner-operable representation:
+
+```bash
+python tools/runtime.py --repo . artifact examples/learning-artifacts/bayes-frequency-tree.json
+```
+
+The returned `artifact_ref` can be attached to a Decision representation. Artifacts live outside the receipt ledger and never update learner state.
+
 ## Start a real longitudinal arc
 
 ```bash

@@ -74,6 +74,8 @@ The learner-facing interaction should remain natural. Do not print IDs or receip
 
 When the Workspace may have captured a learner response, call `python tools/runtime.py --repo . pending` before asking the learner to repeat it. If a response is pending, assess it and use `python tools/runtime.py --repo . advance <decision-id> <payload>` to record information-rich feedback, close the old turn, and issue an evidence-grounded next move. Do not ask the learner to enter receipt metadata. State proposals remain a separate, conservative action.
 
+When manipulating a probability population is the lowest-friction way to expose the target relation, create a typed `frequency_tree_v1` artifact with `python tools/runtime.py --repo . artifact <payload>` and attach its returned reference to the Decision. Read `docs/LEARNING-ARTIFACTS.md` first. Do not generate executable HTML or use an artifact when a smaller inline representation would do the same cognitive job.
+
 ### MISSION.md
 
 What is the learner trying to become able to do, and why does it matter? Keep success criteria concrete enough to guide teaching decisions. A mission can evolve, but do not silently redefine it.

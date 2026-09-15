@@ -38,6 +38,7 @@ Implemented:
 - learner-visible feedback joined to the previous response;
 - automatic composer reset when an evidence-grounded next decision arrives;
 - agent inbox/advance CLI bridge without provider coupling;
+- typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;
 - demo fallback for design review.
 
 Not implemented yet:
@@ -47,7 +48,7 @@ Not implemented yet:
 - client-side authoritative writes to `.learning/` (writes remain in the local runtime CLI/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
-- structured math/diagram renderer payloads;
+- additional artifact renderers beyond the validated frequency-tree slice;
 - scheduler or cloud persistence.
 
 The composer records one response to the current structured learning decision. The Teach/Study agent can consume it through `runtime.py pending`, then commit feedback plus the next move through `runtime.py advance`. The Workspace renders the feedback and enables the new decision without exposing receipt mechanics or silently changing mastery.
@@ -66,6 +67,6 @@ workspace filesystem adapter
 Visual Learning Workspace
 ```
 
-The next slice should render one typed LearningArtifact selected by the Teach/Study agent. Hosted model transport can remain an adapter over the same local boundary.
+The current artifact slice is intentionally narrow. The next renderer must be earned by a real learning arc whose target relation cannot be expressed by the frequency tree. Hosted model transport can remain an adapter over the same local boundary.
 
 See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the product specification.

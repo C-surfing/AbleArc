@@ -59,11 +59,40 @@ export interface DecisionTrace {
   uncertainty: "low" | "medium" | "high";
   representationKind: string;
   representationPurpose: string;
+  artifactRef?: string;
   evidenceCount: number;
   expectedEvidence: string;
   falsificationSignal: string;
   hasLearnerResponse: boolean;
 }
+
+export interface FrequencyTreeArtifact {
+  id: string;
+  renderer: "frequency_tree_v1";
+  title: string;
+  conceptIds: string[];
+  learningGoal: string;
+  inferencePrompt: string;
+  successEvidence: string;
+  payload: {
+    population: number;
+    prevalence: number;
+    sensitivity: number;
+    falsePositiveRate: number;
+    prevalenceMin: number;
+    prevalenceMax: number;
+    prevalenceStep: number;
+    labels: {
+      population: string;
+      condition: string;
+      complement: string;
+      positive: string;
+      falsePositive: string;
+    };
+  };
+}
+
+export type LearningArtifact = FrequencyTreeArtifact;
 
 export interface StateDecisionTrace {
   id: string;
@@ -108,6 +137,7 @@ export interface WorkspaceSnapshot {
   activeArc?: string;
   runtimeRevision?: number;
   decision?: DecisionTrace;
+  artifact?: LearningArtifact;
   latestExchange?: LearnerExchange;
   latestStateDecision?: StateDecisionTrace;
 }

@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 SCHEMA_VERSION = "0.1"
+ARTIFACT_SCHEMA_VERSION = "0.1"
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
 MOVE_TYPES = (
@@ -58,6 +59,7 @@ ID_PREFIXES = {
     "turn": "turn",
 }
 ID_PATTERN = re.compile(r"^[a-z]+_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
+ARTIFACT_ID_PATTERN = re.compile(r"^art_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 
 
 class RuntimeContractError(RuntimeError):
@@ -82,6 +84,10 @@ def _receipt_root(repo_root: Path, kind: str) -> Path:
 
 def _state_path(repo_root: Path) -> Path:
     return _runtime_root(repo_root) / "state.json"
+
+
+def _artifact_root(repo_root: Path) -> Path:
+    return repo_root / ".learning" / "artifacts"
 
 
 def _new_id(kind: str) -> str:
@@ -154,6 +160,11 @@ def init_runtime(repo_root: Path) -> list[Path]:
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
             created.append(path)
+
+    artifacts = _artifact_root(repo_root)
+    if not artifacts.exists():
+        artifacts.mkdir(parents=True, exist_ok=True)
+        created.append(artifacts)
 
     manifest = root / "manifest.json"
     if not manifest.exists():
@@ -229,6 +240,125 @@ def _save(repo_root: Path, kind: str, receipt: dict[str, Any]) -> dict[str, Any]
     return receipt
 
 
+def _probability(data: dict[str, Any], field: str) -> float:
+    value = data.get(field)
+    if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 <= value <= 1:
+        raise RuntimeContractError(f"{field} must be a number between 0 and 1")
+    return float(value)
+
+
+def record_learning_artifact(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+    """Persist a typed cognitive instrument outside the learner-state ledger."""
+    artifact_id = data.get("id") or f"art_{uuid.uuid4().hex[:16]}"
+    if not isinstance(artifact_id, str) or not ARTIFACT_ID_PATTERN.fullmatch(artifact_id):
+        raise RuntimeContractError("artifact id must start with art_ and contain only letters, numbers, _ or -")
+    renderer = _enum(data, "renderer", ("frequency_tree_v1",))
+    payload = data.get("payload")
+    if not isinstance(payload, dict):
+        raise RuntimeContractError("artifact payload must be an object")
+    population = payload.get("population")
+    if not isinstance(population, int) or isinstance(population, bool) or not 100 <= population <= 1_000_000:
+        raise RuntimeContractError("population must be an integer between 100 and 1000000")
+    prevalence = _probability(payload, "prevalence")
+    sensitivity = _probability(payload, "sensitivity")
+    false_positive_rate = _probability(payload, "false_positive_rate")
+    prevalence_min = _probability(payload, "prevalence_min")
+    prevalence_max = _probability(payload, "prevalence_max")
+    prevalence_step = _probability(payload, "prevalence_step")
+    if not prevalence_min < prevalence_max:
+        raise RuntimeContractError("prevalence_min must be smaller than prevalence_max")
+    if not prevalence_min <= prevalence <= prevalence_max:
+        raise RuntimeContractError("prevalence must fall inside the configured range")
+    if prevalence_step <= 0 or prevalence_step > prevalence_max - prevalence_min:
+        raise RuntimeContractError("prevalence_step must be positive and no larger than the configured range")
+
+    labels = payload.get("labels")
+    if not isinstance(labels, dict):
+        raise RuntimeContractError("artifact payload labels must be an object")
+    created_at = data.get("created_at") or _now()
+    if not isinstance(created_at, str) or not created_at.strip():
+        raise RuntimeContractError("artifact created_at must be a non-empty ISO-8601 string")
+    artifact = {
+        "schema_version": ARTIFACT_SCHEMA_VERSION,
+        "kind": "learning-artifact",
+        "id": artifact_id,
+        "created_at": created_at,
+        "renderer": renderer,
+        "title": _required_string(data, "title"),
+        "concept_ids": _string_list(data, "concept_ids", required=True),
+        "learning_goal": _required_string(data, "learning_goal"),
+        "inference_prompt": _required_string(data, "inference_prompt"),
+        "success_evidence": _required_string(data, "success_evidence"),
+        "authored_by": _required_string(data, "authored_by"),
+        "payload": {
+            "population": population,
+            "prevalence": prevalence,
+            "sensitivity": sensitivity,
+            "false_positive_rate": false_positive_rate,
+            "prevalence_min": prevalence_min,
+            "prevalence_max": prevalence_max,
+            "prevalence_step": prevalence_step,
+            "labels": {
+                "population": _required_string(labels, "population"),
+                "condition": _required_string(labels, "condition"),
+                "complement": _required_string(labels, "complement"),
+                "positive": _required_string(labels, "positive"),
+                "false_positive": _required_string(labels, "false_positive"),
+            },
+        },
+    }
+    path = _artifact_root(repo_root) / f"{artifact_id}.json"
+    _write_json(path, artifact, immutable=True)
+    return artifact
+
+
+def load_learning_artifact(repo_root: Path, artifact_ref: str) -> dict[str, Any]:
+    expected_prefix = ".learning/artifacts/"
+    name = artifact_ref[len(expected_prefix):] if artifact_ref.startswith(expected_prefix) else artifact_ref
+    if name.endswith(".json"):
+        name = name[:-5]
+    if not ARTIFACT_ID_PATTERN.fullmatch(name):
+        raise RuntimeContractError("artifact_ref must identify a local typed learning artifact")
+    path = _artifact_root(repo_root) / f"{name}.json"
+    if not path.is_file():
+        raise RuntimeContractError(f"unknown learning artifact: {name}")
+    artifact = _read_json(path)
+    if artifact.get("schema_version") != ARTIFACT_SCHEMA_VERSION or artifact.get("kind") != "learning-artifact":
+        raise RuntimeContractError(f"unsupported learning artifact: {name}")
+    if artifact.get("id") != name:
+        raise RuntimeContractError(f"learning artifact id/path mismatch: {name}")
+    _required_string(artifact, "created_at")
+    _enum(artifact, "renderer", ("frequency_tree_v1",))
+    _required_string(artifact, "title")
+    _string_list(artifact, "concept_ids", required=True)
+    _required_string(artifact, "learning_goal")
+    _required_string(artifact, "inference_prompt")
+    _required_string(artifact, "success_evidence")
+    _required_string(artifact, "authored_by")
+    payload = artifact.get("payload")
+    if not isinstance(payload, dict):
+        raise RuntimeContractError("artifact payload must be an object")
+    population = payload.get("population")
+    if not isinstance(population, int) or isinstance(population, bool) or not 100 <= population <= 1_000_000:
+        raise RuntimeContractError("population must be an integer between 100 and 1000000")
+    prevalence = _probability(payload, "prevalence")
+    prevalence_min = _probability(payload, "prevalence_min")
+    prevalence_max = _probability(payload, "prevalence_max")
+    prevalence_step = _probability(payload, "prevalence_step")
+    _probability(payload, "sensitivity")
+    _probability(payload, "false_positive_rate")
+    if not prevalence_min < prevalence_max or not prevalence_min <= prevalence <= prevalence_max:
+        raise RuntimeContractError("artifact prevalence range is inconsistent")
+    if prevalence_step <= 0 or prevalence_step > prevalence_max - prevalence_min:
+        raise RuntimeContractError("artifact prevalence_step is inconsistent")
+    labels = payload.get("labels")
+    if not isinstance(labels, dict):
+        raise RuntimeContractError("artifact payload labels must be an object")
+    for field in ("population", "condition", "complement", "positive", "false_positive"):
+        _required_string(labels, field)
+    return artifact
+
+
 def _prepare_decision(
     repo_root: Path,
     data: dict[str, Any],
@@ -242,11 +372,18 @@ def _prepare_decision(
     representation = data.get("representation")
     if not isinstance(representation, dict):
         raise RuntimeContractError("representation must be an object")
+    concept_ids = _string_list(data, "concept_ids", required=True)
+    artifact_ref = _optional_string(representation, "artifact_ref")
+    if artifact_ref:
+        artifact = load_learning_artifact(repo_root, artifact_ref)
+        if not set(concept_ids).intersection(artifact["concept_ids"]):
+            raise RuntimeContractError("decision and learning artifact must share at least one concept_id")
+        artifact_ref = f".learning/artifacts/{artifact['id']}.json"
     receipt.update(
         {
             "mode": _enum(data, "mode", ("teach", "study")),
             "target": _required_string(data, "target"),
-            "concept_ids": _string_list(data, "concept_ids", required=True),
+            "concept_ids": concept_ids,
             "frontier_hypothesis": _required_string(data, "frontier_hypothesis"),
             "evidence_used": evidence_used,
             "uncertainty": _enum(data, "uncertainty", ("low", "medium", "high")),
@@ -256,7 +393,7 @@ def _prepare_decision(
             "representation": {
                 "kind": _required_string(representation, "kind"),
                 "purpose": _required_string(representation, "purpose"),
-                **({"artifact_ref": representation["artifact_ref"]} if representation.get("artifact_ref") else {}),
+                **({"artifact_ref": artifact_ref} if artifact_ref else {}),
             },
             "expected_evidence": _required_string(data, "expected_evidence"),
             "falsification_signal": _required_string(data, "falsification_signal"),
@@ -700,7 +837,7 @@ def verify_runtime(repo_root: Path) -> list[str]:
                 problems.append(f"{receipt.get('id', 'unknown')}: unsupported schema_version")
             if receipt.get("kind") != kind:
                 problems.append(f"{receipt.get('id', 'unknown')}: kind/path mismatch")
-    decisions = {item["id"] for item in list_receipts(repo_root, "decision")}
+    decisions = {item["id"]: item for item in list_receipts(repo_root, "decision")}
     observations = {item["id"]: item for item in list_receipts(repo_root, "observation")}
     evidence = {item["id"]: item for item in list_receipts(repo_root, "evidence")}
     proposals = {item["id"]: item for item in list_receipts(repo_root, "state-proposal")}
@@ -708,6 +845,21 @@ def verify_runtime(repo_root: Path) -> list[str]:
     for item in observations.values():
         if item.get("decision_id") not in decisions:
             problems.append(f"{item['id']}: missing decision {item.get('decision_id')}")
+    for item in decisions.values():
+        representation = item.get("representation", {})
+        artifact_ref = representation.get("artifact_ref") if isinstance(representation, dict) else None
+        if artifact_ref:
+            try:
+                load_learning_artifact(repo_root, artifact_ref)
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
+    artifact_root = _artifact_root(repo_root)
+    if artifact_root.is_dir():
+        for path in artifact_root.glob("*.json"):
+            try:
+                load_learning_artifact(repo_root, path.name)
+            except RuntimeContractError as exc:
+                problems.append(str(exc))
     for item in evidence.values():
         if item.get("observation_id") not in observations:
             problems.append(f"{item['id']}: missing observation {item.get('observation_id')}")
@@ -765,6 +917,8 @@ def build_parser() -> argparse.ArgumentParser:
     advance = sub.add_parser("advance", help="assess a response and issue the next learning move")
     advance.add_argument("decision_id")
     advance.add_argument("payload", help="compact assessment/next-decision JSON file or - for stdin")
+    artifact = sub.add_parser("artifact", help="validate and store a typed learning artifact")
+    artifact.add_argument("payload", help="learning artifact JSON file or - for stdin")
     sub.add_parser("state", help="print the current machine-operable state projection")
     sub.add_parser("verify", help="verify the ledger and its references")
     return parser
@@ -799,6 +953,9 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(pending_learner_turn(repo_root), ensure_ascii=False, indent=2))
         elif args.command == "advance":
             result = advance_learning_turn(repo_root, args.decision_id, _load_payload(args.payload))
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        elif args.command == "artifact":
+            result = record_learning_artifact(repo_root, _load_payload(args.payload))
             print(json.dumps(result, ensure_ascii=False, indent=2))
         elif args.command == "state":
             print(json.dumps(_current_state(repo_root), ensure_ascii=False, indent=2))

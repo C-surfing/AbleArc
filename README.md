@@ -193,6 +193,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
 - [`docs/VISUAL-TEACHING.md`](docs/VISUAL-TEACHING.md) — representations as cognitive instruments, semantic contracts, and visual audits.
+- [`docs/LEARNING-ARTIFACTS.md`](docs/LEARNING-ARTIFACTS.md) — typed, learner-operable representations and the first frequency-tree renderer.
 - [`docs/PRACTICE-PROGRESSION.md`](docs/PRACTICE-PROGRESSION.md) — connected practice that varies assumptions, boundaries, or representations.
 - [`docs/DOGFOODING.md`](docs/DOGFOODING.md) — longitudinal evidence and iteration protocol.
 - [`docs/SECOND_LAYER_ROADMAP.md`](docs/SECOND_LAYER_ROADMAP.md) — deferred infrastructure and expansion boundaries.
@@ -222,4 +223,4 @@ The project intentionally does not clone any one of those systems. It turns comp
 
 **v0.1 — complete first usable protocol.** Teach + Study, persistent learner state, dynamic roadmap, evidence-aware mastery, Feynman model debugging, teaching taste, bootstrap/agent metadata, and behavioral acceptance scenarios are in place.
 
-**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop now works locally across agents and the Workspace. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Hosted provider transport, automatic artifact rendering, scheduling, and specialized subagents remain deferred until evidence justifies them.
+**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop works locally, and the first typed interactive LearningArtifact is available for base-rate reasoning. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Hosted provider transport, additional artifact renderers, scheduling, and specialized subagents remain deferred until evidence justifies them.

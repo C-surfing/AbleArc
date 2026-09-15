@@ -288,7 +288,7 @@ It does **not** yet provide:
 After the shell is validated visually and through actual use:
 
 1. connect the existing authority-aware receipt runtime to an agent/model transport;
-2. render structured representation payloads (math, diagram, table, code/dataflow) rather than demo blocks;
+2. validate the first typed `frequency_tree_v1` artifact in a real Bayes learning arc, then add another renderer only when the target relation requires it;
 3. add a learner-facing proposal review interaction for explicit edits and policy overrides;
 4. add full-screen Map mode with node inspection and roadmap revision proposals;
 5. add session diff/replay around learner-model changes, not raw chat;

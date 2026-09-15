@@ -205,7 +205,14 @@ def doctor(repo_root: Path) -> list[str]:
         if not (repo_root / "evaluation" / "arcs" / filename).is_file():
             problems.append(f"missing evaluation/arcs/{filename}")
 
-    for required in ("tools/runtime.py", "schemas/runtime-v0.1.json", "docs/RUNTIME-CONTRACT.md"):
+    for required in (
+        "tools/runtime.py",
+        "schemas/runtime-v0.1.json",
+        "schemas/learning-artifact-v0.1.json",
+        "docs/RUNTIME-CONTRACT.md",
+        "docs/LEARNING-ARTIFACTS.md",
+        "examples/learning-artifacts/bayes-frequency-tree.json",
+    ):
         if not (repo_root / required).is_file():
             problems.append(f"missing {required}")
 
