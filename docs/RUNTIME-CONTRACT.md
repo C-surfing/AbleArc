@@ -78,6 +78,14 @@ Initialize the private runtime ledger:
 python tools/runtime.py --repo . init
 ```
 
+Create the first action for a learner-explicit Mission that has no Decision yet:
+
+```bash
+python tools/runtime.py --repo . bootstrap-mission
+```
+
+This is a fixed onboarding policy, not domain teaching. It creates one high-uncertainty `mission-entry` probe asking for a representative attempt. It records no evidence, roadmap, misconception, or mastery. A Teach agent should treat the response as orientation evidence, then use it to locate real concept IDs and choose the first domain-specific move; it should not promote domain mastery from this generic sample.
+
 Record an object from a JSON file (or pass `-` to read stdin):
 
 ```bash
@@ -103,6 +111,8 @@ Read the next response awaiting assessment:
 ```bash
 python tools/runtime.py --repo . pending
 ```
+
+The returned handoff includes the Decision, Observation, accepted learner-state projection, and minimal explicit Mission context (`goal`, optional `why`, and source). This lets an adapter ground the first assessment without making the learner repeat their goal or treating the Mission as evidence.
 
 After interpreting it, an agent can atomically validate the next transition at the integration boundary:
 
@@ -131,6 +141,6 @@ The cross-agent JSON contract is published at [`../schemas/runtime-v0.1.json`](.
 
 ## Integration rule
 
-When `.learning/runtime/manifest.json` exists, Teach/Study agents should use the runtime for meaningful learning turns. Before asking the learner to repeat an answer, call `pending`. When it returns a response, assess it and prefer the high-level `advance` path for feedback plus the next move. Propose state changes separately, and only when evidence changes a future teaching decision.
+When `.learning/runtime/manifest.json` exists, Teach/Study agents should use the runtime for meaningful learning turns. If a learner-explicit Mission has no Decision, call `bootstrap-mission`. Before asking the learner to repeat an answer, call `pending`. When it returns a response, assess it and prefer the high-level `advance` path for feedback plus the next move. Replace the generic `mission-entry` concept with evidence-grounded domain concepts in that next Decision. Propose state changes separately, and only when evidence changes a future teaching decision.
 
 A turn may end as `awaiting_evidence`. This is preferable to fabricating an observation or prematurely updating the learner model.

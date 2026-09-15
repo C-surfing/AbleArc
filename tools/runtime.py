@@ -459,6 +459,105 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     return _save(repo_root, "decision", _prepare_decision(repo_root, data))
 
 
+def _mission_markdown(repo_root: Path) -> str:
+    path = repo_root / ".learning" / "MISSION.md"
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise RuntimeContractError("no learner mission is available to bootstrap") from exc
+
+
+def _mission_goal(repo_root: Path) -> str:
+    markdown = _mission_markdown(repo_root)
+    match = re.search(r"^-\s*Goal:\s*(.+)$", markdown, flags=re.IGNORECASE | re.MULTILINE)
+    if not match or not match.group(1).strip():
+        raise RuntimeContractError("MISSION.md does not contain an explicit Goal field")
+    return match.group(1).strip()
+
+
+def mission_context(repo_root: Path) -> dict[str, str] | None:
+    """Return minimal explicit Mission context for an agent-facing handoff."""
+    try:
+        markdown = _mission_markdown(repo_root)
+        goal = _mission_goal(repo_root)
+    except RuntimeContractError:
+        return None
+    source_match = re.search(
+        r"^-\s*Source:\s*(.+)$",
+        markdown,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    why_match = re.search(
+        r"^##\s+Why this matters\s*$\s*(.*?)(?=^##\s+|\Z)",
+        markdown,
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    why = ""
+    if why_match:
+        why_body = re.sub(r"<!--.*?-->", "", why_match.group(1), flags=re.DOTALL)
+        why = " ".join(
+            line.strip()
+            for line in why_body.splitlines()
+            if line.strip()
+        )
+    return {
+        "goal": goal,
+        **({"why": why} if why else {}),
+        **({"source": source_match.group(1).strip()} if source_match else {}),
+    }
+
+
+def bootstrap_mission_decision(repo_root: Path, goal: str | None = None) -> dict[str, Any]:
+    """Create one honest baseline probe before domain-specific agent reasoning exists."""
+    init_runtime(repo_root)
+    existing = list_receipts(repo_root, "decision")
+    if existing:
+        raise RuntimeContractError(
+            f"mission already has a learning decision: {existing[-1]['id']}"
+        )
+    mission_goal = (goal or _mission_goal(repo_root)).strip()
+    if not mission_goal:
+        raise RuntimeContractError("mission goal must not be empty")
+    return record_decision(
+        repo_root,
+        {
+            "mode": "teach",
+            "target": "Locate your first useful frontier",
+            "concept_ids": ["mission-entry"],
+            "frontier_hypothesis": (
+                "The learner's current capability for this mission is unknown; "
+                "no prior-knowledge claim has been made."
+            ),
+            "evidence_used": [],
+            "uncertainty": "high",
+            "move": "probe",
+            "rationale": (
+                "A small representative attempt reveals a more useful starting point "
+                "than a confidence rating."
+            ),
+            "learner_action": (
+                "Give one concrete task that would demonstrate your goal, then make the "
+                "smallest honest attempt you can without looking anything up. Mark the "
+                "first point where you become unsure."
+            ),
+            "representation": {
+                "kind": "conversation",
+                "purpose": (
+                    "Collect a low-friction capability sample before building a roadmap."
+                ),
+            },
+            "expected_evidence": (
+                "A concrete task, visible prior reasoning, and the first uncertainty that "
+                "can shape the next teaching decision."
+            ),
+            "falsification_signal": (
+                "The response contains only a topic preference or confidence rating, so "
+                "the frontier remains unknown."
+            ),
+        },
+    )
+
+
 def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     receipt = _base("observation", data)
     decision_id = _required_string(data, "decision_id")
@@ -610,6 +709,7 @@ def pending_learner_turn(repo_root: Path) -> dict[str, Any] | None:
     observation = pending[-1]
     decision = load_receipt(repo_root, "decision", observation["decision_id"])
     return {
+        "mission": mission_context(repo_root),
         "decision": decision,
         "observation": observation,
         "learner_state": _current_state(repo_root),
@@ -1008,6 +1108,10 @@ def build_parser() -> argparse.ArgumentParser:
     respond_context = sub.add_parser("respond-context", help="record a response with artifact interaction context")
     respond_context.add_argument("decision_id")
     respond_context.add_argument("payload", help="response/context JSON file or - for stdin")
+    sub.add_parser(
+        "bootstrap-mission",
+        help="create the first baseline probe for an explicit mission",
+    )
     sub.add_parser("pending", help="print the newest learner response awaiting assessment")
     advance = sub.add_parser("advance", help="assess a response and issue the next learning move")
     advance.add_argument("decision_id")
@@ -1052,6 +1156,9 @@ def main(argv: list[str] | None = None) -> int:
                 _required_string(payload, "response"),
                 artifact_interaction=payload.get("artifact_interaction"),
             )
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "bootstrap-mission":
+            receipt = bootstrap_mission_decision(repo_root)
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "pending":
             print(json.dumps(pending_learner_turn(repo_root), ensure_ascii=False, indent=2))

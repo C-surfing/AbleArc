@@ -464,7 +464,7 @@ function slug(value: string, fallback: string): string {
   return cleaned || fallback;
 }
 
-function parseRoadmap(markdown: string | undefined, frontier: string, frontierState: MasteryState): RoadmapNode[] {
+function parseRoadmap(markdown: string | undefined): RoadmapNode[] {
   const rows = tableRows(section(markdown, "Nodes"));
   const nodes = rows
     .filter((cells) => cells[0])
@@ -478,11 +478,7 @@ function parseRoadmap(markdown: string | undefined, frontier: string, frontierSt
         : undefined,
       evidence: cells[5] || undefined,
     }));
-  if (nodes.length > 0) return nodes;
-  return [
-    { id: "frontier", label: frontier, state: frontierState, missionRelevance: "core" },
-    { id: "next", label: "Next dependency", state: "unknown", dependsOn: "frontier", missionRelevance: "core" },
-  ];
+  return nodes;
 }
 
 function parseEvidence(markdown: string | undefined): EvidenceItem[] {
@@ -594,7 +590,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
 
   const recordedFrontier = field(state, "Concept / capability");
   const awaitingFirstDecision = hasMission && !recordedFrontier && !decision;
-  const frontier = recordedFrontier || (awaitingFirstDecision ? "Mission saved" : "Current learning frontier");
+  const frontier = recordedFrontier || decision?.target || (awaitingFirstDecision ? "Mission saved" : "Current learning frontier");
   const markdownFrontierState = normalizeState(field(state, "State"));
   const structuredFrontier = structuredState?.concepts[slug(frontier, "frontier")]
     || Object.values(structuredState?.concepts || {}).find((item) => item.label.toLowerCase() === frontier.toLowerCase());
@@ -622,7 +618,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
       : "Learner action has not been specified yet."),
     nodes: awaitingFirstDecision
       ? []
-      : applyRuntimeState(parseRoadmap(roadmap, frontier, frontierState), structuredState),
+      : applyRuntimeState(parseRoadmap(roadmap), structuredState),
     evidence,
     misconceptions,
     reviewCandidates,

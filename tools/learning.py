@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Local workspace and longitudinal-evaluation helpers for ai4learning.
 
-This tool intentionally does not teach and does not infer learner state. It only
-scaffolds local files so the Teach/Study skills can remain natural-language
-first while real longitudinal evidence stays structured and private by default.
+This tool intentionally does not perform domain teaching or infer learner state.
+It scaffolds local files and can open one fixed baseline probe so the Teach/Study
+skills remain natural-language first while real evidence stays structured and
+private by default.
 """
 
 from __future__ import annotations
@@ -120,14 +121,17 @@ def start_learning_mission(repo_root: Path, goal: str, context: str = "") -> Pat
         raise LearningToolError(
             "mission already started; edit .learning/MISSION.md explicitly instead of overwriting it"
         )
+    if learning_runtime.list_receipts(repo_root, "decision"):
+        raise LearningToolError(
+            "cannot start a new mission while learning decisions already exist in this workspace"
+        )
 
     created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    why = context or "Not specified yet. The Teach agent may clarify this only if it changes the route."
+    why = context or "<!-- Not provided. Clarify only if it would change the learning route. -->"
     mission_path.write_text(
         "# Learning Mission\n\n"
         f"- Goal: {goal}\n"
         "- Source: learner-explicit\n"
-        "- Status: awaiting-first-decision\n"
         f"- Created at: {created_at}\n\n"
         "## Why this matters\n\n"
         f"{why}\n\n"
@@ -135,9 +139,10 @@ def start_learning_mission(repo_root: Path, goal: str, context: str = "") -> Pat
         "<!-- The Teach agent should make this observable with the learner; do not invent mastery. -->\n\n"
         "- [ ] To be established from the mission and first diagnostic evidence.\n\n"
         "## Current direction\n\n"
-        "Awaiting the first evidence-bearing teaching decision.\n",
+        "Start from real learner evidence; revise the route without silently redefining the goal.\n",
         encoding="utf-8",
     )
+    learning_runtime.bootstrap_mission_decision(repo_root, goal)
     return mission_path
 
 
@@ -348,7 +353,12 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
         if args.command == "start-mission":
             goal, context = read_mission_payload(args.input)
             path = start_learning_mission(root, goal, context)
-            print(json.dumps({"ok": True, "path": str(path.relative_to(root))}))
+            decision = learning_runtime.list_receipts(root, "decision")[-1]
+            print(json.dumps({
+                "ok": True,
+                "path": str(path.relative_to(root)),
+                "decision_id": decision["id"],
+            }))
             return 0
 
         if args.command == "start-arc":

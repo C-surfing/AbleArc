@@ -128,7 +128,7 @@ printf '%s' '{"goal":"Read an empirical ML paper and challenge its causal claims
   | python tools/learning.py start-mission -
 ```
 
-This succeeds only while `MISSION.md` is absent or still matches the untouched template. The Teach agent should consume the saved goal without asking the learner to repeat it, then create a small provisional map and first evidence-bearing Decision. Mission creation alone is not evidence of prior knowledge.
+This succeeds only while `MISSION.md` is absent or still matches the untouched template. It also creates a high-uncertainty `mission-entry` probe so the learner can make a representative attempt immediately. The Teach agent should consume that response without asking the learner to repeat the goal, then use it to create a small provisional map and the first domain-specific Decision. Mission creation alone is not evidence of prior knowledge.
 
 ## Running a v0.2 longitudinal arc
 
