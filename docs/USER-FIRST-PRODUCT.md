@@ -4,17 +4,19 @@
 
 ## The shortest complete path
 
-A learner should be able to complete this loop without understanding the runtime:
+A new learner should be able to enter this loop without understanding `.learning/`, the CLI, or runtime receipts:
 
 ```text
-open current mission
+state an observable capability goal
+  → save a learner-owned mission
+  → receive one evidence-bearing first move
   → understand where I am
   → perform one worthwhile cognitive action
   → know that my response was received
   → return to an adapted next move
 ```
 
-The Workspace must foreground the action, representation, and feedback. Decision IDs, receipt kinds, policy checks, and state revisions are inspectable implementation details, not navigation concepts.
+The Workspace must foreground the goal, action, representation, and feedback. Decision IDs, receipt kinds, policy checks, and state revisions are inspectable implementation details, not navigation concepts. Before the first Teach decision, it must show an honest empty state rather than fabricate a knowledge map or learner model.
 
 ## What we borrowed from open source
 
@@ -55,8 +57,10 @@ Default decisions:
 
 ## Current slice
 
+The zero-state Workspace now asks one primary question: what does the learner want to become able to do? It saves that answer as an explicit, local Mission. Optional context can shape the route, but success criteria and the first map remain provisional until a Teach agent has enough information. The onboarding path does not create evidence or make mastery claims.
+
 The user-facing runtime bridge activates the existing **Your move** surface. A learner can submit one response to the current structured decision. The response is stored locally as an observation and visibly acknowledged, but it is not auto-graded and does not auto-promote mastery.
 
 The agent-facing bridge now exposes the newest unanswered response and accepts one compact assessment + next-decision payload. It reuses the existing evidence, turn, and decision receipts; the Workspace joins those records into a learner-visible feedback card and unlocks the next move. A provider transport remains an adapter concern rather than a dependency of the learning runtime.
 
-The next product slice is a typed `LearningArtifact` payload and one renderer proven against a real concept. Do not expand the learner-state infrastructure first.
+The typed `LearningArtifact` path is deliberately narrow: one prediction-first frequency-tree renderer is available when it serves the chosen move. Add another renderer only when a real learning arc earns it.

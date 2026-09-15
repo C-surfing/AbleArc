@@ -86,6 +86,37 @@ class LearningToolTests(unittest.TestCase):
         self.assertTrue((arc / "sessions" / "001.md").is_file())
         self.assertIn("probability", (arc / "README.md").read_text(encoding="utf-8"))
 
+    def test_start_learning_mission_saves_explicit_goal_without_model_inference(self):
+        path = learning.start_learning_mission(
+            self.root,
+            "  Explain and apply Bayes in unfamiliar decisions.  ",
+            "I use probabilistic reasoning at work.",
+        )
+
+        content = path.read_text(encoding="utf-8")
+        self.assertIn("- Goal: Explain and apply Bayes in unfamiliar decisions.", content)
+        self.assertIn("- Source: learner-explicit", content)
+        self.assertIn("- Status: awaiting-first-decision", content)
+        self.assertIn("I use probabilistic reasoning at work.", content)
+        self.assertIn("Awaiting the first evidence-bearing teaching decision.", content)
+        self.assertNotIn("stable", content.lower())
+        self.assertTrue((self.root / ".learning" / "runtime" / "manifest.json").is_file())
+
+    def test_start_learning_mission_refuses_to_overwrite_existing_mission(self):
+        learning.start_learning_mission(self.root, "Learn causal inference")
+
+        with self.assertRaisesRegex(learning.LearningToolError, "already started"):
+            learning.start_learning_mission(self.root, "Replace the goal")
+
+    def test_start_learning_mission_validates_goal_and_context(self):
+        with self.assertRaisesRegex(learning.LearningToolError, "cannot be empty"):
+            learning.start_learning_mission(self.root, "  ")
+        with self.assertRaisesRegex(learning.LearningToolError, "at most"):
+            learning.start_learning_mission(
+                self.root,
+                "x" * (learning.MAX_MISSION_GOAL_LENGTH + 1),
+            )
+
     def test_start_arc_accepts_unicode_working_name(self):
         arc = learning.start_arc(self.root, "probability", "贝叶斯直觉")
         self.assertIn("贝叶斯直觉", arc.name)

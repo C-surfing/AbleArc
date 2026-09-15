@@ -34,6 +34,7 @@ interface RuntimeReceipt {
 
 const DEMO: WorkspaceSnapshot = {
   source: "demo",
+  hasMission: false,
   mission: "Build an intuitive, transferable understanding of Bayes rather than memorizing the formula.",
   learnerNote: "Basic conditional probability is usable; inverse-condition reasoning is still representation-dependent.",
   frontier: "Bayes / inverse conditional reasoning",
@@ -587,7 +588,13 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
 
   if (!state && !roadmap && !mission && !learner && !structuredState) return DEMO;
 
-  const frontier = field(state, "Concept / capability") || "Current learning frontier";
+  const missionGoal = field(mission, "Goal");
+  const hasMission = Boolean(missionGoal);
+  if (!hasMission && !decision && Object.keys(structuredState?.concepts || {}).length === 0) return DEMO;
+
+  const recordedFrontier = field(state, "Concept / capability");
+  const awaitingFirstDecision = hasMission && !recordedFrontier && !decision;
+  const frontier = recordedFrontier || (awaitingFirstDecision ? "Mission saved" : "Current learning frontier");
   const markdownFrontierState = normalizeState(field(state, "State"));
   const structuredFrontier = structuredState?.concepts[slug(frontier, "frontier")]
     || Object.values(structuredState?.concepts || {}).find((item) => item.label.toLowerCase() === frontier.toLowerCase());
@@ -599,14 +606,23 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
 
   return {
     source: "local",
-    mission: firstMeaningfulLine(mission, "Learning mission is being established."),
+    hasMission,
+    mission: missionGoal || firstMeaningfulLine(mission, "Learning mission is being established."),
     learnerNote: firstMeaningfulLine(learner, "Learner profile is intentionally sparse until evidence accumulates."),
     frontier,
     frontierState,
-    frontierReason: field(state, "Why this is the frontier") || "The current state file marks this as the active frontier.",
-    nextMove: decision?.rationale || field(state, "Move") || "Use the Teach/Study runtime to choose the next evidence-bearing cognitive move.",
-    expectedLearnerAction: decision?.learnerAction || field(state, "Learner action expected") || "Learner action has not been specified yet.",
-    nodes: applyRuntimeState(parseRoadmap(roadmap, frontier, frontierState), structuredState),
+    frontierReason: field(state, "Why this is the frontier") || (awaitingFirstDecision
+      ? "No learner model has been inferred. The first Teach turn should locate the nearest useful frontier."
+      : "The current state file marks this as the active frontier."),
+    nextMove: decision?.rationale || field(state, "Move") || (awaitingFirstDecision
+      ? "Let the Teach agent turn this mission into one short, decision-relevant first move."
+      : "Use the Teach/Study runtime to choose the next evidence-bearing cognitive move."),
+    expectedLearnerAction: decision?.learnerAction || field(state, "Learner action expected") || (awaitingFirstDecision
+      ? "Continue with a Teach agent that can read this workspace; it should not ask you to restate the goal."
+      : "Learner action has not been specified yet."),
+    nodes: awaitingFirstDecision
+      ? []
+      : applyRuntimeState(parseRoadmap(roadmap, frontier, frontierState), structuredState),
     evidence,
     misconceptions,
     reviewCandidates,

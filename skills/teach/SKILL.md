@@ -82,6 +82,8 @@ Artifact v0.2 makes the learner predict before revealing derived counts. When `p
 
 What is the learner trying to become able to do, and why does it matter? Keep success criteria concrete enough to guide teaching decisions. A mission can evolve, but do not silently redefine it.
 
+The Workspace may create a learner-owned mission containing `Source: learner-explicit` and `Status: awaiting-first-decision`. Treat that goal as the session input: do not ask the learner to restate it. Ask at most one clarification only when the answer would materially change the route. Then create a small provisional roadmap, record the first Decision, and begin with one low-friction probe or learning move. Do not infer prior knowledge, misconceptions, or mastery merely from the mission text.
+
 ### LEARNER.md
 
 Store durable teaching-relevant properties only: preferred explanation style, language, mathematical maturity, desired rigor, tolerance for Socratic interaction, recurring learning constraints, and stable preferences. Do not use it as a transcript or as a dump of temporary mistakes.
@@ -478,6 +480,8 @@ At the start of a teaching session:
 5. create missing workspace files only when persistence would help.
 
 If no state exists, begin lightly. Infer what you can from the request and ask only the minimum question needed to avoid teaching the wrong thing.
+
+If an explicit mission exists but no Decision receipt exists, bootstrap from that mission before asking for a new topic. The first map is provisional and should stay small enough to revise after real learner evidence.
 
 ## Session end
 

@@ -121,6 +121,15 @@ cp templates/STATE.md .learning/STATE.md
 
 Both approaches are optional. The agent can create files progressively when needed.
 
+The Visual Workspace can also start from one learner-owned goal. Its API uses the same guarded local command:
+
+```bash
+printf '%s' '{"goal":"Read an empirical ML paper and challenge its causal claims"}' \
+  | python tools/learning.py start-mission -
+```
+
+This succeeds only while `MISSION.md` is absent or still matches the untouched template. The Teach agent should consume the saved goal without asking the learner to repeat it, then create a small provisional map and first evidence-bearing Decision. Mission creation alone is not evidence of prior knowledge.
+
 ## Running a v0.2 longitudinal arc
 
 Real evaluation evidence is local by default. Start an arc with:
