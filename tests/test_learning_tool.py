@@ -45,8 +45,14 @@ class LearningToolTests(unittest.TestCase):
         (self.root / "tools" / "runtime.py").write_text("# runtime\n", encoding="utf-8")
         (self.root / "schemas").mkdir()
         (self.root / "schemas" / "runtime-v0.1.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "learning-artifact-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "docs").mkdir()
         (self.root / "docs" / "RUNTIME-CONTRACT.md").write_text("# Runtime\n", encoding="utf-8")
+        (self.root / "docs" / "LEARNING-ARTIFACTS.md").write_text("# Artifacts\n", encoding="utf-8")
+        (self.root / "examples" / "learning-artifacts").mkdir(parents=True)
+        (self.root / "examples" / "learning-artifacts" / "bayes-frequency-tree.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
 
         (self.root / ".gitignore").write_text(
             ".learning/\n.dogfooding/\n", encoding="utf-8"
@@ -60,6 +66,7 @@ class LearningToolTests(unittest.TestCase):
         self.assertGreaterEqual(len(created), 4)
         self.assertTrue((self.root / ".learning" / "runtime" / "manifest.json").is_file())
         self.assertTrue((self.root / ".learning" / "runtime" / "state.json").is_file())
+        self.assertTrue((self.root / ".learning" / "artifacts").is_dir())
 
         mission = self.root / ".learning" / "MISSION.md"
         mission.write_text("custom\n", encoding="utf-8")

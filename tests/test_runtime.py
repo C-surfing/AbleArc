@@ -78,6 +78,34 @@ class LearningRuntimeTests(unittest.TestCase):
             },
         }
 
+    def artifact_payload(self):
+        return {
+            "id": "art_bayes_frequency_tree",
+            "renderer": "frequency_tree_v1",
+            "title": "How the base rate changes a positive result",
+            "concept_ids": ["bayes-base-rate"],
+            "learning_goal": "See why a rarer condition lowers the posterior even when the test is accurate.",
+            "inference_prompt": "Move prevalence down. Which positive branch changes enough to move the posterior?",
+            "success_evidence": "The learner explains the posterior using both true and false positive populations.",
+            "authored_by": "teach-agent:test",
+            "payload": {
+                "population": 10000,
+                "prevalence": 0.01,
+                "sensitivity": 0.99,
+                "false_positive_rate": 0.05,
+                "prevalence_min": 0.001,
+                "prevalence_max": 0.1,
+                "prevalence_step": 0.001,
+                "labels": {
+                    "population": "people",
+                    "condition": "condition present",
+                    "complement": "condition absent",
+                    "positive": "true positive",
+                    "false_positive": "false positive",
+                },
+            },
+        }
+
     def evidence(
         self,
         *,
@@ -228,6 +256,62 @@ class LearningRuntimeTests(unittest.TestCase):
             item for item in runtime.list_receipts(self.root, "evidence")
             if item["observation_id"] == response["id"]
         ])
+
+    def test_typed_artifact_is_immutable_and_normalized_on_a_decision(self):
+        artifact = runtime.record_learning_artifact(self.root, self.artifact_payload())
+        payload = {
+            "mode": "teach",
+            "target": "Bayes base-rate reasoning",
+            "concept_ids": ["bayes-base-rate"],
+            "frontier_hypothesis": "The learner needs to manipulate prevalence.",
+            "evidence_used": [],
+            "uncertainty": "medium",
+            "move": "prediction",
+            "rationale": "Manipulation should expose the denominator mechanism.",
+            "learner_action": "Change prevalence and explain the posterior.",
+            "representation": {
+                "kind": "interactive_frequency_tree",
+                "purpose": "Make both positive populations visible.",
+                "artifact_ref": artifact["id"],
+            },
+            "expected_evidence": "The learner explains both branches.",
+            "falsification_signal": "The learner equates sensitivity with posterior.",
+        }
+        decision = runtime.record_decision(self.root, payload)
+
+        self.assertEqual(
+            decision["representation"]["artifact_ref"],
+            ".learning/artifacts/art_bayes_frequency_tree.json",
+        )
+        self.assertEqual(runtime.load_learning_artifact(self.root, decision["representation"]["artifact_ref"]), artifact)
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learning_artifact(self.root, self.artifact_payload())
+
+    def test_artifact_rejects_invalid_probability_semantics(self):
+        payload = self.artifact_payload()
+        payload["payload"]["prevalence"] = 0.5
+        payload["payload"]["prevalence_max"] = 0.1
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learning_artifact(self.root, payload)
+
+        payload = self.artifact_payload()
+        payload["payload"]["false_positive_rate"] = 1.2
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learning_artifact(self.root, payload)
+
+    def test_decision_rejects_artifact_from_another_concept(self):
+        payload = self.artifact_payload()
+        payload["concept_ids"] = ["unrelated-concept"]
+        artifact = runtime.record_learning_artifact(self.root, payload)
+        decision = self.decision()
+        decision_payload = {key: value for key, value in decision.items() if key not in {"schema_version", "kind", "id", "created_at"}}
+        decision_payload["representation"] = {
+            "kind": "interactive_frequency_tree",
+            "purpose": "Test an invalid cross-concept reference.",
+            "artifact_ref": artifact["id"],
+        }
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_decision(self.root, decision_payload)
 
     def test_single_immediate_answer_cannot_promote_developing_to_stable(self):
         self.promote_to_developing()

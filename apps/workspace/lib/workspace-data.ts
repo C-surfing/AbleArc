@@ -3,6 +3,7 @@ import path from "node:path";
 import type {
   DecisionTrace,
   EvidenceItem,
+  LearningArtifact,
   LearnerExchange,
   MasteryState,
   MisconceptionItem,
@@ -84,6 +85,31 @@ const DEMO: WorkspaceSnapshot = {
     { id: "s3", label: "Next · Transfer", detail: "Switch context and remove tree scaffold", kind: "transfer" },
   ],
   activeArc: "Probability · Bayes intuition",
+  artifact: {
+    id: "art_demo_bayes_frequency_tree",
+    renderer: "frequency_tree_v1",
+    title: "How the base rate changes a positive result",
+    conceptIds: ["bayes"],
+    learningGoal: "See why a rarer condition lowers the posterior even when the test remains accurate.",
+    inferencePrompt: "Move prevalence down. Which positive branch changes enough to move the posterior?",
+    successEvidence: "Explain the posterior using both true positives and false positives.",
+    payload: {
+      population: 10000,
+      prevalence: 0.01,
+      sensitivity: 0.99,
+      falsePositiveRate: 0.05,
+      prevalenceMin: 0.001,
+      prevalenceMax: 0.1,
+      prevalenceStep: 0.001,
+      labels: {
+        population: "people",
+        condition: "condition present",
+        complement: "condition absent",
+        positive: "true positive",
+        falsePositive: "false positive",
+      },
+    },
+  },
 };
 
 export function findRepoRoot(): string {
@@ -176,10 +202,78 @@ function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
       : "medium") as DecisionTrace["uncertainty"],
     representationKind: String(representation.kind || "conversation"),
     representationPurpose: String(representation.purpose || "Support the current cognitive move."),
+    artifactRef: typeof representation.artifact_ref === "string" ? representation.artifact_ref : undefined,
     evidenceCount: Array.isArray(item.evidence_used) ? item.evidence_used.length : 0,
     expectedEvidence: String(item.expected_evidence || "Evidence expectation not recorded."),
     falsificationSignal: String(item.falsification_signal || "Falsification signal not recorded."),
     hasLearnerResponse,
+  };
+}
+
+function runtimeArtifact(repoRoot: string, artifactRef: string | undefined): LearningArtifact | undefined {
+  if (!artifactRef?.startsWith(".learning/artifacts/")) return undefined;
+  const artifactRoot = path.resolve(repoRoot, ".learning", "artifacts");
+  const artifactPath = path.resolve(repoRoot, artifactRef);
+  if (path.dirname(artifactPath) !== artifactRoot || !/^art_[A-Za-z0-9][A-Za-z0-9_-]{2,127}\.json$/.test(path.basename(artifactPath))) {
+    return undefined;
+  }
+  const item = readJsonOptional<RuntimeReceipt>(artifactPath);
+  if (!item || item.kind !== "learning-artifact" || item.renderer !== "frequency_tree_v1") return undefined;
+  const payload = item.payload as Record<string, unknown> | undefined;
+  const labels = payload?.labels as Record<string, unknown> | undefined;
+  const numbers = [
+    payload?.population,
+    payload?.prevalence,
+    payload?.sensitivity,
+    payload?.false_positive_rate,
+    payload?.prevalence_min,
+    payload?.prevalence_max,
+    payload?.prevalence_step,
+  ];
+  if (!payload || !labels || numbers.some((value) => typeof value !== "number")) return undefined;
+  const population = Number(payload.population);
+  const prevalence = Number(payload.prevalence);
+  const sensitivity = Number(payload.sensitivity);
+  const falsePositiveRate = Number(payload.false_positive_rate);
+  const prevalenceMin = Number(payload.prevalence_min);
+  const prevalenceMax = Number(payload.prevalence_max);
+  const prevalenceStep = Number(payload.prevalence_step);
+  const probabilities = [prevalence, sensitivity, falsePositiveRate, prevalenceMin, prevalenceMax, prevalenceStep];
+  if (
+    !Number.isInteger(population)
+    || population < 100
+    || population > 1_000_000
+    || probabilities.some((value) => value < 0 || value > 1)
+    || prevalenceMin >= prevalenceMax
+    || prevalence < prevalenceMin
+    || prevalence > prevalenceMax
+    || prevalenceStep <= 0
+    || prevalenceStep > prevalenceMax - prevalenceMin
+  ) return undefined;
+  return {
+    id: item.id,
+    renderer: "frequency_tree_v1",
+    title: String(item.title || "Interactive frequency tree"),
+    conceptIds: Array.isArray(item.concept_ids) ? item.concept_ids.map(String) : [],
+    learningGoal: String(item.learning_goal || "Inspect how the populations change."),
+    inferencePrompt: String(item.inference_prompt || "Change one variable and explain what follows."),
+    successEvidence: String(item.success_evidence || "Explain the observed relationship."),
+    payload: {
+      population,
+      prevalence,
+      sensitivity,
+      falsePositiveRate,
+      prevalenceMin,
+      prevalenceMax,
+      prevalenceStep,
+      labels: {
+        population: String(labels.population || "population"),
+        condition: String(labels.condition || "condition present"),
+        complement: String(labels.complement || "condition absent"),
+        positive: String(labels.positive || "true positive"),
+        falsePositive: String(labels.false_positive || "false positive"),
+      },
+    },
   };
 }
 
@@ -450,6 +544,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const structuredState = readJsonOptional<RuntimeState>(path.join(runtimeRoot, "state.json"));
   const structuredEvidence = runtimeEvidence(runtimeRoot);
   const decision = runtimeDecision(runtimeRoot);
+  const artifact = runtimeArtifact(repoRoot, decision?.artifactRef);
   const latestExchange = runtimeLearnerExchange(runtimeRoot);
   const latestStateDecision = runtimeStateDecision(runtimeRoot);
   const structuredTimeline = runtimeTimeline(runtimeRoot);
@@ -483,6 +578,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     activeArc: timeline.activeArc,
     runtimeRevision: structuredState?.revision,
     decision,
+    artifact,
     latestExchange,
     latestStateDecision,
   };

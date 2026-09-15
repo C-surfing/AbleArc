@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1",
+  "kind": "learning-artifact",
+  "id": "art_bayes_frequency_tree",
+  "created_at": "2026-09-15T00:00:00Z",
+  "renderer": "frequency_tree_v1",
+  "title": "How the base rate changes a positive result",
+  "concept_ids": ["bayes-base-rate"],
+  "learning_goal": "See why a rarer condition lowers the posterior even when the test remains accurate.",
+  "inference_prompt": "Move prevalence down. Which positive branch changes enough to move the posterior?",
+  "success_evidence": "The learner explains the posterior using both true-positive and false-positive populations.",
+  "authored_by": "teach-agent:example",
+  "payload": {
+    "population": 10000,
+    "prevalence": 0.01,
+    "sensitivity": 0.99,
+    "false_positive_rate": 0.05,
+    "prevalence_min": 0.001,
+    "prevalence_max": 0.1,
+    "prevalence_step": 0.001,
+    "labels": {
+      "population": "people",
+      "condition": "condition present",
+      "complement": "condition absent",
+      "positive": "true positive",
+      "false_positive": "false positive"
+    }
+  }
+}

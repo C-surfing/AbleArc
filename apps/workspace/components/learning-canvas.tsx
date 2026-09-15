@@ -2,41 +2,98 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { WorkspaceSnapshot } from "@/lib/types";
+import type { FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
-type Representation = "structure" | "evidence" | "contrast" | "flow";
+type Representation = "artifact" | "structure" | "evidence" | "contrast" | "flow";
 
 const representationLabels: Record<Representation, string> = {
+  artifact: "Interactive",
   structure: "Structure",
   evidence: "Evidence",
   contrast: "Contrast",
   flow: "Flow",
 };
 
-function BayesFrequencyTree() {
+function FrequencyTreeArtifactView({ artifact }: { artifact: FrequencyTreeArtifact }) {
+  const model = artifact.payload;
+  const [prevalence, setPrevalence] = useState(model.prevalence);
+  const conditionCount = model.population * prevalence;
+  const complementCount = model.population - conditionCount;
+  const truePositiveCount = conditionCount * model.sensitivity;
+  const falsePositiveCount = complementCount * model.falsePositiveRate;
+  const positiveCount = truePositiveCount + falsePositiveCount;
+  const posterior = positiveCount === 0 ? 0 : truePositiveCount / positiveCount;
+  const number = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+  const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
+
   return (
-    <div className="frequency-tree" aria-label="Bayes frequency tree example">
-      <div className="frequency-tree__root">10,000 people</div>
-      <div className="frequency-tree__branches">
+    <div className="artifact" aria-label={artifact.title}>
+      <header className="artifact__header">
         <div>
-          <span className="tree-label">Disease · 100</span>
-          <span className="tree-result">Positive · 99</span>
+          <span className="section-kicker">Interactive learning artifact</span>
+          <h3>{artifact.title}</h3>
         </div>
+        <span className="artifact__type">frequency tree</span>
+      </header>
+      <p className="artifact__goal">{artifact.learningGoal}</p>
+
+      <label className="artifact-control" htmlFor={`prevalence-${artifact.id}`}>
         <div>
-          <span className="tree-label">No disease · 9,900</span>
-          <span className="tree-result">False positive · 495</span>
+          <span>Base rate / prevalence</span>
+          <strong>{percent.format(prevalence)}</strong>
+        </div>
+        <input
+          id={`prevalence-${artifact.id}`}
+          type="range"
+          min={model.prevalenceMin}
+          max={model.prevalenceMax}
+          step={model.prevalenceStep}
+          value={prevalence}
+          onChange={(event) => setPrevalence(Number(event.target.value))}
+        />
+      </label>
+
+      <div className="artifact-population">
+        <div className="artifact-population__root">
+          <span>Reference population</span>
+          <strong>{number.format(model.population)} {model.labels.population}</strong>
+        </div>
+        <div className="artifact-branches">
+          <div>
+            <span>{model.labels.condition}</span>
+            <strong>{number.format(conditionCount)}</strong>
+            <small>{percent.format(model.sensitivity)} sensitivity → {number.format(truePositiveCount)} {model.labels.positive}</small>
+          </div>
+          <div>
+            <span>{model.labels.complement}</span>
+            <strong>{number.format(complementCount)}</strong>
+            <small>{percent.format(model.falsePositiveRate)} false-positive rate → {number.format(falsePositiveCount)} {model.labels.falsePositive}</small>
+          </div>
         </div>
       </div>
-      <div className="frequency-tree__inference">
-        posterior = 99 / (99 + 495) ≈ <strong>16.7%</strong>
+
+      <div className="artifact-result">
+        <div>
+          <span>positive results</span>
+          <strong>{number.format(truePositiveCount)} + {number.format(falsePositiveCount)}</strong>
+        </div>
+        <div className="artifact-result__posterior">
+          <span>posterior after a positive result</span>
+          <strong>{percent.format(posterior)}</strong>
+        </div>
+      </div>
+
+      <div className="artifact-prompt">
+        <span>Now infer</span>
+        <p>{artifact.inferencePrompt}</p>
+        <small>Evidence target: {artifact.successEvidence}</small>
       </div>
     </div>
   );
 }
 
 function StructureView({ snapshot }: { snapshot: WorkspaceSnapshot }) {
-  if (snapshot.source === "demo") return <BayesFrequencyTree />;
   return (
     <div className="structure-strip">
       {snapshot.nodes.slice(0, 5).map((node, index) => (
@@ -107,7 +164,7 @@ function FlowView({ snapshot }: { snapshot: WorkspaceSnapshot }) {
 
 export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot; mode: Mode }) {
   const router = useRouter();
-  const [representation, setRepresentation] = useState<Representation>("structure");
+  const [representation, setRepresentation] = useState<Representation>(snapshot.artifact ? "artifact" : "structure");
   const [response, setResponse] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
@@ -117,6 +174,14 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
     setResponse("");
     setSubmitError(undefined);
   }, [snapshot.decision?.id, snapshot.decision?.hasLearnerResponse]);
+  useEffect(() => {
+    setRepresentation(snapshot.artifact ? "artifact" : "structure");
+  }, [snapshot.artifact?.id]);
+  const availableRepresentations = useMemo<Representation[]>(() => (
+    snapshot.artifact
+      ? ["artifact", "structure", "evidence", "contrast", "flow"]
+      : ["structure", "evidence", "contrast", "flow"]
+  ), [snapshot.artifact]);
   const modeCopy = useMemo(() => {
     if (mode === "Study") return "Retrieve first. Repair only what fails, then apply or transfer.";
     if (mode === "Map") return "Inspect the dependency hypothesis without turning the graph into a progress score.";
@@ -220,7 +285,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             <strong>Use the view that exposes the relation</strong>
           </div>
           <div className="segmented-control" role="tablist" aria-label="Representation switcher">
-            {(Object.keys(representationLabels) as Representation[]).map((key) => (
+            {availableRepresentations.map((key) => (
               <button
                 key={key}
                 type="button"
@@ -235,6 +300,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           </div>
         </div>
         <div className="representation-stage">
+          {representation === "artifact" && snapshot.artifact ? <FrequencyTreeArtifactView artifact={snapshot.artifact} /> : null}
           {representation === "structure" ? <StructureView snapshot={snapshot} /> : null}
           {representation === "evidence" ? <EvidenceView snapshot={snapshot} /> : null}
           {representation === "contrast" ? <ContrastView snapshot={snapshot} /> : null}
