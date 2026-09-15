@@ -209,6 +209,7 @@ def doctor(repo_root: Path) -> list[str]:
         "tools/runtime.py",
         "schemas/runtime-v0.1.json",
         "schemas/learning-artifact-v0.1.json",
+        "schemas/learning-artifact-v0.2.json",
         "docs/RUNTIME-CONTRACT.md",
         "docs/LEARNING-ARTIFACTS.md",
         "examples/learning-artifacts/bayes-frequency-tree.json",

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
+import type { ArtifactInteraction, FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 type Representation = "artifact" | "structure" | "evidence" | "contrast" | "flow";
@@ -15,9 +15,16 @@ const representationLabels: Record<Representation, string> = {
   flow: "Flow",
 };
 
-function FrequencyTreeArtifactView({ artifact }: { artifact: FrequencyTreeArtifact }) {
+function FrequencyTreeArtifactView({
+  artifact,
+  onInteractionChange,
+}: {
+  artifact: FrequencyTreeArtifact;
+  onInteractionChange: (interaction: ArtifactInteraction) => void;
+}) {
   const model = artifact.payload;
   const [prevalence, setPrevalence] = useState(model.prevalence);
+  const [predictionId, setPredictionId] = useState<string>();
   const conditionCount = model.population * prevalence;
   const complementCount = model.population - conditionCount;
   const truePositiveCount = conditionCount * model.sensitivity;
@@ -26,6 +33,28 @@ function FrequencyTreeArtifactView({ artifact }: { artifact: FrequencyTreeArtifa
   const posterior = positiveCount === 0 ? 0 : truePositiveCount / positiveCount;
   const number = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
   const percent = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
+
+  function commitPrediction(optionId: string) {
+    setPredictionId(optionId);
+    onInteractionChange({
+      artifactId: artifact.id,
+      predictionId: optionId,
+      initialPrevalence: model.prevalence,
+      finalPrevalence: prevalence,
+    });
+  }
+
+  function changePrevalence(value: number) {
+    setPrevalence(value);
+    if (predictionId) {
+      onInteractionChange({
+        artifactId: artifact.id,
+        predictionId,
+        initialPrevalence: model.prevalence,
+        finalPrevalence: value,
+      });
+    }
+  }
 
   return (
     <div className="artifact" aria-label={artifact.title}>
@@ -38,57 +67,84 @@ function FrequencyTreeArtifactView({ artifact }: { artifact: FrequencyTreeArtifa
       </header>
       <p className="artifact__goal">{artifact.learningGoal}</p>
 
-      <label className="artifact-control" htmlFor={`prevalence-${artifact.id}`}>
-        <div>
-          <span>Base rate / prevalence</span>
-          <strong>{percent.format(prevalence)}</strong>
+      <section className="artifact-prediction" aria-labelledby={`prediction-${artifact.id}`}>
+        <span>Predict before reveal</span>
+        <p id={`prediction-${artifact.id}`}>{artifact.prediction.prompt}</p>
+        <div className="artifact-prediction__options">
+          {artifact.prediction.options.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={predictionId === option.id}
+              className={predictionId === option.id ? "is-selected" : ""}
+              onClick={() => commitPrediction(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
-        <input
-          id={`prevalence-${artifact.id}`}
-          type="range"
-          min={model.prevalenceMin}
-          max={model.prevalenceMax}
-          step={model.prevalenceStep}
-          value={prevalence}
-          onChange={(event) => setPrevalence(Number(event.target.value))}
-        />
-      </label>
+      </section>
 
-      <div className="artifact-population">
-        <div className="artifact-population__root">
-          <span>Reference population</span>
-          <strong>{number.format(model.population)} {model.labels.population}</strong>
-        </div>
-        <div className="artifact-branches">
-          <div>
-            <span>{model.labels.condition}</span>
-            <strong>{number.format(conditionCount)}</strong>
-            <small>{percent.format(model.sensitivity)} sensitivity → {number.format(truePositiveCount)} {model.labels.positive}</small>
+      {predictionId ? (
+        <>
+          <label className="artifact-control" htmlFor={`prevalence-${artifact.id}`}>
+            <div>
+              <span>Base rate / prevalence</span>
+              <strong>{percent.format(prevalence)}</strong>
+            </div>
+            <input
+              id={`prevalence-${artifact.id}`}
+              type="range"
+              min={model.prevalenceMin}
+              max={model.prevalenceMax}
+              step={model.prevalenceStep}
+              value={prevalence}
+              onChange={(event) => changePrevalence(Number(event.target.value))}
+            />
+          </label>
+
+          <div className="artifact-population" aria-live="polite">
+            <div className="artifact-population__root">
+              <span>Reference population</span>
+              <strong>{number.format(model.population)} {model.labels.population}</strong>
+            </div>
+            <div className="artifact-branches">
+              <div>
+                <span>{model.labels.condition}</span>
+                <strong>{number.format(conditionCount)}</strong>
+                <small>{percent.format(model.sensitivity)} sensitivity → {number.format(truePositiveCount)} {model.labels.positive}</small>
+              </div>
+              <div>
+                <span>{model.labels.complement}</span>
+                <strong>{number.format(complementCount)}</strong>
+                <small>{percent.format(model.falsePositiveRate)} false-positive rate → {number.format(falsePositiveCount)} {model.labels.falsePositive}</small>
+              </div>
+            </div>
           </div>
-          <div>
-            <span>{model.labels.complement}</span>
-            <strong>{number.format(complementCount)}</strong>
-            <small>{percent.format(model.falsePositiveRate)} false-positive rate → {number.format(falsePositiveCount)} {model.labels.falsePositive}</small>
+
+          <div className="artifact-result">
+            <div>
+              <span>positive results</span>
+              <strong>{number.format(truePositiveCount)} + {number.format(falsePositiveCount)}</strong>
+            </div>
+            <div className="artifact-result__posterior">
+              <span>posterior after a positive result</span>
+              <strong>{percent.format(posterior)}</strong>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div className="artifact-result">
-        <div>
-          <span>positive results</span>
-          <strong>{number.format(truePositiveCount)} + {number.format(falsePositiveCount)}</strong>
+          <div className="artifact-prompt">
+            <span>Now infer</span>
+            <p>{artifact.inferencePrompt}</p>
+            <small>Evidence target: {artifact.successEvidence}</small>
+          </div>
+        </>
+      ) : (
+        <div className="artifact-locked">
+          <strong>Commit a prediction to unlock the population.</strong>
+          <span>Your choice is context for the tutor, not an automatic grade.</span>
         </div>
-        <div className="artifact-result__posterior">
-          <span>posterior after a positive result</span>
-          <strong>{percent.format(posterior)}</strong>
-        </div>
-      </div>
-
-      <div className="artifact-prompt">
-        <span>Now infer</span>
-        <p>{artifact.inferencePrompt}</p>
-        <small>Evidence target: {artifact.successEvidence}</small>
-      </div>
+      )}
     </div>
   );
 }
@@ -169,10 +225,12 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
   const [submitError, setSubmitError] = useState<string>();
+  const [artifactInteraction, setArtifactInteraction] = useState<ArtifactInteraction>();
   useEffect(() => {
     setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
     setResponse("");
     setSubmitError(undefined);
+    setArtifactInteraction(undefined);
   }, [snapshot.decision?.id, snapshot.decision?.hasLearnerResponse]);
   useEffect(() => {
     setRepresentation(snapshot.artifact ? "artifact" : "structure");
@@ -191,14 +249,20 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
 
   async function submitLearnerResponse(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!snapshot.decision || !response.trim() || isSubmitting || submitted) return;
+    if (
+      !snapshot.decision
+      || !response.trim()
+      || isSubmitting
+      || submitted
+      || (snapshot.artifact && !artifactInteraction)
+    ) return;
     setIsSubmitting(true);
     setSubmitError(undefined);
     try {
       const result = await fetch("/api/learning/respond", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ decisionId: snapshot.decision.id, response }),
+        body: JSON.stringify({ decisionId: snapshot.decision.id, response, artifactInteraction }),
       });
       const payload = await result.json() as { error?: string };
       if (!result.ok) throw new Error(payload.error || "Could not save your response.");
@@ -300,7 +364,13 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           </div>
         </div>
         <div className="representation-stage">
-          {representation === "artifact" && snapshot.artifact ? <FrequencyTreeArtifactView artifact={snapshot.artifact} /> : null}
+          {representation === "artifact" && snapshot.artifact ? (
+            <FrequencyTreeArtifactView
+              key={snapshot.artifact.id}
+              artifact={snapshot.artifact}
+              onInteractionChange={setArtifactInteraction}
+            />
+          ) : null}
           {representation === "structure" ? <StructureView snapshot={snapshot} /> : null}
           {representation === "evidence" ? <EvidenceView snapshot={snapshot} /> : null}
           {representation === "contrast" ? <ContrastView snapshot={snapshot} /> : null}
@@ -333,6 +403,8 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             {submitError
               || (submitted
                 ? "Saved locally · awaiting assessment"
+                : snapshot.artifact && !artifactInteraction
+                  ? "Commit a prediction in the artifact before submitting"
                 : "Your response stays in the local learning workspace")}
           </span>
           <div className="composer-actions">
@@ -343,9 +415,15 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             ) : null}
             <button
               type="submit"
-              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting}
+              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting || Boolean(snapshot.artifact && !artifactInteraction)}
             >
-              {isSubmitting ? "Saving…" : submitted ? "Response saved" : "Submit thinking"}
+              {isSubmitting
+                ? "Saving…"
+                : submitted
+                  ? "Response saved"
+                  : snapshot.artifact && !artifactInteraction
+                    ? "Predict first"
+                    : "Submit thinking"}
             </button>
           </div>
         </div>

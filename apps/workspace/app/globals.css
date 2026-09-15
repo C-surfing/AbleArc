@@ -625,6 +625,75 @@ button {
   line-height: 1.55;
 }
 
+.artifact-prediction {
+  display: grid;
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px solid rgba(87, 85, 217, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.artifact-prediction > span {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.artifact-prediction p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.artifact-prediction__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.artifact-prediction__options button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.artifact-prediction__options button:hover,
+.artifact-prediction__options button.is-selected {
+  border-color: rgba(87, 85, 217, 0.42);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.artifact-locked {
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  min-height: 130px;
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: rgba(245, 245, 241, 0.68);
+  text-align: center;
+}
+
+.artifact-locked strong {
+  font-size: 11px;
+}
+
+.artifact-locked span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
 .artifact-control {
   display: grid;
   gap: 8px;

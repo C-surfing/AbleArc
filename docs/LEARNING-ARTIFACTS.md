@@ -18,7 +18,7 @@ learner state + current evidence
 
 The first renderer is deliberately narrow: `frequency_tree_v1`.
 
-It lets a learner vary prevalence while population size, sensitivity, and false-positive rate remain explicit. The Workspace derives true positives, false positives, total positive results, and the posterior. The renderer never grades the learner; the resulting explanation still enters through **Your move** and the normal evidence loop.
+It first asks the learner to commit a directional prediction while the derived counts remain hidden. Only then can the learner vary prevalence while population size, sensitivity, and false-positive rate remain explicit. The Workspace derives true positives, false positives, total positive results, and the posterior. The renderer never grades the prediction; the resulting explanation still enters through **Your move** and the normal evidence loop.
 
 This slice tests three product claims:
 
@@ -26,9 +26,11 @@ This slice tests three product claims:
 2. the learner can manipulate the relation the current decision is testing;
 3. the same artifact remains portable across Agents because its semantics are data, not framework-specific markup.
 
+When the explanation is submitted, the Observation also records the artifact ID, selected prediction, initial prevalence, and final explored prevalence. The Runtime validates these values against the Decision's immutable artifact before writing. This gives the assessor useful context without treating slider movement as mastery evidence.
+
 ## Contract
 
-The canonical schema is [`../schemas/learning-artifact-v0.1.json`](../schemas/learning-artifact-v0.1.json). A complete example is [`../examples/learning-artifacts/bayes-frequency-tree.json`](../examples/learning-artifacts/bayes-frequency-tree.json).
+The current schema is [`../schemas/learning-artifact-v0.2.json`](../schemas/learning-artifact-v0.2.json). v0.2 adds a prediction commitment before reveal; the runtime and Workspace continue to load [`v0.1`](../schemas/learning-artifact-v0.1.json) artifacts with a safe frequency-tree default. A complete v0.2 example is [`../examples/learning-artifacts/bayes-frequency-tree.json`](../examples/learning-artifacts/bayes-frequency-tree.json).
 
 Create an artifact locally:
 
@@ -54,6 +56,7 @@ The runtime normalizes the reference to `.learning/artifacts/<id>.json`, verifie
 ## Product boundary
 
 - Artifacts are stored under `.learning/artifacts/`; they are not receipts and cannot promote mastery.
+- v0.2 requires prediction-before-reveal; existing v0.1 frequency trees receive the same safe default at read time and are never rewritten.
 - The renderer accepts data only. It does not execute Agent-authored HTML or JavaScript.
 - Invalid probability values, inconsistent prevalence ranges, unknown renderers, unsafe references, and cross-concept attachments are rejected.
 - When no supported artifact is available, the Workspace keeps its existing structure/evidence/contrast/flow views.

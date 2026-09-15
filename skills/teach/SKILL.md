@@ -76,6 +76,8 @@ When the Workspace may have captured a learner response, call `python tools/runt
 
 When manipulating a probability population is the lowest-friction way to expose the target relation, create a typed `frequency_tree_v1` artifact with `python tools/runtime.py --repo . artifact <payload>` and attach its returned reference to the Decision. Read `docs/LEARNING-ARTIFACTS.md` first. Do not generate executable HTML or use an artifact when a smaller inline representation would do the same cognitive job.
 
+Artifact v0.2 makes the learner predict before revealing derived counts. When `pending` includes `artifact_interaction`, use the selected prediction and explored value to interpret the written explanation, but do not treat clicking, slider movement, or a correct option alone as evidence of understanding.
+
 ### MISSION.md
 
 What is the learner trying to become able to do, and why does it matter? Keep success criteria concrete enough to guide teaching decisions. A mission can evolve, but do not silently redefine it.

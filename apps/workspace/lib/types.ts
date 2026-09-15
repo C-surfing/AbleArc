@@ -74,6 +74,10 @@ export interface FrequencyTreeArtifact {
   learningGoal: string;
   inferencePrompt: string;
   successEvidence: string;
+  prediction: {
+    prompt: string;
+    options: Array<{ id: string; label: string }>;
+  };
   payload: {
     population: number;
     prevalence: number;
@@ -93,6 +97,13 @@ export interface FrequencyTreeArtifact {
 }
 
 export type LearningArtifact = FrequencyTreeArtifact;
+
+export interface ArtifactInteraction {
+  artifactId: string;
+  predictionId: string;
+  initialPrevalence: number;
+  finalPrevalence: number;
+}
 
 export interface StateDecisionTrace {
   id: string;

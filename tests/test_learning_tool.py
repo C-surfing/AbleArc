@@ -46,6 +46,7 @@ class LearningToolTests(unittest.TestCase):
         (self.root / "schemas").mkdir()
         (self.root / "schemas" / "runtime-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.1.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "learning-artifact-v0.2.json").write_text("{}\n", encoding="utf-8")
         (self.root / "docs").mkdir()
         (self.root / "docs" / "RUNTIME-CONTRACT.md").write_text("# Runtime\n", encoding="utf-8")
         (self.root / "docs" / "LEARNING-ARTIFACTS.md").write_text("# Artifacts\n", encoding="utf-8")

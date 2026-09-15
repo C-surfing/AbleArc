@@ -96,6 +96,8 @@ python tools/runtime.py --repo . respond dec_example -
 
 The response is read from stdin, inherits its concept IDs and expected action from the decision, and becomes one local observation. This is the same path used by the Workspace; the learner never supplies receipt metadata.
 
+For a typed interactive artifact, the Workspace uses `respond-context`. Its JSON payload contains the response plus the learner's prediction and explored parameter range. The runtime checks that the artifact belongs to the Decision, the prediction is one of its declared options, and the values are inside its semantic range before adding `artifact_interaction` to the Observation. Interaction context informs assessment but is not automatically Evidence.
+
 Read the next response awaiting assessment:
 
 ```bash

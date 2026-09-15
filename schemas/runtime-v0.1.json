@@ -74,7 +74,17 @@
             "learner_action": { "type": "string", "minLength": 1 },
             "observed_result": { "type": "string", "minLength": 1 },
             "source": { "enum": ["learner", "tool", "assessor"] },
-            "excerpt": { "type": "string", "minLength": 1 }
+            "excerpt": { "type": "string", "minLength": 1 },
+            "artifact_interaction": {
+              "type": "object",
+              "required": ["artifact_id", "prediction_id", "initial_prevalence", "final_prevalence"],
+              "properties": {
+                "artifact_id": { "type": "string", "pattern": "^art_" },
+                "prediction_id": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,31}$" },
+                "initial_prevalence": { "type": "number", "minimum": 0, "maximum": 1 },
+                "final_prevalence": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
           }
         }
       ]
