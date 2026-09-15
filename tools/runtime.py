@@ -19,6 +19,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+try:
+    from tools import project_store
+except ImportError:  # Direct execution: python tools/runtime.py
+    import project_store
+
 SCHEMA_VERSION = "0.1"
 ARTIFACT_SCHEMA_VERSION = "0.2"
 SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
@@ -83,8 +88,18 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _project_context(repo_root: Path) -> project_store.ProjectContext | None:
+    if project_store.detect_layout(repo_root) == project_store.LAYOUT_UNINITIALIZED:
+        return None
+    try:
+        return project_store.resolve_project_context(repo_root)
+    except project_store.ProjectStoreError as exc:
+        raise RuntimeContractError(f"cannot resolve active learning project: {exc}") from exc
+
+
 def _runtime_root(repo_root: Path) -> Path:
-    return repo_root / ".learning" / "runtime"
+    context = _project_context(repo_root)
+    return context.runtime_root if context else repo_root / ".learning" / "runtime"
 
 
 def _receipt_root(repo_root: Path, kind: str) -> Path:
@@ -100,7 +115,8 @@ def _state_path(repo_root: Path) -> Path:
 
 
 def _artifact_root(repo_root: Path) -> Path:
-    return repo_root / ".learning" / "artifacts"
+    context = _project_context(repo_root)
+    return context.artifacts_root if context else repo_root / ".learning" / "artifacts"
 
 
 def _new_id(kind: str) -> str:
@@ -460,7 +476,10 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _mission_markdown(repo_root: Path) -> str:
-    path = repo_root / ".learning" / "MISSION.md"
+    context = _project_context(repo_root)
+    path = context.mission_markdown_path if context else repo_root / ".learning" / "MISSION.md"
+    if path is None:
+        raise RuntimeContractError("no learner mission is available to bootstrap")
     try:
         return path.read_text(encoding="utf-8")
     except OSError as exc:

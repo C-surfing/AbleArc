@@ -10,16 +10,20 @@ private by default.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 try:
     from tools import runtime as learning_runtime
+    from tools import project_store
 except ImportError:  # Direct execution: python tools/learning.py
     import runtime as learning_runtime
+    import project_store
 
 TEMPLATE_FILES = ("MISSION.md", "LEARNER.md", "ROADMAP.md", "STATE.md")
 DOMAIN_FILES = {
@@ -77,6 +81,20 @@ def copy_without_overwrite(src: Path, dst: Path) -> bool:
 
 def init_learning(repo_root: Path) -> list[Path]:
     """Initialize human projections and the structured runtime without overwrites."""
+    if project_store.detect_layout(repo_root) == project_store.LAYOUT_WORKSPACE:
+        context = project_store.resolve_project_context(repo_root)
+        created: list[Path] = []
+        for directory in (
+            context.materials_root,
+            context.records_root,
+            context.references_root,
+        ):
+            if not directory.exists():
+                directory.mkdir(parents=True)
+                created.append(directory)
+        created.extend(learning_runtime.init_runtime(repo_root))
+        return created
+
     templates = repo_root / "templates"
     learning = repo_root / ".learning"
     learning.mkdir(parents=True, exist_ok=True)
@@ -100,6 +118,10 @@ def _single_line(value: str) -> str:
 
 def start_learning_mission(repo_root: Path, goal: str, context: str = "") -> Path:
     """Save one explicit learner-owned mission without inferring a learner model."""
+    if project_store.detect_layout(repo_root) == project_store.LAYOUT_WORKSPACE:
+        raise LearningToolError(
+            "workspace-v0.2 requires the project-aware mission lifecycle; the legacy start command will not write root state"
+        )
     goal = _single_line(goal)
     context = _single_line(context)
     if not goal:
@@ -144,6 +166,303 @@ def start_learning_mission(repo_root: Path, goal: str, context: str = "") -> Pat
     )
     learning_runtime.bootstrap_mission_decision(repo_root, goal)
     return mission_path
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _write_json_atomic(path: Path, value: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def _portable_local_id(value: str, prefix: str) -> str:
+    """Derive an ASCII manifest ID while preserving Unicode in display fields."""
+    pieces: list[str] = []
+    pending_dash = False
+    for char in value.strip().lower():
+        if char.isascii() and char.isalnum():
+            if pending_dash and pieces:
+                pieces.append("-")
+            pieces.append(char)
+            pending_dash = False
+        else:
+            pending_dash = True
+    result = "".join(pieces).strip("-")[:64].rstrip("-")
+    if not result:
+        digest = hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
+        result = f"{prefix}-{digest}"
+    return project_store.validate_local_id(result, f"{prefix}_id")
+
+
+def _section_text(markdown: str, heading: str) -> str:
+    match = re.search(
+        rf"^##\s+{re.escape(heading)}\s*$\s*(.*?)(?=^##\s+|\Z)",
+        markdown,
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return ""
+    body = re.sub(r"<!--.*?-->", "", match.group(1), flags=re.DOTALL)
+    return " ".join(
+        line.strip().lstrip("-* ")
+        for line in body.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ).strip()
+
+
+def _legacy_mission_metadata(mission_path: Path) -> tuple[str, str, str]:
+    try:
+        markdown = mission_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise LearningToolError("legacy MISSION.md is required for migration") from exc
+    goal_match = re.search(r"^-\s*Goal:\s*(.+)$", markdown, flags=re.IGNORECASE | re.MULTILINE)
+    goal = goal_match.group(1).strip() if goal_match else _section_text(
+        markdown, "I want to become able to"
+    )
+    if not goal:
+        raise LearningToolError("legacy MISSION.md must contain an explicit learner goal")
+    why = _section_text(markdown, "Why this matters")
+    source_match = re.search(r"^-\s*Source:\s*(.+)$", markdown, flags=re.IGNORECASE | re.MULTILINE)
+    source = source_match.group(1).strip() if source_match else "imported"
+    if source not in ("learner-explicit", "agent-assisted", "imported"):
+        source = "imported"
+    return _single_line(goal)[:MAX_MISSION_GOAL_LENGTH], _single_line(why)[:MAX_MISSION_CONTEXT_LENGTH], source
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _copy_checked(
+    source: Path,
+    destination: Path,
+    copied: list[dict[str, str]],
+    learning_root: Path,
+    project_root: Path,
+) -> None:
+    if source.is_symlink():
+        raise LearningToolError(f"migration refuses symbolic link: {source.relative_to(learning_root)}")
+    if source.is_dir():
+        for child in source.rglob("*"):
+            if child.is_symlink():
+                raise LearningToolError(
+                    f"migration refuses symbolic link: {child.relative_to(learning_root)}"
+                )
+        shutil.copytree(source, destination)
+        pairs = [
+            (child, destination / child.relative_to(source))
+            for child in source.rglob("*")
+            if child.is_file()
+        ]
+    elif source.is_file():
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        pairs = [(source, destination)]
+    else:
+        return
+
+    for original, copied_path in pairs:
+        original_hash = _sha256(original)
+        if original_hash != _sha256(copied_path):
+            raise LearningToolError(f"checksum mismatch while copying {original.name}")
+        copied.append(
+            {
+                "source": original.relative_to(learning_root).as_posix(),
+                "destination": copied_path.relative_to(project_root).as_posix(),
+                "sha256": original_hash,
+            }
+        )
+
+
+def migrate_legacy_workspace(
+    repo_root: Path,
+    *,
+    project_title: str | None = None,
+    project_id: str | None = None,
+    mission_id: str | None = None,
+    runtime_verifier=None,
+) -> dict:
+    """Copy v0.1 state into v0.2 paths and activate only after verification."""
+    repo_root = repo_root.resolve()
+    layout = project_store.detect_layout(repo_root)
+    if layout == project_store.LAYOUT_WORKSPACE:
+        active = project_store.resolve_project_context(repo_root)
+        return {
+            "status": "already_activated",
+            "workspace_id": active.workspace_id,
+            "project_id": active.project_id,
+            "mission_id": active.mission_id,
+        }
+    if layout != project_store.LAYOUT_LEGACY:
+        raise LearningToolError("only an initialized legacy-v0.1 workspace can be migrated")
+
+    learning_root = repo_root / ".learning"
+    goal, why, source = _legacy_mission_metadata(learning_root / "MISSION.md")
+    title = _single_line(project_title or goal)[:200]
+    if not title:
+        raise LearningToolError("project title cannot be empty")
+    try:
+        selected_project_id = (
+            project_store.validate_local_id(project_id, "project_id")
+            if project_id
+            else _portable_local_id(title, "project")
+        )
+        selected_mission_id = (
+            project_store.validate_local_id(mission_id, "mission_id")
+            if mission_id
+            else "primary-mission"
+        )
+    except project_store.ProjectStoreError as exc:
+        raise LearningToolError(str(exc)) from exc
+
+    learning_runtime.init_runtime(repo_root)
+    migration_id = f"mig_{uuid.uuid4().hex[:16]}"
+    workspace_id = f"ws_{uuid.uuid4().hex[:16]}"
+    projects_root = learning_root / "projects"
+    migrations_root = learning_root / "migrations"
+    for managed_root in (projects_root, migrations_root):
+        if managed_root.is_symlink():
+            raise LearningToolError(
+                f"migration refuses symbolic link: {managed_root.relative_to(learning_root)}"
+            )
+    projects_root.mkdir(exist_ok=True)
+    target_root = projects_root / selected_project_id
+    if target_root.exists():
+        raise LearningToolError(f"migration target already exists: projects/{selected_project_id}")
+    staging_root = projects_root / f".migrating-{migration_id}"
+    failed_root = migrations_root / "failed" / migration_id
+    report_path = migrations_root / f"{migration_id}.json"
+    workspace_path = learning_root / "workspace.json"
+    copied: list[dict[str, str]] = []
+    timestamp = _now()
+
+    try:
+        staging_root.mkdir(parents=True)
+        destinations = {
+            "MISSION.md": staging_root / "missions" / selected_mission_id / "MISSION.md",
+            "ROADMAP.md": staging_root / "map" / "ROADMAP.md",
+            "STATE.md": staging_root / "STATE.md",
+            "records": staging_root / "records",
+            "references": staging_root / "references",
+            "artifacts": staging_root / "artifacts",
+            "runtime": staging_root / "runtime",
+        }
+        for name, destination in destinations.items():
+            _copy_checked(learning_root / name, destination, copied, learning_root, staging_root)
+        for directory in (
+            staging_root / "materials",
+            staging_root / "records",
+            staging_root / "references",
+            staging_root / "artifacts",
+        ):
+            directory.mkdir(parents=True, exist_ok=True)
+
+        mission_root = staging_root / "missions" / selected_mission_id
+        _write_json_atomic(
+            mission_root / "mission.json",
+            {
+                "schema_version": "0.2",
+                "id": selected_mission_id,
+                "project_id": selected_project_id,
+                "status": "active",
+                "goal": goal,
+                "why": why,
+                "source": source,
+                "criteria": [],
+                "created_at": timestamp,
+                "updated_at": timestamp,
+            },
+        )
+        _write_json_atomic(
+            staging_root / "project.json",
+            {
+                "schema_version": "0.2",
+                "id": selected_project_id,
+                "title": title,
+                "status": "active",
+                "active_mission_id": selected_mission_id,
+                "maintenance_status": "none",
+                "created_at": timestamp,
+                "updated_at": timestamp,
+                "archived_at": None,
+            },
+        )
+        staging_root.replace(target_root)
+
+        report = {
+            "schema_version": "0.2",
+            "id": migration_id,
+            "status": "prepared",
+            "source_layout": "legacy-v0.1",
+            "target_layout": "workspace-v0.2",
+            "workspace_id": workspace_id,
+            "project_id": selected_project_id,
+            "mission_id": selected_mission_id,
+            "created_at": timestamp,
+            "updated_at": timestamp,
+            "copied_files": copied,
+            "legacy_source_retained": True,
+        }
+        _write_json_atomic(report_path, report)
+        _write_json_atomic(
+            workspace_path,
+            {
+                "schema_version": "0.2",
+                "id": workspace_id,
+                "active_project_id": selected_project_id,
+                "onboarding": {"intro_seen": True},
+                "created_at": timestamp,
+                "updated_at": timestamp,
+            },
+        )
+
+        verifier = runtime_verifier or learning_runtime.verify_runtime
+        problems = verifier(repo_root)
+        if problems:
+            raise LearningToolError("migrated runtime verification failed: " + "; ".join(problems))
+        active = project_store.resolve_project_context(repo_root)
+        if active.project_id != selected_project_id or active.mission_id != selected_mission_id:
+            raise LearningToolError("activated project context does not match the migration target")
+
+        report["status"] = "activated"
+        report["updated_at"] = _now()
+        _write_json_atomic(report_path, report)
+        return report
+    except Exception as exc:
+        failed_root.mkdir(parents=True, exist_ok=True)
+        if workspace_path.exists():
+            workspace_path.replace(failed_root / "workspace.json")
+        if target_root.exists():
+            target_root.replace(failed_root / selected_project_id)
+        elif staging_root.exists():
+            staging_root.replace(failed_root / selected_project_id)
+        failure_report = {
+            "schema_version": "0.2",
+            "id": migration_id,
+            "status": "failed",
+            "source_layout": "legacy-v0.1",
+            "target_layout": "workspace-v0.2",
+            "workspace_id": workspace_id,
+            "project_id": selected_project_id,
+            "mission_id": selected_mission_id,
+            "created_at": timestamp,
+            "updated_at": _now(),
+            "error": str(exc),
+            "recovery_copy": failed_root.relative_to(learning_root).as_posix(),
+            "legacy_source_retained": True,
+        }
+        _write_json_atomic(report_path, failure_report)
+        if isinstance(exc, LearningToolError):
+            raise
+        raise LearningToolError(f"workspace migration failed safely: {exc}") from exc
 
 
 def read_mission_payload(value: str) -> tuple[str, str]:
@@ -320,6 +639,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("init", help="create missing .learning/ files from templates")
 
+    migrate = sub.add_parser(
+        "migrate-workspace",
+        help="copy a legacy v0.1 workspace into verified v0.2 project storage",
+    )
+    migrate.add_argument("--project-title", help="display title; defaults to the Mission goal")
+    migrate.add_argument("--project-id", help="optional safe ASCII project ID")
+    migrate.add_argument("--mission-id", help="optional safe ASCII mission ID")
+
     mission = sub.add_parser(
         "start-mission",
         help="save an explicit learner goal from a JSON file or stdin",
@@ -365,6 +692,16 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             }))
             return 0
 
+        if args.command == "migrate-workspace":
+            result = migrate_legacy_workspace(
+                root,
+                project_title=args.project_title,
+                project_id=args.project_id,
+                mission_id=args.mission_id,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+
         if args.command == "start-arc":
             init_learning(root)
             arc_dir = start_arc(root, args.domain, args.name)
@@ -385,7 +722,10 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             for arc in arcs:
                 sessions = len(list((arc / "sessions").glob("[0-9][0-9][0-9].md")))
                 print(f"  {arc.name}: {sessions} session record(s)")
-            runtime_root = learning / "runtime"
+            try:
+                runtime_root = project_store.resolve_project_context(root).runtime_root
+            except project_store.ProjectStoreError:
+                runtime_root = learning / "runtime"
             print(f"Structured runtime: {'present' if runtime_root.is_dir() else 'not initialized'}")
             if runtime_root.is_dir():
                 for kind in learning_runtime.RECEIPT_DIRS:
