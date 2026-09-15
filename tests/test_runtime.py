@@ -88,6 +88,14 @@ class LearningRuntimeTests(unittest.TestCase):
             "inference_prompt": "Move prevalence down. Which positive branch changes enough to move the posterior?",
             "success_evidence": "The learner explains the posterior using both true and false positive populations.",
             "authored_by": "teach-agent:test",
+            "prediction": {
+                "prompt": "If prevalence falls, what happens to the posterior?",
+                "options": [
+                    {"id": "falls", "label": "It falls"},
+                    {"id": "stays", "label": "It stays the same"},
+                    {"id": "rises", "label": "It rises"},
+                ],
+            },
             "payload": {
                 "population": 10000,
                 "prevalence": 0.01,
@@ -295,6 +303,28 @@ class LearningRuntimeTests(unittest.TestCase):
             runtime.record_learning_artifact(self.root, payload)
 
         payload = self.artifact_payload()
+        payload["prediction"]["options"][1]["id"] = "falls"
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learning_artifact(self.root, payload)
+
+    def test_legacy_v01_artifact_gets_prediction_compatibility_without_rewrite(self):
+        legacy = self.artifact_payload()
+        legacy.pop("prediction")
+        legacy.update({
+            "schema_version": "0.1",
+            "kind": "learning-artifact",
+            "created_at": "2026-09-15T00:00:00Z",
+        })
+        path = self.root / ".learning" / "artifacts" / "art_bayes_frequency_tree.json"
+        runtime._write_json(path, legacy, immutable=True)
+
+        loaded = runtime.load_learning_artifact(self.root, "art_bayes_frequency_tree")
+
+        self.assertEqual(loaded["schema_version"], "0.1")
+        self.assertEqual(loaded["prediction"]["options"][0]["id"], "falls")
+        self.assertNotIn("prediction", runtime._read_json(path))
+
+        payload = self.artifact_payload()
         payload["payload"]["false_positive_rate"] = 1.2
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.record_learning_artifact(self.root, payload)
@@ -312,6 +342,81 @@ class LearningRuntimeTests(unittest.TestCase):
         }
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.record_decision(self.root, decision_payload)
+
+    def test_artifact_interaction_is_validated_and_preserved_on_the_observation(self):
+        artifact = runtime.record_learning_artifact(self.root, self.artifact_payload())
+        decision_payload = {
+            "mode": "teach",
+            "target": "Bayes base-rate reasoning",
+            "concept_ids": ["bayes-base-rate"],
+            "frontier_hypothesis": "The learner should predict before inspecting the counts.",
+            "evidence_used": [],
+            "uncertainty": "medium",
+            "move": "prediction",
+            "rationale": "Prediction makes the representation diagnostic rather than passive.",
+            "learner_action": "Predict, manipulate prevalence, and explain the posterior.",
+            "representation": {
+                "kind": "interactive_frequency_tree",
+                "purpose": "Expose the competing positive populations.",
+                "artifact_ref": artifact["id"],
+            },
+            "expected_evidence": "The learner explains why the posterior falls.",
+            "falsification_signal": "The learner equates sensitivity with posterior.",
+        }
+        decision = runtime.record_decision(self.root, decision_payload)
+        interaction = {
+            "artifact_id": artifact["id"],
+            "prediction_id": "falls",
+            "initial_prevalence": 0.01,
+            "final_prevalence": 0.002,
+        }
+
+        observation = runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "The true-positive branch shrank relative to false positives.",
+            artifact_interaction=interaction,
+        )
+
+        self.assertEqual(observation["artifact_interaction"], interaction)
+        pending = runtime.pending_learner_turn(self.root)
+        self.assertEqual(pending["observation"]["artifact_interaction"]["prediction_id"], "falls")
+
+    def test_invalid_artifact_interaction_is_rejected_before_observation_write(self):
+        artifact = runtime.record_learning_artifact(self.root, self.artifact_payload())
+        decision_payload = {
+            "mode": "teach",
+            "target": "Bayes base-rate reasoning",
+            "concept_ids": ["bayes-base-rate"],
+            "frontier_hypothesis": "The learner should predict before inspecting the counts.",
+            "evidence_used": [],
+            "uncertainty": "medium",
+            "move": "prediction",
+            "rationale": "Prediction makes the representation diagnostic.",
+            "learner_action": "Predict and explain.",
+            "representation": {
+                "kind": "interactive_frequency_tree",
+                "purpose": "Expose competing populations.",
+                "artifact_ref": artifact["id"],
+            },
+            "expected_evidence": "The learner explains the posterior.",
+            "falsification_signal": "The learner ignores false positives.",
+        }
+        decision = runtime.record_decision(self.root, decision_payload)
+
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learner_response(
+                self.root,
+                decision["id"],
+                "An answer that must not be persisted.",
+                artifact_interaction={
+                    "artifact_id": artifact["id"],
+                    "prediction_id": "not-an-option",
+                    "initial_prevalence": 0.01,
+                    "final_prevalence": 0.002,
+                },
+            )
+        self.assertFalse(runtime.list_receipts(self.root, "observation"))
 
     def test_single_immediate_answer_cannot_promote_developing_to_stable(self):
         self.promote_to_developing()

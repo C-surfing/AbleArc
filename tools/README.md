@@ -53,6 +53,8 @@ python tools/runtime.py --repo . artifact examples/learning-artifacts/bayes-freq
 
 The returned `artifact_ref` can be attached to a Decision representation. Artifacts live outside the receipt ledger and never update learner state.
 
+The Workspace uses the companion `respond-context` command when a learner submits from an artifact. It preserves the committed prediction and final explored value on the Observation after validating them against the artifact. Agents receive this context through `pending`; they must still judge the learner's explanation rather than infer mastery from interaction telemetry.
+
 ## Start a real longitudinal arc
 
 ```bash

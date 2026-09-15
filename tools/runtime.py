@@ -20,7 +20,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 SCHEMA_VERSION = "0.1"
-ARTIFACT_SCHEMA_VERSION = "0.1"
+ARTIFACT_SCHEMA_VERSION = "0.2"
+SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
 MOVE_TYPES = (
@@ -60,6 +61,18 @@ ID_PREFIXES = {
 }
 ID_PATTERN = re.compile(r"^[a-z]+_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 ARTIFACT_ID_PATTERN = re.compile(r"^art_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
+OPTION_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_-]{0,31}$")
+
+
+def _default_frequency_prediction() -> dict[str, Any]:
+    return {
+        "prompt": "Before revealing the counts: if prevalence falls while the test stays the same, what happens to the posterior after a positive result?",
+        "options": [
+            {"id": "falls", "label": "It falls"},
+            {"id": "stays", "label": "It stays the same"},
+            {"id": "rises", "label": "It rises"},
+        ],
+    }
 
 
 class RuntimeContractError(RuntimeError):
@@ -275,6 +288,22 @@ def record_learning_artifact(repo_root: Path, data: dict[str, Any]) -> dict[str,
     labels = payload.get("labels")
     if not isinstance(labels, dict):
         raise RuntimeContractError("artifact payload labels must be an object")
+    prediction = data.get("prediction")
+    if not isinstance(prediction, dict):
+        raise RuntimeContractError("artifact prediction must be an object")
+    options = prediction.get("options")
+    if not isinstance(options, list) or not 2 <= len(options) <= 5:
+        raise RuntimeContractError("artifact prediction must contain between two and five options")
+    normalized_options: list[dict[str, str]] = []
+    option_ids: set[str] = set()
+    for option in options:
+        if not isinstance(option, dict):
+            raise RuntimeContractError("each prediction option must be an object")
+        option_id = _required_string(option, "id")
+        if not OPTION_ID_PATTERN.fullmatch(option_id) or option_id in option_ids:
+            raise RuntimeContractError("prediction option ids must be unique lowercase identifiers")
+        option_ids.add(option_id)
+        normalized_options.append({"id": option_id, "label": _required_string(option, "label")})
     created_at = data.get("created_at") or _now()
     if not isinstance(created_at, str) or not created_at.strip():
         raise RuntimeContractError("artifact created_at must be a non-empty ISO-8601 string")
@@ -290,6 +319,10 @@ def record_learning_artifact(repo_root: Path, data: dict[str, Any]) -> dict[str,
         "inference_prompt": _required_string(data, "inference_prompt"),
         "success_evidence": _required_string(data, "success_evidence"),
         "authored_by": _required_string(data, "authored_by"),
+        "prediction": {
+            "prompt": _required_string(prediction, "prompt"),
+            "options": normalized_options,
+        },
         "payload": {
             "population": population,
             "prevalence": prevalence,
@@ -323,7 +356,8 @@ def load_learning_artifact(repo_root: Path, artifact_ref: str) -> dict[str, Any]
     if not path.is_file():
         raise RuntimeContractError(f"unknown learning artifact: {name}")
     artifact = _read_json(path)
-    if artifact.get("schema_version") != ARTIFACT_SCHEMA_VERSION or artifact.get("kind") != "learning-artifact":
+    version = artifact.get("schema_version")
+    if version not in SUPPORTED_ARTIFACT_SCHEMA_VERSIONS or artifact.get("kind") != "learning-artifact":
         raise RuntimeContractError(f"unsupported learning artifact: {name}")
     if artifact.get("id") != name:
         raise RuntimeContractError(f"learning artifact id/path mismatch: {name}")
@@ -335,6 +369,25 @@ def load_learning_artifact(repo_root: Path, artifact_ref: str) -> dict[str, Any]
     _required_string(artifact, "inference_prompt")
     _required_string(artifact, "success_evidence")
     _required_string(artifact, "authored_by")
+    prediction = artifact.get("prediction")
+    if version == "0.1" and prediction is None:
+        artifact = {**artifact, "prediction": _default_frequency_prediction()}
+        prediction = artifact["prediction"]
+    if not isinstance(prediction, dict):
+        raise RuntimeContractError("artifact prediction must be an object")
+    _required_string(prediction, "prompt")
+    options = prediction.get("options")
+    if not isinstance(options, list) or not 2 <= len(options) <= 5:
+        raise RuntimeContractError("artifact prediction must contain between two and five options")
+    option_ids: set[str] = set()
+    for option in options:
+        if not isinstance(option, dict):
+            raise RuntimeContractError("each prediction option must be an object")
+        option_id = _required_string(option, "id")
+        if not OPTION_ID_PATTERN.fullmatch(option_id) or option_id in option_ids:
+            raise RuntimeContractError("prediction option ids must be unique lowercase identifiers")
+        option_ids.add(option_id)
+        _required_string(option, "label")
     payload = artifact.get("payload")
     if not isinstance(payload, dict):
         raise RuntimeContractError("artifact payload must be an object")
@@ -409,7 +462,7 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
 def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     receipt = _base("observation", data)
     decision_id = _required_string(data, "decision_id")
-    load_receipt(repo_root, "decision", decision_id)
+    decision = load_receipt(repo_root, "decision", decision_id)
     receipt.update(
         {
             "decision_id": decision_id,
@@ -422,7 +475,44 @@ def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     excerpt = _optional_string(data, "excerpt")
     if excerpt:
         receipt["excerpt"] = excerpt
+    interaction = data.get("artifact_interaction")
+    if interaction is not None:
+        receipt["artifact_interaction"] = _validate_artifact_interaction(repo_root, decision, interaction)
     return _save(repo_root, "observation", receipt)
+
+
+def _validate_artifact_interaction(
+    repo_root: Path,
+    decision: dict[str, Any],
+    interaction: Any,
+) -> dict[str, Any]:
+    if not isinstance(interaction, dict):
+        raise RuntimeContractError("artifact_interaction must be an object")
+    representation = decision.get("representation")
+    artifact_ref = representation.get("artifact_ref") if isinstance(representation, dict) else None
+    if not isinstance(artifact_ref, str):
+        raise RuntimeContractError("decision does not have an interactive learning artifact")
+    artifact = load_learning_artifact(repo_root, artifact_ref)
+    artifact_id = _required_string(interaction, "artifact_id")
+    if artifact_id != artifact["id"]:
+        raise RuntimeContractError("artifact_interaction does not match the decision artifact")
+    prediction_id = _required_string(interaction, "prediction_id")
+    valid_options = {item["id"] for item in artifact["prediction"]["options"]}
+    if prediction_id not in valid_options:
+        raise RuntimeContractError("artifact_interaction prediction_id is not an available option")
+    initial_prevalence = _probability(interaction, "initial_prevalence")
+    final_prevalence = _probability(interaction, "final_prevalence")
+    payload = artifact["payload"]
+    if abs(initial_prevalence - payload["prevalence"]) > 1e-9:
+        raise RuntimeContractError("artifact_interaction initial_prevalence does not match the artifact")
+    if not payload["prevalence_min"] <= final_prevalence <= payload["prevalence_max"]:
+        raise RuntimeContractError("artifact_interaction final_prevalence is outside the artifact range")
+    return {
+        "artifact_id": artifact_id,
+        "prediction_id": prediction_id,
+        "initial_prevalence": initial_prevalence,
+        "final_prevalence": final_prevalence,
+    }
 
 
 def record_learner_response(
@@ -430,6 +520,7 @@ def record_learner_response(
     decision_id: str,
     response: str,
     *,
+    artifact_interaction: dict[str, Any] | None = None,
     receipt_id: str | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
@@ -457,6 +548,7 @@ def record_learner_response(
             "learner_action": decision["learner_action"],
             "observed_result": response,
             "source": "learner",
+            **({"artifact_interaction": artifact_interaction} if artifact_interaction is not None else {}),
         },
     )
 
@@ -913,6 +1005,9 @@ def build_parser() -> argparse.ArgumentParser:
     respond = sub.add_parser("respond", help="record one learner response to a decision")
     respond.add_argument("decision_id")
     respond.add_argument("response", help="response text or - for stdin")
+    respond_context = sub.add_parser("respond-context", help="record a response with artifact interaction context")
+    respond_context.add_argument("decision_id")
+    respond_context.add_argument("payload", help="response/context JSON file or - for stdin")
     sub.add_parser("pending", help="print the newest learner response awaiting assessment")
     advance = sub.add_parser("advance", help="assess a response and issue the next learning move")
     advance.add_argument("decision_id")
@@ -948,6 +1043,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "respond":
             response = sys.stdin.read() if args.response == "-" else args.response
             receipt = record_learner_response(repo_root, args.decision_id, response)
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "respond-context":
+            payload = _load_payload(args.payload)
+            receipt = record_learner_response(
+                repo_root,
+                args.decision_id,
+                _required_string(payload, "response"),
+                artifact_interaction=payload.get("artifact_interaction"),
+            )
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "pending":
             print(json.dumps(pending_learner_turn(repo_root), ensure_ascii=False, indent=2))

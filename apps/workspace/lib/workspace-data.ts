@@ -93,6 +93,14 @@ const DEMO: WorkspaceSnapshot = {
     learningGoal: "See why a rarer condition lowers the posterior even when the test remains accurate.",
     inferencePrompt: "Move prevalence down. Which positive branch changes enough to move the posterior?",
     successEvidence: "Explain the posterior using both true positives and false positives.",
+    prediction: {
+      prompt: "Before revealing the counts: if prevalence falls while the test stays the same, what happens to the posterior after a positive result?",
+      options: [
+        { id: "falls", label: "It falls" },
+        { id: "stays", label: "It stays the same" },
+        { id: "rises", label: "It rises" },
+      ],
+    },
     payload: {
       population: 10000,
       prevalence: 0.01,
@@ -221,6 +229,16 @@ function runtimeArtifact(repoRoot: string, artifactRef: string | undefined): Lea
   if (!item || item.kind !== "learning-artifact" || item.renderer !== "frequency_tree_v1") return undefined;
   const payload = item.payload as Record<string, unknown> | undefined;
   const labels = payload?.labels as Record<string, unknown> | undefined;
+  const legacyPrediction = {
+    prompt: "Before revealing the counts: if prevalence falls while the test stays the same, what happens to the posterior after a positive result?",
+    options: [
+      { id: "falls", label: "It falls" },
+      { id: "stays", label: "It stays the same" },
+      { id: "rises", label: "It rises" },
+    ],
+  };
+  const prediction = (item.prediction || (item.schema_version === "0.1" ? legacyPrediction : undefined)) as Record<string, unknown> | undefined;
+  const options = Array.isArray(prediction?.options) ? prediction.options : [];
   const numbers = [
     payload?.population,
     payload?.prevalence,
@@ -230,7 +248,18 @@ function runtimeArtifact(repoRoot: string, artifactRef: string | undefined): Lea
     payload?.prevalence_max,
     payload?.prevalence_step,
   ];
-  if (!payload || !labels || numbers.some((value) => typeof value !== "number")) return undefined;
+  if (
+    !payload
+    || !labels
+    || typeof prediction?.prompt !== "string"
+    || options.length < 2
+    || options.length > 5
+    || options.some((option) => {
+      const value = option as Record<string, unknown>;
+      return typeof value.id !== "string" || typeof value.label !== "string";
+    })
+    || numbers.some((value) => typeof value !== "number")
+  ) return undefined;
   const population = Number(payload.population);
   const prevalence = Number(payload.prevalence);
   const sensitivity = Number(payload.sensitivity);
@@ -258,6 +287,13 @@ function runtimeArtifact(repoRoot: string, artifactRef: string | undefined): Lea
     learningGoal: String(item.learning_goal || "Inspect how the populations change."),
     inferencePrompt: String(item.inference_prompt || "Change one variable and explain what follows."),
     successEvidence: String(item.success_evidence || "Explain the observed relationship."),
+    prediction: {
+      prompt: prediction.prompt,
+      options: options.map((option) => {
+        const value = option as Record<string, unknown>;
+        return { id: String(value.id), label: String(value.label) };
+      }),
+    },
     payload: {
       population,
       prevalence,

@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "kind": "learning-artifact",
   "id": "art_bayes_frequency_tree",
   "created_at": "2026-09-15T00:00:00Z",
@@ -10,6 +10,14 @@
   "inference_prompt": "Move prevalence down. Which positive branch changes enough to move the posterior?",
   "success_evidence": "The learner explains the posterior using both true-positive and false-positive populations.",
   "authored_by": "teach-agent:example",
+  "prediction": {
+    "prompt": "Before revealing the counts: if prevalence falls while the test stays the same, what happens to the posterior after a positive result?",
+    "options": [
+      { "id": "falls", "label": "It falls" },
+      { "id": "stays", "label": "It stays the same" },
+      { "id": "rises", "label": "It rises" }
+    ]
+  },
   "payload": {
     "population": 10000,
     "prevalence": 0.01,

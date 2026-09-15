@@ -39,6 +39,7 @@ Implemented:
 - automatic composer reset when an evidence-grounded next decision arrives;
 - agent inbox/advance CLI bridge without provider coupling;
 - typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;
+- prediction-before-reveal and validated interaction context on the learner Observation;
 - demo fallback for design review.
 
 Not implemented yet:
