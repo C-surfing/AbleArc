@@ -57,7 +57,7 @@ Default decisions:
 
 ## Current slice
 
-The zero-state Workspace now asks one primary question: what does the learner want to become able to do? It saves that answer as an explicit, local Mission. Optional context can shape the route, but success criteria and the first map remain provisional until a Teach agent has enough information. The onboarding path does not create evidence or make mastery claims.
+The zero-state Workspace now asks one primary question: what does the learner want to become able to do? It saves that answer as an explicit, local Mission and immediately offers one fixed baseline action: name a representative task, make the smallest honest attempt, and mark the first uncertainty. This is deliberately more informative than a confidence rating while remaining domain-neutral. The map stays empty until a Teach agent interprets real learner behavior. Onboarding creates no evidence or mastery claim by itself.
 
 The user-facing runtime bridge activates the existing **Your move** surface. A learner can submit one response to the current structured decision. The response is stored locally as an observation and visibly acknowledged, but it is not auto-graded and does not auto-promote mastery.
 

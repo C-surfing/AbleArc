@@ -96,11 +96,31 @@ class LearningToolTests(unittest.TestCase):
         content = path.read_text(encoding="utf-8")
         self.assertIn("- Goal: Explain and apply Bayes in unfamiliar decisions.", content)
         self.assertIn("- Source: learner-explicit", content)
-        self.assertIn("- Status: awaiting-first-decision", content)
         self.assertIn("I use probabilistic reasoning at work.", content)
-        self.assertIn("Awaiting the first evidence-bearing teaching decision.", content)
+        self.assertIn("Start from real learner evidence", content)
         self.assertNotIn("stable", content.lower())
         self.assertTrue((self.root / ".learning" / "runtime" / "manifest.json").is_file())
+        decisions = learning.learning_runtime.list_receipts(self.root, "decision")
+        self.assertEqual(len(decisions), 1)
+        self.assertEqual(decisions[0]["concept_ids"], ["mission-entry"])
+        self.assertEqual(decisions[0]["move"], "probe")
+        self.assertEqual(decisions[0]["uncertainty"], "high")
+        self.assertEqual(decisions[0]["evidence_used"], [])
+        response = learning.learning_runtime.record_learner_response(
+            self.root,
+            decisions[0]["id"],
+            "I would start by comparing the claim with the study design, but I am unsure how to test confounding.",
+        )
+        pending = learning.learning_runtime.pending_learner_turn(self.root)
+        self.assertEqual(pending["observation"]["id"], response["id"])
+        self.assertEqual(
+            pending["mission"]["goal"],
+            "Explain and apply Bayes in unfamiliar decisions.",
+        )
+        self.assertEqual(
+            pending["mission"]["why"],
+            "I use probabilistic reasoning at work.",
+        )
 
     def test_start_learning_mission_refuses_to_overwrite_existing_mission(self):
         learning.start_learning_mission(self.root, "Learn causal inference")

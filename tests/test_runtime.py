@@ -193,6 +193,83 @@ class LearningRuntimeTests(unittest.TestCase):
         self.assertEqual(runtime.init_runtime(self.root), [])
         self.assertEqual(state_path.read_text(encoding="utf-8"), original)
 
+    def test_bootstrap_mission_creates_an_honest_actionable_probe(self):
+        decision = runtime.bootstrap_mission_decision(
+            self.root,
+            "Read an empirical ML paper and challenge its causal claims",
+        )
+
+        self.assertEqual(decision["move"], "probe")
+        self.assertEqual(decision["concept_ids"], ["mission-entry"])
+        self.assertEqual(decision["uncertainty"], "high")
+        self.assertEqual(decision["evidence_used"], [])
+        self.assertIn("unknown", decision["frontier_hypothesis"])
+        self.assertEqual(runtime._current_state(self.root)["concepts"], {})
+
+        with self.assertRaisesRegex(runtime.RuntimeContractError, "already has"):
+            runtime.bootstrap_mission_decision(self.root, "A replacement mission")
+
+    def test_bootstrap_mission_can_read_the_explicit_goal_from_markdown(self):
+        learning = self.root / ".learning"
+        learning.mkdir(exist_ok=True)
+        (learning / "MISSION.md").write_text(
+            "# Learning Mission\n\n- Goal: Derive backpropagation from the chain rule\n",
+            encoding="utf-8",
+        )
+
+        decision = runtime.bootstrap_mission_decision(self.root)
+
+        self.assertEqual(decision["target"], "Locate your first useful frontier")
+        self.assertIn("representative attempt", decision["rationale"])
+        self.assertNotIn("why", runtime.mission_context(self.root))
+
+    def test_bootstrap_response_can_ground_the_first_domain_specific_move(self):
+        decision = runtime.bootstrap_mission_decision(self.root, "Challenge causal claims")
+        runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "I can inspect controls, but I am unsure how hidden confounding changes the claim.",
+        )
+        result = runtime.advance_learning_turn(
+            self.root,
+            decision["id"],
+            {
+                "assessment": {
+                    "level": "recognition",
+                    "outcome": "inconclusive",
+                    "result_summary": "The starting point is located; no domain mastery is inferred yet.",
+                    "scaffolding": "none",
+                    "context": "same",
+                    "delay": "immediate",
+                    "independence": "same_form",
+                    "supports": ["frontier located around hidden confounding"],
+                    "contradicts": [],
+                    "confidence": "medium",
+                    "assessor": "teach-agent:test",
+                },
+                "next_decision": {
+                    "concept_ids": ["hidden-confounding"],
+                    "target": "Hidden confounding",
+                    "frontier_hypothesis": "The learner recognizes controls but cannot yet test an omitted common cause.",
+                    "uncertainty": "medium",
+                    "move": "contrast",
+                    "rationale": "A matched causal contrast can expose what observed controls cannot rule out.",
+                    "learner_action": "Compare two causal diagrams and identify which claim is not identified.",
+                    "representation": {
+                        "kind": "causal_diagram",
+                        "purpose": "Make the hidden common cause inspectable.",
+                    },
+                    "expected_evidence": "The learner identifies the open backdoor path.",
+                    "falsification_signal": "The learner treats observed balance as proof of no confounding.",
+                },
+            },
+        )
+
+        self.assertEqual(result["evidence"]["concept_ids"], ["mission-entry"])
+        self.assertEqual(result["next_decision"]["concept_ids"], ["hidden-confounding"])
+        self.assertIn(result["evidence"]["id"], result["next_decision"]["evidence_used"])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
     def test_observation_and_evidence_are_distinct_immutable_receipts(self):
         evidence = self.evidence()
         observation = runtime.load_receipt(self.root, "observation", evidence["observation_id"])

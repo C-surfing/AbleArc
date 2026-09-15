@@ -21,7 +21,15 @@ printf '%s' '{"goal":"Explain and apply Bayes in unfamiliar decisions","context"
   | python tools/learning.py start-mission -
 ```
 
-It initializes the local workspace if needed and replaces only an untouched `MISSION.md` template. It records the goal as `learner-explicit`; it does not infer a roadmap, learner state, misconception, or mastery. An existing mission is never overwritten by this command.
+It initializes the local workspace if needed and replaces only an untouched `MISSION.md` template. It records the goal as `learner-explicit`, then creates one conservative `mission-entry` Decision asking for a representative attempt. This lets the learner act immediately without pretending that a domain map or prior-knowledge model already exists. An existing mission is never overwritten by this command.
+
+For a Mission saved by an earlier version that has no Decision, create the same first move with:
+
+```bash
+python tools/runtime.py --repo . bootstrap-mission
+```
+
+The baseline response then appears through `runtime.py pending`, together with minimal explicit Mission context. A Teach agent assesses it and issues the first domain-specific Decision through `advance`.
 
 ## Record structured learning transactions
 
@@ -138,4 +146,4 @@ GitHub Actions runs both checks on pushes and pull requests.
 
 ## Boundary
 
-Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. `start-mission` stores explicit learner input; learner-model inference, cognitive-move selection, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.
+Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. `start-mission` stores explicit learner input and attaches only the fixed baseline probe described above. Learner-model inference, domain teaching, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.

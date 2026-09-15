@@ -10,7 +10,7 @@ If the user is primarily reviewing or consolidating prior material, also read `s
 
 Then inspect `.learning/MISSION.md`, `.learning/LEARNER.md`, `.learning/ROADMAP.md`, and `.learning/STATE.md` if they exist.
 
-If `MISSION.md` contains a learner-explicit goal with `Status: awaiting-first-decision`, use it directly instead of asking the learner to restate the topic. Ask at most one route-changing clarification, build only a small provisional map, and record the first evidence-bearing Decision. Do not infer mastery or misconceptions from the mission alone.
+If `MISSION.md` contains a learner-explicit goal without a domain-specific Decision yet, use it directly instead of asking the learner to restate the topic. A new Workspace mission normally already has a `mission-entry` baseline Decision. If it does not, run `python tools/runtime.py --repo . bootstrap-mission`. Let the learner make that representative attempt before building a small provisional map. Do not infer mastery or misconceptions from the mission alone.
 
 Reconstruct, without dumping it to the user:
 - the learner's mission;

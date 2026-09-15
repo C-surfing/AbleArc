@@ -15,7 +15,7 @@ Open the local Next.js URL printed by the dev server.
 
 If the repository contains `.learning/`, the workspace reads the current mission, roadmap, frontier, evidence, misconceptions, and review candidates. It also reads only arc/session metadata from `.dogfooding/` for the session rail.
 
-If no local learner state exists, the UI first asks what the learner wants to become able to do. It saves that explicit goal locally and shows an honest no-map-yet state until a Teach agent makes the first evidence-bearing decision. A clearly labeled Bayes preview remains available during onboarding without being presented as learner evidence.
+If no local learner state exists, the UI first asks what the learner wants to become able to do. It saves that explicit goal locally and immediately opens a conservative representative-attempt probe. The map stays honestly empty until a Teach agent interprets the response and creates domain-specific concepts. A clearly labeled Bayes preview remains available before mission creation without being presented as learner evidence.
 
 ## Current scope
 
@@ -42,6 +42,7 @@ Implemented:
 - prediction-before-reveal and validated interaction context on the learner Observation;
 - zero-state mission onboarding from one observable capability goal;
 - learner-owned Mission persistence without inferred mastery or a fabricated map;
+- immediate baseline action using the existing Decision/response path;
 - demo fallback for design review.
 
 Not implemented yet:
