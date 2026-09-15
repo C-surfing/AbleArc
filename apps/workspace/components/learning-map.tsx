@@ -75,6 +75,15 @@ export function LearningMap({ nodes: roadmap, frontier }: { nodes: RoadmapNode[]
     return { nodes: flowNodes, edges: flowEdges };
   }, [roadmap, frontier]);
 
+  if (roadmap.length === 0) {
+    return (
+      <div className="learning-map learning-map--empty">
+        <strong>No map invented yet</strong>
+        <span>Your first evidence-bearing Teach move will establish the nearest useful concepts.</span>
+      </div>
+    );
+  }
+
   return (
     <div className="learning-map" aria-label="Learning roadmap">
       <ReactFlow

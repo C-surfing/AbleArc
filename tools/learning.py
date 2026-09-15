@@ -9,6 +9,7 @@ first while real longitudinal evidence stays structured and private by default.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 from datetime import datetime, timezone
@@ -31,6 +32,10 @@ DOMAIN_FILES = {
 
 class LearningToolError(RuntimeError):
     """Expected user-facing error from local workspace operations."""
+
+
+MAX_MISSION_GOAL_LENGTH = 1200
+MAX_MISSION_CONTEXT_LENGTH = 2400
 
 
 def repo_root_from_script() -> Path:
@@ -86,6 +91,74 @@ def init_learning(repo_root: Path) -> list[Path]:
             created.append(dst)
     created.extend(learning_runtime.init_runtime(repo_root))
     return created
+
+
+def _single_line(value: str) -> str:
+    return " ".join(value.split())
+
+
+def start_learning_mission(repo_root: Path, goal: str, context: str = "") -> Path:
+    """Save one explicit learner-owned mission without inferring a learner model."""
+    goal = _single_line(goal)
+    context = _single_line(context)
+    if not goal:
+        raise LearningToolError("mission goal cannot be empty")
+    if len(goal) > MAX_MISSION_GOAL_LENGTH:
+        raise LearningToolError(
+            f"mission goal must be at most {MAX_MISSION_GOAL_LENGTH} characters"
+        )
+    if len(context) > MAX_MISSION_CONTEXT_LENGTH:
+        raise LearningToolError(
+            f"mission context must be at most {MAX_MISSION_CONTEXT_LENGTH} characters"
+        )
+
+    init_learning(repo_root)
+    mission_path = repo_root / ".learning" / "MISSION.md"
+    template_path = repo_root / "templates" / "MISSION.md"
+    require_file(template_path, "template MISSION.md")
+    if mission_path.read_text(encoding="utf-8") != template_path.read_text(encoding="utf-8"):
+        raise LearningToolError(
+            "mission already started; edit .learning/MISSION.md explicitly instead of overwriting it"
+        )
+
+    created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    why = context or "Not specified yet. The Teach agent may clarify this only if it changes the route."
+    mission_path.write_text(
+        "# Learning Mission\n\n"
+        f"- Goal: {goal}\n"
+        "- Source: learner-explicit\n"
+        "- Status: awaiting-first-decision\n"
+        f"- Created at: {created_at}\n\n"
+        "## Why this matters\n\n"
+        f"{why}\n\n"
+        "## Success looks like\n\n"
+        "<!-- The Teach agent should make this observable with the learner; do not invent mastery. -->\n\n"
+        "- [ ] To be established from the mission and first diagnostic evidence.\n\n"
+        "## Current direction\n\n"
+        "Awaiting the first evidence-bearing teaching decision.\n",
+        encoding="utf-8",
+    )
+    return mission_path
+
+
+def read_mission_payload(value: str) -> tuple[str, str]:
+    try:
+        if value == "-":
+            import sys
+
+            payload = json.load(sys.stdin)
+        else:
+            with Path(value).open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LearningToolError("mission input must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise LearningToolError("mission input must be a JSON object")
+    goal = payload.get("goal")
+    context = payload.get("context", "")
+    if not isinstance(goal, str) or not isinstance(context, str):
+        raise LearningToolError("mission goal and context must be strings")
+    return goal, context
 
 
 def next_arc_id(root: Path, domain: str, name: str) -> str:
@@ -238,6 +311,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("init", help="create missing .learning/ files from templates")
 
+    mission = sub.add_parser(
+        "start-mission",
+        help="save an explicit learner goal from a JSON file or stdin",
+    )
+    mission.add_argument("input", nargs="?", default="-", help="JSON file or - for stdin")
+
     start = sub.add_parser("start-arc", help="create a local longitudinal arc")
     start.add_argument("domain", choices=tuple(DOMAIN_FILES))
     start.add_argument("name", help="short working name, e.g. bayes-base-rate")
@@ -264,6 +343,12 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
                     print(f"  {path.relative_to(root)}")
             else:
                 print(".learning/ already initialized; no files overwritten.")
+            return 0
+
+        if args.command == "start-mission":
+            goal, context = read_mission_payload(args.input)
+            path = start_learning_mission(root, goal, context)
+            print(json.dumps({"ok": True, "path": str(path.relative_to(root))}))
             return 0
 
         if args.command == "start-arc":

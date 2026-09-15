@@ -12,6 +12,17 @@ python tools/learning.py init
 
 Creates missing files from `templates/` under `.learning/`, `records/`, `references/`, and the local structured runtime. Existing learner files are never overwritten.
 
+## Start from a learner goal
+
+The Workspace uses this high-level command for zero-state onboarding:
+
+```bash
+printf '%s' '{"goal":"Explain and apply Bayes in unfamiliar decisions","context":"Useful for product experiments"}' \
+  | python tools/learning.py start-mission -
+```
+
+It initializes the local workspace if needed and replaces only an untouched `MISSION.md` template. It records the goal as `learner-explicit`; it does not infer a roadmap, learner state, misconception, or mastery. An existing mission is never overwritten by this command.
+
 ## Record structured learning transactions
 
 The receipt runtime preserves this inspectable chain:
@@ -127,4 +138,4 @@ GitHub Actions runs both checks on pushes and pull requests.
 
 ## Boundary
 
-Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. Learner-model inference, cognitive-move selection, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.
+Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. `start-mission` stores explicit learner input; learner-model inference, cognitive-move selection, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.

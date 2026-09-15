@@ -15,7 +15,7 @@ Open the local Next.js URL printed by the dev server.
 
 If the repository contains `.learning/`, the workspace reads the current mission, roadmap, frontier, evidence, misconceptions, and review candidates. It also reads only arc/session metadata from `.dogfooding/` for the session rail.
 
-If no local learner state exists, the UI shows a clearly labeled Bayes demo snapshot so the product shell can be reviewed without fabricating learner evidence.
+If no local learner state exists, the UI first asks what the learner wants to become able to do. It saves that explicit goal locally and shows an honest no-map-yet state until a Teach agent makes the first evidence-bearing decision. A clearly labeled Bayes preview remains available during onboarding without being presented as learner evidence.
 
 ## Current scope
 
@@ -40,13 +40,15 @@ Implemented:
 - agent inbox/advance CLI bridge without provider coupling;
 - typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;
 - prediction-before-reveal and validated interaction context on the learner Observation;
+- zero-state mission onboarding from one observable capability goal;
+- learner-owned Mission persistence without inferred mastery or a fabricated map;
 - demo fallback for design review.
 
 Not implemented yet:
 
 - model/provider connection;
 - hosted model/provider transport;
-- client-side authoritative writes to `.learning/` (writes remain in the local runtime CLI/agent bridge);
+- general client-side authoritative writes to `.learning/` (the only high-level learner write is guarded Mission creation; learning-state writes remain in the runtime/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - additional artifact renderers beyond the validated frequency-tree slice;

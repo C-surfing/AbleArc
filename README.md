@@ -176,6 +176,7 @@ The protocol remains usable without tooling, but v0.2 includes a tiny standard-l
 
 ```bash
 python tools/learning.py init
+printf '%s' '{"goal":"Explain and apply Bayes in unfamiliar decisions"}' | python tools/learning.py start-mission -
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
@@ -183,7 +184,7 @@ python tools/learning.py doctor
 python tools/runtime.py --repo . verify
 ```
 
-`init` never overwrites existing learner state. Real arc evidence is scaffolded under Git-ignored `.dogfooding/`, while `.learning/` remains the operational learner state. The runner does not infer mastery, select teaching moves, or revise the roadmap; those remain responsibilities of the Teach/Study protocol.
+`init` never overwrites existing learner state. `start-mission` stores an explicit learner goal only when the Mission template is untouched; it does not invent a map or learner model. Real arc evidence is scaffolded under Git-ignored `.dogfooding/`, while `.learning/` remains the operational learner state. The runner does not infer mastery, select teaching moves, or revise the roadmap; those remain responsibilities of the Teach/Study protocol.
 
 The repository now has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
 

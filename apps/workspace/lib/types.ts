@@ -133,6 +133,7 @@ export interface LearnerExchange {
 
 export interface WorkspaceSnapshot {
   source: "local" | "demo";
+  hasMission: boolean;
   mission: string;
   learnerNote: string;
   frontier: string;

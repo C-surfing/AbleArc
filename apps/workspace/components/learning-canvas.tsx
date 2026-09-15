@@ -226,6 +226,10 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
   const [submitError, setSubmitError] = useState<string>();
   const [artifactInteraction, setArtifactInteraction] = useState<ArtifactInteraction>();
+  const [missionGoal, setMissionGoal] = useState("");
+  const [missionContext, setMissionContext] = useState("");
+  const [missionError, setMissionError] = useState<string>();
+  const [isStartingMission, setIsStartingMission] = useState(false);
   useEffect(() => {
     setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
     setResponse("");
@@ -276,6 +280,27 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
     }
   }
 
+  async function startMission(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!missionGoal.trim() || isStartingMission || snapshot.hasMission) return;
+    setIsStartingMission(true);
+    setMissionError(undefined);
+    try {
+      const result = await fetch("/api/learning/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ goal: missionGoal, context: missionContext }),
+      });
+      const payload = await result.json() as { error?: string };
+      if (!result.ok) throw new Error(payload.error || "Could not start the learning mission.");
+      router.refresh();
+    } catch (error) {
+      setMissionError(error instanceof Error ? error.message : "Could not start the learning mission.");
+    } finally {
+      setIsStartingMission(false);
+    }
+  }
+
   return (
     <main className="learning-canvas-panel">
       <header className="canvas-header">
@@ -284,14 +309,52 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             <span className="mode-chip">{mode}</span>
             <span className="source-chip">{snapshot.source === "local" ? "LOCAL STATE" : "DEMO SNAPSHOT"}</span>
           </div>
-          <h1>{snapshot.frontier}</h1>
-          <p>{modeCopy}</p>
+          <h1>{snapshot.hasMission ? snapshot.frontier : "What do you want to become able to do?"}</h1>
+          <p>{snapshot.hasMission
+            ? modeCopy
+            : "Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive."}</p>
         </div>
         <button className="ghost-button" type="button" title="Source drawer is part of the next interaction slice">
           Sources
         </button>
       </header>
 
+      {!snapshot.hasMission ? (
+        <form className="mission-start" onSubmit={startMission}>
+          <div className="mission-start__intro">
+            <span className="section-kicker">Start a learning mission</span>
+            <h2>Describe the capability, not just the topic.</h2>
+            <p>For example: “Read an empirical ML paper and challenge its causal claims,” not only “learn machine learning.”</p>
+          </div>
+          <label>
+            <span>I want to become able to</span>
+            <textarea
+              value={missionGoal}
+              onChange={(event) => setMissionGoal(event.target.value)}
+              maxLength={1200}
+              rows={3}
+              required
+              placeholder="What should you be able to explain, build, derive, decide, or transfer?"
+            />
+          </label>
+          <label>
+            <span>Why now? <small>optional</small></span>
+            <textarea
+              value={missionContext}
+              onChange={(event) => setMissionContext(event.target.value)}
+              maxLength={2400}
+              rows={2}
+              placeholder="A project, deadline, curiosity, or practical constraint that should shape the route."
+            />
+          </label>
+          <div className="mission-start__footer">
+            <span aria-live="polite">{missionError || "Saved locally. No learner model or mastery claim is created yet."}</span>
+            <button type="submit" disabled={!missionGoal.trim() || isStartingMission}>
+              {isStartingMission ? "Starting…" : "Start learning mission"}
+            </button>
+          </div>
+        </form>
+      ) : (
       <section className="teacher-move" aria-labelledby="move-title">
         <div className="teacher-move__meta">
           <span>Current move</span>
@@ -310,6 +373,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           </div>
         ) : null}
       </section>
+      )}
 
       {snapshot.latestExchange?.status === "assessed" ? (
         <section className="feedback-card" aria-labelledby="feedback-title">
@@ -340,6 +404,13 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             </div>
           ) : null}
         </section>
+      ) : null}
+
+      {!snapshot.hasMission ? (
+        <div className="demo-preview-note">
+          <span>Example workspace</span>
+          <p>The representation below is a clearly labeled preview, not your learner state.</p>
+        </div>
       ) : null}
 
       <section className="representation-card">
@@ -381,6 +452,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         </footer>
       </section>
 
+      {snapshot.hasMission ? (
       <form className={`composer-shell ${submitted ? "is-submitted" : ""}`} onSubmit={submitLearnerResponse}>
         <label className="composer-prompt" htmlFor="learner-response">
           <span className="composer-mark">↳</span>
@@ -428,6 +500,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           </div>
         </div>
       </form>
+      ) : null}
     </main>
   );
 }
