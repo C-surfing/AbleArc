@@ -33,9 +33,11 @@ accepted state + prior evidence
  explicit authority decision
              ↓
  accepted state projection
-             ↓
+            ↓
         TurnReceipt
 ```
+
+The receipt graph is an internal audit model. Learner-facing surfaces should use high-level actions and never require users to construct or understand these objects.
 
 Receipts are stored under `.learning/runtime/receipts/`. They are individual immutable JSON files so one agent cannot accidentally rewrite the evidence that justified an earlier conclusion. `.learning/runtime/state.json` is a small machine-operable projection of accepted concept-state decisions.
 
@@ -85,6 +87,14 @@ python tools/runtime.py --repo . record evidence evidence.json
 python tools/runtime.py --repo . record state-proposal proposal.json
 python tools/runtime.py --repo . record turn turn.json
 ```
+
+Capture the normal learner response through the high-level façade:
+
+```bash
+python tools/runtime.py --repo . respond dec_example -
+```
+
+The response is read from stdin, inherits its concept IDs and expected action from the decision, and becomes one local observation. This is the same path used by the Workspace; the learner never supplies receipt metadata.
 
 Accept or reject a proposal:
 

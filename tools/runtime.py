@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -56,6 +57,7 @@ ID_PREFIXES = {
     "state-decision": "sd",
     "turn": "turn",
 }
+ID_PATTERN = re.compile(r"^[a-z]+_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 
 
 class RuntimeContractError(RuntimeError):
@@ -124,8 +126,14 @@ def _string_list(data: dict[str, Any], field: str, *, required: bool = False) ->
 def _base(kind: str, data: dict[str, Any]) -> dict[str, Any]:
     expected_prefix = f"{ID_PREFIXES[kind]}_"
     receipt_id = data.get("id") or _new_id(kind)
-    if not isinstance(receipt_id, str) or not receipt_id.startswith(expected_prefix):
-        raise RuntimeContractError(f"id for {kind} must start with {expected_prefix}")
+    if (
+        not isinstance(receipt_id, str)
+        or not receipt_id.startswith(expected_prefix)
+        or not ID_PATTERN.fullmatch(receipt_id)
+    ):
+        raise RuntimeContractError(
+            f"id for {kind} must start with {expected_prefix} and contain only letters, numbers, _ or -"
+        )
     created_at = data.get("created_at") or _now()
     if not isinstance(created_at, str) or not created_at.strip():
         raise RuntimeContractError("created_at must be a non-empty ISO-8601 string")
@@ -232,6 +240,7 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
         {
             "mode": _enum(data, "mode", ("teach", "study")),
             "target": _required_string(data, "target"),
+            "concept_ids": _string_list(data, "concept_ids", required=True),
             "frontier_hypothesis": _required_string(data, "frontier_hypothesis"),
             "evidence_used": evidence_used,
             "uncertainty": _enum(data, "uncertainty", ("low", "medium", "high")),
@@ -267,6 +276,42 @@ def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     if excerpt:
         receipt["excerpt"] = excerpt
     return _save(repo_root, "observation", receipt)
+
+
+def record_learner_response(
+    repo_root: Path,
+    decision_id: str,
+    response: str,
+    *,
+    receipt_id: str | None = None,
+    created_at: str | None = None,
+) -> dict[str, Any]:
+    """User-facing façade: capture one response without exposing receipt fields."""
+    response = response.strip()
+    if not response:
+        raise RuntimeContractError("learner response must not be empty")
+    if len(response) > 12000:
+        raise RuntimeContractError("learner response must be 12000 characters or fewer")
+    decision = load_receipt(repo_root, "decision", decision_id)
+    previous = [
+        item
+        for item in list_receipts(repo_root, "observation")
+        if item.get("decision_id") == decision_id and item.get("source") == "learner"
+    ]
+    if previous:
+        raise RuntimeContractError(f"decision already has a learner response: {previous[-1]['id']}")
+    return record_observation(
+        repo_root,
+        {
+            **({"id": receipt_id} if receipt_id else {}),
+            **({"created_at": created_at} if created_at else {}),
+            "decision_id": decision_id,
+            "concept_ids": decision["concept_ids"],
+            "learner_action": decision["learner_action"],
+            "observed_result": response,
+            "source": "learner",
+        },
+    )
 
 
 def record_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -592,6 +637,9 @@ def build_parser() -> argparse.ArgumentParser:
     decide.add_argument("authority_id")
     decide.add_argument("reason")
     decide.add_argument("--override-policy", action="store_true")
+    respond = sub.add_parser("respond", help="record one learner response to a decision")
+    respond.add_argument("decision_id")
+    respond.add_argument("response", help="response text or - for stdin")
     sub.add_parser("state", help="print the current machine-operable state projection")
     sub.add_parser("verify", help="verify the ledger and its references")
     return parser
@@ -617,6 +665,10 @@ def main(argv: list[str] | None = None) -> int:
                 args.reason,
                 override_policy=args.override_policy,
             )
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "respond":
+            response = sys.stdin.read() if args.response == "-" else args.response
+            receipt = record_learner_response(repo_root, args.decision_id, response)
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "state":
             print(json.dumps(_current_state(repo_root), ensure_ascii=False, indent=2))

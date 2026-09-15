@@ -33,19 +33,21 @@ Implemented:
 - local `.learning/` filesystem adapter;
 - structured runtime state/evidence projection with Markdown fallback;
 - latest decision and authority trace;
+- active **Your move** response composer backed by the local runtime;
+- local acknowledgment without premature grading or mastery promotion;
 - demo fallback for design review.
 
 Not implemented yet:
 
 - model/provider connection;
-- chat transport;
+- model feedback / next-move transport;
 - client-side authoritative writes to `.learning/` (writes remain in the local runtime CLI/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - structured math/diagram renderer payloads;
 - scheduler or cloud persistence.
 
-The disabled composer text is deliberate. Do not fake a working tutor by adding a client-only chat loop that cannot respect the Teach/Study protocol or evidence-backed learner-state updates.
+The composer records one response to the current structured learning decision. It deliberately does not fabricate an assistant answer: feedback and the next move must come through the Teach/Study protocol and evidence-backed learner-state update path.
 
 ## Architecture boundary
 

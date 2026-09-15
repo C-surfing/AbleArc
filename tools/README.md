@@ -28,6 +28,14 @@ python tools/runtime.py --repo . init
 
 The full command contract, authority rules, privacy boundary, and JSON schema are documented in [`../docs/RUNTIME-CONTRACT.md`](../docs/RUNTIME-CONTRACT.md).
 
+Learner-facing clients should normally use the high-level response façade:
+
+```bash
+python tools/runtime.py --repo . respond <decision-id> -
+```
+
+It reads response text from stdin and derives concept/action context from the decision. The lower-level `record` commands exist for agents and debugging, not for learners.
+
 ## Start a real longitudinal arc
 
 ```bash

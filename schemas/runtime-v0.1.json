@@ -34,11 +34,12 @@
         { "$ref": "#/$defs/base" },
         {
           "type": "object",
-          "required": ["mode", "target", "frontier_hypothesis", "evidence_used", "uncertainty", "move", "rationale", "learner_action", "representation", "expected_evidence", "falsification_signal"],
+          "required": ["mode", "target", "concept_ids", "frontier_hypothesis", "evidence_used", "uncertainty", "move", "rationale", "learner_action", "representation", "expected_evidence", "falsification_signal"],
           "properties": {
             "kind": { "const": "decision" },
             "mode": { "enum": ["teach", "study"] },
             "target": { "type": "string", "minLength": 1 },
+            "concept_ids": { "$ref": "#/$defs/stringList" },
             "frontier_hypothesis": { "type": "string", "minLength": 1 },
             "evidence_used": { "$ref": "#/$defs/stringList" },
             "uncertainty": { "enum": ["low", "medium", "high"] },

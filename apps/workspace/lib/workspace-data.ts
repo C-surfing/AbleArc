@@ -85,7 +85,7 @@ const DEMO: WorkspaceSnapshot = {
   activeArc: "Probability · Bayes intuition",
 };
 
-function findRepoRoot(): string {
+export function findRepoRoot(): string {
   let current = process.cwd();
   for (let i = 0; i < 6; i += 1) {
     if (fs.existsSync(path.join(current, "skills", "teach", "SKILL.md"))) return current;
@@ -162,6 +162,8 @@ function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
   const item = readReceiptDirectory(runtimeRoot, "decisions").at(-1);
   if (!item) return undefined;
   const representation = (item.representation || {}) as Record<string, unknown>;
+  const hasLearnerResponse = readReceiptDirectory(runtimeRoot, "observations")
+    .some((observation) => observation.decision_id === item.id && observation.source === "learner");
   return {
     id: item.id,
     target: String(item.target || "Current frontier"),
@@ -176,6 +178,7 @@ function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
     evidenceCount: Array.isArray(item.evidence_used) ? item.evidence_used.length : 0,
     expectedEvidence: String(item.expected_evidence || "Evidence expectation not recorded."),
     falsificationSignal: String(item.falsification_signal || "Falsification signal not recorded."),
+    hasLearnerResponse,
   };
 }
 

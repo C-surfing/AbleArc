@@ -818,11 +818,11 @@ button {
 }
 
 .composer-prompt {
-  min-height: 52px;
+  min-height: 72px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 0 14px;
+  padding: 13px 14px 10px;
   color: #767977;
   font-size: 12px;
 }
@@ -830,6 +830,28 @@ button {
 .composer-mark {
   color: var(--accent);
   font-size: 17px;
+  line-height: 1.5;
+}
+
+.composer-prompt textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.composer-prompt textarea::placeholder {
+  color: #8d908e;
+}
+
+.composer-prompt textarea:disabled {
+  resize: none;
+  cursor: default;
 }
 
 .composer-status {
@@ -839,7 +861,29 @@ button {
   padding: 7px 10px 7px 14px;
   border-top: 1px solid var(--line-soft);
   color: #9a9d9a;
-  font-size: 8px;
+  font-size: 9px;
+}
+
+.composer-status button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 720;
+}
+
+.composer-status button:disabled {
+  background: #d2d2cd;
+  color: #858885;
+  cursor: default;
+}
+
+.composer-shell.is-submitted {
+  border-color: rgba(51, 112, 94, 0.28);
+  background: rgba(51, 112, 94, 0.035);
 }
 
 .kbd {

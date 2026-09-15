@@ -31,6 +31,7 @@ class LearningRuntimeTests(unittest.TestCase):
             {
                 "mode": "teach",
                 "target": "Bayes base-rate reasoning",
+                "concept_ids": ["bayes-base-rate"],
                 "frontier_hypothesis": "The learner can use frequencies but may ignore priors in symbols.",
                 "evidence_used": [],
                 "uncertainty": "medium",
@@ -134,6 +135,26 @@ class LearningRuntimeTests(unittest.TestCase):
         self.assertNotIn("level", observation)
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.record_evidence(self.root, evidence)
+
+    def test_learner_response_facade_uses_decision_context_and_is_single_use(self):
+        decision = self.decision()
+        observation = runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "The base rate changes how many false positives compete with true positives.",
+        )
+
+        self.assertEqual(observation["concept_ids"], ["bayes-base-rate"])
+        self.assertEqual(observation["learner_action"], decision["learner_action"])
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learner_response(self.root, decision["id"], "A second answer")
+
+    def test_learner_response_rejects_empty_or_oversized_input(self):
+        decision = self.decision()
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learner_response(self.root, decision["id"], "   ")
+        with self.assertRaises(runtime.RuntimeContractError):
+            runtime.record_learner_response(self.root, decision["id"], "x" * 12001)
 
     def test_single_immediate_answer_cannot_promote_developing_to_stable(self):
         self.promote_to_developing()

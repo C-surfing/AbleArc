@@ -62,6 +62,7 @@ export interface DecisionTrace {
   evidenceCount: number;
   expectedEvidence: string;
   falsificationSignal: string;
+  hasLearnerResponse: boolean;
 }
 
 export interface StateDecisionTrace {

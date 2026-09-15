@@ -234,7 +234,7 @@ explicit state authority
 Visual Learning Workspace
 ```
 
-The UI remains intentionally **read-first**. It may display accepted runtime state, decision/evidence provenance, local Markdown state, and arc metadata, but it must not automatically promote mastery or rewrite learner-model conclusions.
+The UI is **action-first and authority-conservative**. It may display accepted runtime state, decision/evidence provenance, local Markdown state, and arc metadata. It may capture the learner's response as an observation, but it must not automatically grade that response, promote mastery, or rewrite learner-model conclusions.
 
 The runtime write bridge distinguishes:
 

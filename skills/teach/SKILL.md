@@ -64,13 +64,15 @@ Record in this order as the interaction makes each object knowable:
 DecisionProposal → Observation → EvidenceReceipt → StateProposal → authority decision → TurnReceipt
 ```
 
-- Record the decision before presenting the move, including the evidence used, learner action, representation purpose, expected evidence, and falsification signal.
+- Record the decision before presenting the move, including concept IDs, evidence used, learner action, representation purpose, expected evidence, and falsification signal.
 - Record only what happened as an observation. Put interpretation in a separate evidence receipt.
 - Let evidence remain inconclusive when warranted; do not manufacture a state update to complete the chain.
 - An agent may propose a concept-state change but may not silently accept its own proposal. Use the runtime's explicit authority path.
 - Close an unfinished turn as `awaiting_evidence` rather than fabricating learner action.
 
 The learner-facing interaction should remain natural. Do not print IDs or receipt mechanics unless the learner asks to inspect the decision trail.
+
+When the Workspace has captured a learner response for the current decision, assess that observation before issuing another major move. Do not ask the learner to re-enter receipt metadata or repeat an answer already stored locally.
 
 ### MISSION.md
 
