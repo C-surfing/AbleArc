@@ -31,13 +31,15 @@ Implemented:
 - representation switcher;
 - longitudinal session timeline;
 - local `.learning/` filesystem adapter;
+- structured runtime state/evidence projection with Markdown fallback;
+- latest decision and authority trace;
 - demo fallback for design review.
 
 Not implemented yet:
 
 - model/provider connection;
 - chat transport;
-- authoritative writes to `.learning/`;
+- client-side authoritative writes to `.learning/` (writes remain in the local runtime CLI/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - structured math/diagram renderer payloads;
@@ -50,15 +52,15 @@ The disabled composer text is deliberate. Do not fake a working tutor by adding 
 ```text
 Teach / Study runtime
       ↓
-evidence-backed state
+structured decision / evidence / state receipts
       ↓
-.learning/
+.learning/runtime + Markdown projections
       ↓
 workspace filesystem adapter
       ↓
 Visual Learning Workspace
 ```
 
-The next slice should add an authority-aware local write/agent bridge, not move teaching policy into React components.
+The next slice should connect an agent/model transport to the existing authority-aware local runtime, not move teaching policy into React components.
 
 See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the product specification.

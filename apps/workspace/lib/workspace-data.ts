@@ -1,14 +1,34 @@
 import fs from "node:fs";
 import path from "node:path";
 import type {
+  DecisionTrace,
   EvidenceItem,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
   RoadmapNode,
   SessionPoint,
+  StateDecisionTrace,
   WorkspaceSnapshot,
 } from "./types";
+
+interface RuntimeState {
+  revision: number;
+  concepts: Record<string, {
+    label: string;
+    state: MasteryState;
+    evidence_ids: string[];
+    proposal_id: string;
+    decision_id: string;
+  }>;
+}
+
+interface RuntimeReceipt {
+  id: string;
+  kind: string;
+  created_at: string;
+  [key: string]: unknown;
+}
 
 const DEMO: WorkspaceSnapshot = {
   source: "demo",
@@ -82,6 +102,119 @@ function readOptional(filePath: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+function readJsonOptional<T>(filePath: string): T | undefined {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+function readReceiptDirectory(runtimeRoot: string, directory: string): RuntimeReceipt[] {
+  const root = path.join(runtimeRoot, "receipts", directory);
+  if (!fs.existsSync(root)) return [];
+  return fs
+    .readdirSync(root)
+    .filter((name) => name.endsWith(".json"))
+    .map((name) => readJsonOptional<RuntimeReceipt>(path.join(root, name)))
+    .filter((item): item is RuntimeReceipt => Boolean(item?.id && item?.created_at))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+}
+
+function runtimeEvidence(runtimeRoot: string): EvidenceItem[] {
+  const observations = new Map(
+    readReceiptDirectory(runtimeRoot, "observations").map((item) => [item.id, item]),
+  );
+  return readReceiptDirectory(runtimeRoot, "evidence")
+    .map((item) => {
+      const observation = observations.get(String(item.observation_id));
+      const concepts = Array.isArray(item.concept_ids) ? item.concept_ids.join(", ") : "Learning evidence";
+      const qualifiers = [
+        item.independence,
+        item.delay,
+        item.context,
+        item.scaffolding ? `${item.scaffolding}-scaffold` : undefined,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const implications = item.outcome === "inconclusive"
+        ? "Inconclusive; preserve the current learner-model uncertainty."
+        : `${item.outcome === "supports" ? "Supports" : "Contradicts"}: ${[
+            ...(Array.isArray(item.supports) ? item.supports : []),
+            ...(Array.isArray(item.contradicts) ? item.contradicts : []),
+          ].join(", ") || "current learner-model hypothesis"}`;
+      return {
+        task: String(observation?.learner_action || concepts),
+        level: (["recognition", "recall", "explanation", "application", "transfer"].includes(String(item.level))
+          ? item.level
+          : "recognition") as EvidenceItem["level"],
+        result: String(item.result_summary || observation?.observed_result || "Observed"),
+        independence: qualifiers || "unspecified",
+        implication: implications,
+      };
+    })
+    .reverse();
+}
+
+function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
+  const item = readReceiptDirectory(runtimeRoot, "decisions").at(-1);
+  if (!item) return undefined;
+  const representation = (item.representation || {}) as Record<string, unknown>;
+  return {
+    id: item.id,
+    target: String(item.target || "Current frontier"),
+    move: String(item.move || "probe"),
+    rationale: String(item.rationale || "No rationale recorded."),
+    learnerAction: String(item.learner_action || "Learner action not recorded."),
+    uncertainty: (["low", "medium", "high"].includes(String(item.uncertainty))
+      ? item.uncertainty
+      : "medium") as DecisionTrace["uncertainty"],
+    representationKind: String(representation.kind || "conversation"),
+    representationPurpose: String(representation.purpose || "Support the current cognitive move."),
+    evidenceCount: Array.isArray(item.evidence_used) ? item.evidence_used.length : 0,
+    expectedEvidence: String(item.expected_evidence || "Evidence expectation not recorded."),
+    falsificationSignal: String(item.falsification_signal || "Falsification signal not recorded."),
+  };
+}
+
+function runtimeStateDecision(runtimeRoot: string): StateDecisionTrace | undefined {
+  const decision = readReceiptDirectory(runtimeRoot, "state-decisions").at(-1);
+  if (!decision) return undefined;
+  const proposals = new Map(
+    readReceiptDirectory(runtimeRoot, "state-proposals").map((item) => [item.id, item]),
+  );
+  const proposal = proposals.get(String(decision.proposal_id));
+  if (!proposal) return undefined;
+  const authority = (decision.authority || {}) as Record<string, unknown>;
+  return {
+    id: decision.id,
+    concept: String(proposal.concept_label || proposal.concept_id || "Concept"),
+    before: normalizeState(String(proposal.before)),
+    after: normalizeState(String(proposal.after)),
+    decision: decision.decision === "rejected" ? "rejected" : "accepted",
+    authority: `${String(authority.type || "unknown")}:${String(authority.id || "unknown")}`,
+    reason: String(decision.reason || "No authority rationale recorded."),
+    evidenceCount: Array.isArray(proposal.evidence_ids) ? proposal.evidence_ids.length : 0,
+    policyOverridden: decision.policy_overridden === true,
+  };
+}
+
+function applyRuntimeState(nodes: RoadmapNode[], runtimeState: RuntimeState | undefined): RoadmapNode[] {
+  if (!runtimeState) return nodes;
+  const result = nodes.map((node) => {
+    const concept = runtimeState.concepts[node.id]
+      || Object.values(runtimeState.concepts).find((item) => item.label.toLowerCase() === node.label.toLowerCase());
+    return concept ? { ...node, state: concept.state, evidence: `${concept.evidence_ids.length} accepted receipt(s)` } : node;
+  });
+  const known = new Set(result.map((node) => node.id));
+  for (const [id, concept] of Object.entries(runtimeState.concepts)) {
+    if (!known.has(id)) {
+      result.push({ id, label: concept.label, state: concept.state, evidence: `${concept.evidence_ids.length} accepted receipt(s)` });
+    }
+  }
+  return result;
 }
 
 function escapeRegExp(value: string): string {
@@ -242,6 +375,27 @@ function localTimeline(repoRoot: string): { sessions: SessionPoint[]; activeArc?
   };
 }
 
+function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
+  return readReceiptDirectory(runtimeRoot, "turns").map((item, index) => {
+    const artifacts = Array.isArray(item.artifact_refs) ? item.artifact_refs : [];
+    const decisions = Array.isArray(item.state_decision_ids) ? item.state_decision_ids : [];
+    const outcome = String(item.outcome || "completed");
+    const kind: SessionPoint["kind"] = outcome === "awaiting_evidence"
+      ? "frontier"
+      : decisions.length > 0
+        ? "evidence"
+        : artifacts.length > 0
+          ? "representation"
+          : "repair";
+    return {
+      id: item.id,
+      label: `T${index + 1} · ${outcome.replaceAll("_", " ")}`,
+      detail: String(item.summary || "Structured learning turn"),
+      kind,
+    };
+  });
+}
+
 export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const repoRoot = findRepoRoot();
   const learning = path.join(repoRoot, ".learning");
@@ -250,12 +404,22 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const mission = readOptional(path.join(learning, "MISSION.md"));
   const learner = readOptional(path.join(learning, "LEARNER.md"));
 
-  if (!state && !roadmap && !mission && !learner) return DEMO;
+  const runtimeRoot = path.join(learning, "runtime");
+  const structuredState = readJsonOptional<RuntimeState>(path.join(runtimeRoot, "state.json"));
+  const structuredEvidence = runtimeEvidence(runtimeRoot);
+  const decision = runtimeDecision(runtimeRoot);
+  const latestStateDecision = runtimeStateDecision(runtimeRoot);
+  const structuredTimeline = runtimeTimeline(runtimeRoot);
+
+  if (!state && !roadmap && !mission && !learner && !structuredState) return DEMO;
 
   const frontier = field(state, "Concept / capability") || "Current learning frontier";
-  const frontierState = normalizeState(field(state, "State"));
+  const markdownFrontierState = normalizeState(field(state, "State"));
+  const structuredFrontier = structuredState?.concepts[slug(frontier, "frontier")]
+    || Object.values(structuredState?.concepts || {}).find((item) => item.label.toLowerCase() === frontier.toLowerCase());
+  const frontierState = structuredFrontier?.state || markdownFrontierState;
   const timeline = localTimeline(repoRoot);
-  const evidence = parseEvidence(state);
+  const evidence = structuredEvidence.length > 0 ? structuredEvidence : parseEvidence(state);
   const misconceptions = parseMisconceptions(state);
   const reviewCandidates = parseReview(state);
 
@@ -266,13 +430,16 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     frontier,
     frontierState,
     frontierReason: field(state, "Why this is the frontier") || "The current state file marks this as the active frontier.",
-    nextMove: field(state, "Move") || "Use the Teach/Study runtime to choose the next evidence-bearing cognitive move.",
-    expectedLearnerAction: field(state, "Learner action expected") || "Learner action has not been specified yet.",
-    nodes: parseRoadmap(roadmap, frontier, frontierState),
+    nextMove: decision?.rationale || field(state, "Move") || "Use the Teach/Study runtime to choose the next evidence-bearing cognitive move.",
+    expectedLearnerAction: decision?.learnerAction || field(state, "Learner action expected") || "Learner action has not been specified yet.",
+    nodes: applyRuntimeState(parseRoadmap(roadmap, frontier, frontierState), structuredState),
     evidence,
     misconceptions,
     reviewCandidates,
-    sessions: timeline.sessions,
+    sessions: [...timeline.sessions, ...structuredTimeline],
     activeArc: timeline.activeArc,
+    runtimeRevision: structuredState?.revision,
+    decision,
+    latestStateDecision,
   };
 }

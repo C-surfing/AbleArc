@@ -470,6 +470,38 @@ button {
   color: #353638;
 }
 
+.decision-expectation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.decision-expectation > div {
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.decision-expectation span,
+.decision-trace span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.decision-expectation p {
+  margin: 0;
+  color: #555758;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .representation-card {
   max-width: 920px;
   margin: 0 auto;
@@ -934,6 +966,61 @@ button {
   background: rgba(255, 255, 255, 0.62);
 }
 
+.decision-trace,
+.state-decision {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.decision-trace > div {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 7px;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.decision-trace > div span {
+  margin: 0;
+}
+
+.decision-trace strong,
+.state-decision strong {
+  font-size: 9px;
+}
+
+.decision-trace p,
+.state-decision p {
+  margin: 8px 0 5px;
+  color: #555758;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.decision-trace small,
+.state-decision small,
+.state-decision span {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.state-decision {
+  border-left: 2px solid var(--stable);
+}
+
+.state-decision--rejected {
+  border-left-color: var(--warning);
+}
+
+.state-decision > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .evidence-note {
   display: grid;
   gap: 3px;
@@ -1240,6 +1327,10 @@ button {
   .learner-action {
     grid-template-columns: 1fr;
     gap: 5px;
+  }
+
+  .decision-expectation {
+    grid-template-columns: 1fr;
   }
 
   .state-panel {

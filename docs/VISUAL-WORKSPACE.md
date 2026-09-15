@@ -206,13 +206,15 @@ The initial palette is warm-neutral with one cool interaction accent and restrai
 
 ## Data boundary
 
-The first implementation reads from the existing local files:
+The implementation reads from the existing local files and, when present, the structured runtime:
 
 ```text
 .learning/MISSION.md
 .learning/LEARNER.md
 .learning/ROADMAP.md
 .learning/STATE.md
+.learning/runtime/state.json
+.learning/runtime/receipts/
 .dogfooding/<arc>/sessions/
 ```
 
@@ -223,16 +225,18 @@ The web app is local-first. Raw learner evidence remains local under the privacy
 ```text
 Teach / Study protocol
         ↓
-evidence-bearing state updates
+decision / observation / evidence receipts
         ↓
-.learning/
+explicit state authority
+        ↓
+.learning/runtime + Markdown projections
         ↓
 Visual Learning Workspace
 ```
 
-The first UI release is intentionally **read-first**. It may display local state and arc metadata, but it must not automatically promote mastery or rewrite learner-model conclusions.
+The UI remains intentionally **read-first**. It may display accepted runtime state, decision/evidence provenance, local Markdown state, and arc metadata, but it must not automatically promote mastery or rewrite learner-model conclusions.
 
-A later write bridge must distinguish:
+The runtime write bridge distinguishes:
 
 - explicit learner edits;
 - agent-proposed state updates;
@@ -283,9 +287,9 @@ It does **not** yet provide:
 
 After the shell is validated visually and through actual use:
 
-1. add an authority-aware local write API with explicit receipts;
-2. connect the canvas to the Teach/Study agent runtime;
-3. render structured representation payloads (math, diagram, table, code/dataflow) rather than demo blocks;
+1. connect the existing authority-aware receipt runtime to an agent/model transport;
+2. render structured representation payloads (math, diagram, table, code/dataflow) rather than demo blocks;
+3. add a learner-facing proposal review interaction for explicit edits and policy overrides;
 4. add full-screen Map mode with node inspection and roadmap revision proposals;
 5. add session diff/replay around learner-model changes, not raw chat;
 6. add Review queue only after longitudinal evidence defines useful trigger semantics.

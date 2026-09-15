@@ -41,6 +41,13 @@ class LearningToolTests(unittest.TestCase):
                 f"# {filename}\n", encoding="utf-8"
             )
 
+        (self.root / "tools").mkdir(exist_ok=True)
+        (self.root / "tools" / "runtime.py").write_text("# runtime\n", encoding="utf-8")
+        (self.root / "schemas").mkdir()
+        (self.root / "schemas" / "runtime-v0.1.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "docs").mkdir()
+        (self.root / "docs" / "RUNTIME-CONTRACT.md").write_text("# Runtime\n", encoding="utf-8")
+
         (self.root / ".gitignore").write_text(
             ".learning/\n.dogfooding/\n", encoding="utf-8"
         )
@@ -50,7 +57,9 @@ class LearningToolTests(unittest.TestCase):
 
     def test_init_learning_is_idempotent_and_non_destructive(self):
         created = learning.init_learning(self.root)
-        self.assertEqual(len(created), 4)
+        self.assertGreaterEqual(len(created), 4)
+        self.assertTrue((self.root / ".learning" / "runtime" / "manifest.json").is_file())
+        self.assertTrue((self.root / ".learning" / "runtime" / "state.json").is_file())
 
         mission = self.root / ".learning" / "MISSION.md"
         mission.write_text("custom\n", encoding="utf-8")

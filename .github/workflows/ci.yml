@@ -16,6 +16,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Check repository scaffolding invariants
         run: python tools/learning.py doctor
+      - name: Verify structured runtime contract
+        run: python tools/runtime.py --repo . verify
 
   workspace:
     runs-on: ubuntu-latest

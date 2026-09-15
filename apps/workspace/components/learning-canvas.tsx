@@ -140,6 +140,12 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           <span>Your move</span>
           <p>{snapshot.expectedLearnerAction}</p>
         </div>
+        {snapshot.decision ? (
+          <div className="decision-expectation">
+            <div><span>Expected evidence</span><p>{snapshot.decision.expectedEvidence}</p></div>
+            <div><span>Would falsify</span><p>{snapshot.decision.falsificationSignal}</p></div>
+          </div>
+        ) : null}
       </section>
 
       <section className="representation-card">

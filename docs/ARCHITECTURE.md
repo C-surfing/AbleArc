@@ -25,6 +25,20 @@ and after learner action:
 learner_model(t+1) = update(learner_model(t), observed_evidence)
 ```
 
+The executable runtime expands that conceptual loop into an auditable transaction:
+
+```text
+DecisionProposal
+  → Observation
+  → EvidenceReceipt
+  → StateProposal
+  → explicit authority decision
+  → accepted state projection
+  → TurnReceipt
+```
+
+See [`RUNTIME-CONTRACT.md`](RUNTIME-CONTRACT.md) for the receipt schema and transition guardrails.
+
 The protocol therefore separates **authority** from **projection**:
 
 - the learner model is the operational authority for teaching decisions;
@@ -57,7 +71,7 @@ It therefore stores frontier, misconception, evidence, open questions, and next 
 
 ### Learning records
 
-`records/` is sparse event history. It exists for meaningful state transitions, not every session.
+`records/` is sparse human-readable history. It exists for meaningful state transitions, not every session. `.learning/runtime/receipts/` is the machine-operable, append-only transaction ledger; `.learning/runtime/state.json` is its accepted concept-state projection.
 
 ## Concept-state model
 
