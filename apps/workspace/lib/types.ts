@@ -50,6 +50,47 @@ export interface SessionPoint {
   kind: "frontier" | "evidence" | "repair" | "representation" | "transfer";
 }
 
+export interface DecisionTrace {
+  id: string;
+  target: string;
+  move: string;
+  rationale: string;
+  learnerAction: string;
+  uncertainty: "low" | "medium" | "high";
+  representationKind: string;
+  representationPurpose: string;
+  evidenceCount: number;
+  expectedEvidence: string;
+  falsificationSignal: string;
+  hasLearnerResponse: boolean;
+}
+
+export interface StateDecisionTrace {
+  id: string;
+  concept: string;
+  before: MasteryState;
+  after: MasteryState;
+  decision: "accepted" | "rejected";
+  authority: string;
+  reason: string;
+  evidenceCount: number;
+  policyOverridden: boolean;
+}
+
+export interface LearnerExchange {
+  decisionId: string;
+  observationId: string;
+  response: string;
+  status: "awaiting_assessment" | "assessed";
+  feedback?: string;
+  outcome?: "supports" | "contradicts" | "inconclusive";
+  level?: EvidenceLevel;
+  confidence?: "low" | "medium" | "high";
+  supports: string[];
+  contradicts: string[];
+  nextDecisionId?: string;
+}
+
 export interface WorkspaceSnapshot {
   source: "local" | "demo";
   mission: string;
@@ -65,4 +106,8 @@ export interface WorkspaceSnapshot {
   reviewCandidates: ReviewCandidate[];
   sessions: SessionPoint[];
   activeArc?: string;
+  runtimeRevision?: number;
+  decision?: DecisionTrace;
+  latestExchange?: LearnerExchange;
+  latestStateDecision?: StateDecisionTrace;
 }

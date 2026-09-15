@@ -14,6 +14,11 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from tools import runtime as learning_runtime
+except ImportError:  # Direct execution: python tools/learning.py
+    import runtime as learning_runtime
+
 TEMPLATE_FILES = ("MISSION.md", "LEARNER.md", "ROADMAP.md", "STATE.md")
 DOMAIN_FILES = {
     "probability": "01-probability.md",
@@ -65,7 +70,7 @@ def copy_without_overwrite(src: Path, dst: Path) -> bool:
 
 
 def init_learning(repo_root: Path) -> list[Path]:
-    """Initialize missing .learning files without overwriting learner state."""
+    """Initialize human projections and the structured runtime without overwrites."""
     templates = repo_root / "templates"
     learning = repo_root / ".learning"
     learning.mkdir(parents=True, exist_ok=True)
@@ -79,6 +84,7 @@ def init_learning(repo_root: Path) -> list[Path]:
         dst = learning / name
         if copy_without_overwrite(src, dst):
             created.append(dst)
+    created.extend(learning_runtime.init_runtime(repo_root))
     return created
 
 
@@ -199,6 +205,10 @@ def doctor(repo_root: Path) -> list[str]:
         if not (repo_root / "evaluation" / "arcs" / filename).is_file():
             problems.append(f"missing evaluation/arcs/{filename}")
 
+    for required in ("tools/runtime.py", "schemas/runtime-v0.1.json", "docs/RUNTIME-CONTRACT.md"):
+        if not (repo_root / required).is_file():
+            problems.append(f"missing {required}")
+
     gitignore = repo_root / ".gitignore"
     if not gitignore.is_file():
         problems.append("missing .gitignore")
@@ -268,6 +278,12 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             for arc in arcs:
                 sessions = len(list((arc / "sessions").glob("[0-9][0-9][0-9].md")))
                 print(f"  {arc.name}: {sessions} session record(s)")
+            runtime_root = learning / "runtime"
+            print(f"Structured runtime: {'present' if runtime_root.is_dir() else 'not initialized'}")
+            if runtime_root.is_dir():
+                for kind in learning_runtime.RECEIPT_DIRS:
+                    count = len(learning_runtime.list_receipts(root, kind))
+                    print(f"  {kind}: {count}")
             return 0
 
         if args.command == "doctor":

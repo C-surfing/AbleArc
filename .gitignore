@@ -11,6 +11,9 @@ node_modules/
 .next/
 apps/workspace/.next/
 apps/workspace/node_modules/
+apps/workspace/next-env.d.ts
+*.tsbuildinfo
+__pycache__/
 
 # Common local/editor files
 .DS_Store

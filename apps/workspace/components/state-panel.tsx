@@ -28,6 +28,21 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         <p>{snapshot.frontierReason}</p>
       </section>
 
+      {snapshot.decision ? (
+        <section className="state-section">
+          <div className="section-heading">
+            <span>Decision trace</span>
+            <small>{snapshot.decision.uncertainty} uncertainty</small>
+          </div>
+          <div className="decision-trace">
+            <div><span>move</span><strong>{snapshot.decision.move.replaceAll("_", " ")}</strong></div>
+            <div><span>grounding</span><strong>{snapshot.decision.evidenceCount} evidence receipt(s)</strong></div>
+            <p>{snapshot.decision.rationale}</p>
+            <small>{snapshot.decision.representationKind} · {snapshot.decision.representationPurpose}</small>
+          </div>
+        </section>
+      ) : null}
+
       <section className="state-section">
         <div className="section-heading"><span>Evidence ladder</span><small>strongest observed</small></div>
         <div className="mini-ladder">
@@ -47,6 +62,26 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         ))}
         {snapshot.evidence.length === 0 ? <p className="empty-copy">No decisive evidence yet.</p> : null}
       </section>
+
+      {snapshot.latestStateDecision ? (
+        <section className="state-section">
+          <div className="section-heading">
+            <span>Latest state decision</span>
+            <small>revision {snapshot.runtimeRevision ?? 0}</small>
+          </div>
+          <div className={`state-decision state-decision--${snapshot.latestStateDecision.decision}`}>
+            <div>
+              <strong>{snapshot.latestStateDecision.concept}</strong>
+              <span>{snapshot.latestStateDecision.before} → {snapshot.latestStateDecision.after}</span>
+            </div>
+            <p>{snapshot.latestStateDecision.reason}</p>
+            <small>
+              {snapshot.latestStateDecision.authority} · {snapshot.latestStateDecision.evidenceCount} evidence receipt(s)
+              {snapshot.latestStateDecision.policyOverridden ? " · policy override recorded" : ""}
+            </small>
+          </div>
+        </section>
+      ) : null}
 
       <section className="state-section">
         <div className="section-heading"><span>Active misconception</span><small>{snapshot.misconceptions.length}</small></div>

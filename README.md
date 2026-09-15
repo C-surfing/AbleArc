@@ -6,7 +6,7 @@ The goal is not to make an AI explain more. The goal is to make the learner **mo
 
 > Keep the whole map in view. Teach at the edge of understanding. Make the learner perform the important cognitive move.
 
-`ai4learning` is designed around a simple idea: good teaching is an adaptive control loop over a learner model, not a stream of answers.
+`ai4learning` is designed as a headless, stateful learning runtime: Skills and apps are adapters over an adaptive control loop, not the source of learner truth.
 
 ```text
 MAP   — Where could we go?
@@ -16,6 +16,13 @@ EVIDENCE — Did it actually land?
 ```
 
 The internal system is rigorous; the external interaction should feel natural.
+
+```text
+Core runtime → Teach / Study skill, agent, CLI, or app
+             → conversation, diagram, exercise, HTML, or notebook artifact
+```
+
+Representations are selected cognitive instruments. HTML is one renderer, not the teaching abstraction.
 
 ## Why
 
@@ -86,7 +93,8 @@ When used in a learning project, the skill maintains a small `.learning/` worksp
 ├── ROADMAP.md     # Knowledge/dependency map + learner overlay
 ├── STATE.md       # Current frontier, misconceptions, evidence, next move
 ├── records/       # Significant learning-state changes
-└── references/    # Optional compressed reference material
+├── references/    # Optional compressed reference material
+└── runtime/       # Structured receipts + accepted state projection
 ```
 
 The four important objects are intentionally separate:
@@ -147,6 +155,21 @@ For agents with native skill loading, copy or symlink the relevant skill directo
 
 See [`docs/USAGE.md`](docs/USAGE.md) for recommended workflows and commands.
 
+## Structured transaction runtime
+
+Meaningful turns can now produce an append-only, authority-aware chain:
+
+```text
+DecisionProposal → Observation → EvidenceReceipt
+                 → StateProposal → authority decision → TurnReceipt
+```
+
+The LLM still selects moves and interprets rich behavior. The runtime makes those outputs inspectable, prevents observation from silently becoming learner state, rejects unsafe mastery promotion, and maintains a machine-operable projection of accepted concept-state changes. A single immediate correct answer cannot become `stable`; `transferable` requires evidence in a novel context.
+
+See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), [`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json), and [`tools/runtime.py`](tools/runtime.py).
+
+The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. The Workspace renders the feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
+
 ## Local runner
 
 The protocol remains usable without tooling, but v0.2 includes a tiny standard-library helper that removes repeated workspace bookkeeping without moving teaching policy into code:
@@ -157,6 +180,7 @@ python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
 python tools/learning.py doctor
+python tools/runtime.py --repo . verify
 ```
 
 `init` never overwrites existing learner state. Real arc evidence is scaffolded under Git-ignored `.dogfooding/`, while `.learning/` remains the operational learner state. The runner does not infer mastery, select teaching moves, or revise the roadmap; those remain responsibilities of the Teach/Study protocol.
@@ -166,6 +190,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 ## Design and evaluation documents
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — state model, control loop, persistence, mode selection.
+- [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
 - [`docs/VISUAL-TEACHING.md`](docs/VISUAL-TEACHING.md) — representations as cognitive instruments, semantic contracts, and visual audits.
 - [`docs/PRACTICE-PROGRESSION.md`](docs/PRACTICE-PROGRESSION.md) — connected practice that varies assumptions, boundaries, or representations.
@@ -197,4 +222,4 @@ The project intentionally does not clone any one of those systems. It turns comp
 
 **v0.1 — complete first usable protocol.** Teach + Study, persistent learner state, dynamic roadmap, evidence-aware mastery, Feynman model debugging, teaching taste, bootstrap/agent metadata, and behavioral acceptance scenarios are in place.
 
-**v0.2 — longitudinal evidence phase in progress.** The evaluation execution layer and local runner are now in place: arc contracts, runbook, five domain briefs, representation evaluation, failure taxonomy, promotion gates, privacy boundaries, longitudinal regression scenarios, unit tests, and CI are available. The five real learner arcs are **not yet complete** and must remain evidence-driven; no simulated learner outcome counts as progress. General teaching rules should be promoted only when real learner evidence identifies a repeated or structural failure. Scheduling, visual-roadmap rendering, Obsidian integration, and specialized subagents remain deferred until evidence justifies them.
+**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop now works locally across agents and the Workspace. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Hosted provider transport, automatic artifact rendering, scheduling, and specialized subagents remain deferred until evidence justifies them.

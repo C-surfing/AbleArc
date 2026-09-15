@@ -1,7 +1,6 @@
 ---
 name: study
 description: Stateful study and review protocol built on ai4learning. Use for review, practice, consolidation, retrieval, exam preparation, and transfer.
-argument-hint: "What would you like to study or review?"
 ---
 
 # ai4learning — Study Protocol
@@ -9,6 +8,8 @@ argument-hint: "What would you like to study or review?"
 Use the same learner model and teaching philosophy as `../teach/SKILL.md`, but begin from a **strengthening-first** posture rather than an acquisition-first posture.
 
 Read `../teach/SKILL.md` before operating this mode.
+
+When the structured runtime is initialized, follow the same receipt chain. In Study mode, a `DecisionProposal` should state why retrieval, discrimination, interleaving, or transfer is preferable to re-explanation, and the evidence receipt must preserve cueing, delay, context, and independence.
 
 ## Objective
 

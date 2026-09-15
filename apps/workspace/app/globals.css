@@ -470,6 +470,38 @@ button {
   color: #353638;
 }
 
+.decision-expectation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.decision-expectation > div {
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.decision-expectation span,
+.decision-trace span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.decision-expectation p {
+  margin: 0;
+  color: #555758;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .representation-card {
   max-width: 920px;
   margin: 0 auto;
@@ -776,6 +808,106 @@ button {
   background: #d0d1cc;
 }
 
+.feedback-card {
+  max-width: 920px;
+  margin: 18px auto 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(51, 112, 94, 0.24);
+  border-left: 3px solid var(--stable);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.feedback-card__header,
+.feedback-card__meta,
+.composer-actions {
+  display: flex;
+  align-items: center;
+}
+
+.feedback-card__header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.feedback-card__header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.feedback-card__header strong {
+  font-size: 12px;
+}
+
+.feedback-outcome {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.feedback-outcome--supports {
+  background: rgba(51, 112, 94, 0.11);
+  color: var(--stable);
+}
+
+.feedback-outcome--contradicts {
+  background: rgba(154, 91, 66, 0.11);
+  color: var(--warning);
+}
+
+.feedback-card__response {
+  margin: 14px 0 8px;
+  padding-left: 11px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.feedback-card__message {
+  margin: 0;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.feedback-card__meta {
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.feedback-card__meta span {
+  padding: 3px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.feedback-card__implications {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.feedback-card__implications p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.feedback-card__implications strong {
+  margin-right: 5px;
+  color: var(--ink);
+}
+
 .composer-shell {
   max-width: 920px;
   margin: 18px auto 0;
@@ -786,11 +918,11 @@ button {
 }
 
 .composer-prompt {
-  min-height: 52px;
+  min-height: 72px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 0 14px;
+  padding: 13px 14px 10px;
   color: #767977;
   font-size: 12px;
 }
@@ -798,6 +930,28 @@ button {
 .composer-mark {
   color: var(--accent);
   font-size: 17px;
+  line-height: 1.5;
+}
+
+.composer-prompt textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.composer-prompt textarea::placeholder {
+  color: #8d908e;
+}
+
+.composer-prompt textarea:disabled {
+  resize: none;
+  cursor: default;
 }
 
 .composer-status {
@@ -807,7 +961,44 @@ button {
   padding: 7px 10px 7px 14px;
   border-top: 1px solid var(--line-soft);
   color: #9a9d9a;
-  font-size: 8px;
+  font-size: 9px;
+}
+
+.composer-status button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 720;
+}
+
+.composer-status button:disabled {
+  background: #d2d2cd;
+  color: #858885;
+  cursor: default;
+}
+
+.composer-actions {
+  gap: 6px;
+}
+
+.composer-status .composer-refresh {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+}
+
+.composer-status .composer-refresh:hover {
+  border-color: #c3c4bd;
+  color: var(--ink);
+}
+
+.composer-shell.is-submitted {
+  border-color: rgba(51, 112, 94, 0.28);
+  background: rgba(51, 112, 94, 0.035);
 }
 
 .kbd {
@@ -932,6 +1123,61 @@ button {
   border-radius: 10px;
   border: 1px solid var(--line-soft);
   background: rgba(255, 255, 255, 0.62);
+}
+
+.decision-trace,
+.state-decision {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.decision-trace > div {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 7px;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.decision-trace > div span {
+  margin: 0;
+}
+
+.decision-trace strong,
+.state-decision strong {
+  font-size: 9px;
+}
+
+.decision-trace p,
+.state-decision p {
+  margin: 8px 0 5px;
+  color: #555758;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.decision-trace small,
+.state-decision small,
+.state-decision span {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.state-decision {
+  border-left: 2px solid var(--stable);
+}
+
+.state-decision--rejected {
+  border-left-color: var(--warning);
+}
+
+.state-decision > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .evidence-note {
@@ -1240,6 +1486,10 @@ button {
   .learner-action {
     grid-template-columns: 1fr;
     gap: 5px;
+  }
+
+  .decision-expectation {
+    grid-template-columns: 1fr;
   }
 
   .state-panel {

@@ -1,6 +1,6 @@
 # Local runner
 
-`tools/learning.py` is a small standard-library helper for ai4learning's local workspace and v0.2 longitudinal evaluation. It does **not** teach, score learners, infer mastery, or replace the Teach/Study skills.
+`tools/learning.py` is a small standard-library helper for ai4learning's local workspace and longitudinal evaluation. `tools/runtime.py` records the structured learning transaction selected by Teach/Study agents. Neither tool teaches, scores learners, or selects cognitive moves.
 
 Its job is to remove bookkeeping friction while preserving the project's privacy and evidence boundaries.
 
@@ -10,7 +10,40 @@ Its job is to remove bookkeeping friction while preserving the project's privacy
 python tools/learning.py init
 ```
 
-Creates missing files from `templates/` under `.learning/` plus `records/` and `references/`. Existing learner files are never overwritten.
+Creates missing files from `templates/` under `.learning/`, `records/`, `references/`, and the local structured runtime. Existing learner files are never overwritten.
+
+## Record structured learning transactions
+
+The receipt runtime preserves this inspectable chain:
+
+```text
+decision → observation → evidence → state proposal → authority decision → turn
+```
+
+Initialize it directly when needed:
+
+```bash
+python tools/runtime.py --repo . init
+```
+
+The full command contract, authority rules, privacy boundary, and JSON schema are documented in [`../docs/RUNTIME-CONTRACT.md`](../docs/RUNTIME-CONTRACT.md).
+
+Learner-facing clients should normally use the high-level response façade:
+
+```bash
+python tools/runtime.py --repo . respond <decision-id> -
+```
+
+It reads response text from stdin and derives concept/action context from the decision. The lower-level `record` commands exist for agents and debugging, not for learners.
+
+Agents can consume the next unanswered response and advance the learning loop without manually assembling receipts:
+
+```bash
+python tools/runtime.py --repo . pending
+python tools/runtime.py --repo . advance <decision-id> assessment.json
+```
+
+`advance` validates the assessment and next move before writing anything, then records feedback as evidence, closes the completed turn, and grounds the next decision in that evidence. It does not change mastery state.
 
 ## Start a real longitudinal arc
 
@@ -77,10 +110,11 @@ The runner uses only the Python standard library:
 ```bash
 python -m unittest discover -s tests -p 'test_*.py'
 python tools/learning.py doctor
+python tools/runtime.py --repo . verify
 ```
 
 GitHub Actions runs both checks on pushes and pull requests.
 
 ## Boundary
 
-Keep this tool deliberately boring. New commands should remove repeated operational friction, not move teaching policy into Python. Learner-model inference, cognitive-move selection, roadmap revision, mastery decisions, and representation choice remain responsibilities of the Teach/Study protocol and must continue to be evidence-driven.
+Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. Learner-model inference, cognitive-move selection, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.

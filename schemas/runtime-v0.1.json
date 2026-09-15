@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/C-surfing/ai4learning/schemas/runtime-v0.1.json",
+  "title": "ai4learning runtime receipt",
+  "oneOf": [
+    { "$ref": "#/$defs/decision" },
+    { "$ref": "#/$defs/observation" },
+    { "$ref": "#/$defs/evidence" },
+    { "$ref": "#/$defs/stateProposal" },
+    { "$ref": "#/$defs/stateDecision" },
+    { "$ref": "#/$defs/turn" }
+  ],
+  "$defs": {
+    "base": {
+      "type": "object",
+      "required": ["schema_version", "kind", "id", "created_at"],
+      "properties": {
+        "schema_version": { "const": "0.1" },
+        "kind": { "type": "string" },
+        "id": { "type": "string", "minLength": 5 },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "masteryState": {
+      "enum": ["unknown", "exposed", "developing", "stable", "transferable"]
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "decision": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["mode", "target", "concept_ids", "frontier_hypothesis", "evidence_used", "uncertainty", "move", "rationale", "learner_action", "representation", "expected_evidence", "falsification_signal"],
+          "properties": {
+            "kind": { "const": "decision" },
+            "mode": { "enum": ["teach", "study"] },
+            "target": { "type": "string", "minLength": 1 },
+            "concept_ids": { "$ref": "#/$defs/stringList" },
+            "frontier_hypothesis": { "type": "string", "minLength": 1 },
+            "evidence_used": { "$ref": "#/$defs/stringList" },
+            "uncertainty": { "enum": ["low", "medium", "high"] },
+            "move": { "type": "string", "minLength": 1 },
+            "rationale": { "type": "string", "minLength": 1 },
+            "learner_action": { "type": "string", "minLength": 1 },
+            "representation": {
+              "type": "object",
+              "required": ["kind", "purpose"],
+              "properties": {
+                "kind": { "type": "string", "minLength": 1 },
+                "purpose": { "type": "string", "minLength": 1 },
+                "artifact_ref": { "type": "string", "minLength": 1 }
+              }
+            },
+            "expected_evidence": { "type": "string", "minLength": 1 },
+            "falsification_signal": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "observation": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["decision_id", "concept_ids", "learner_action", "observed_result", "source"],
+          "properties": {
+            "kind": { "const": "observation" },
+            "decision_id": { "type": "string", "pattern": "^dec_" },
+            "concept_ids": { "$ref": "#/$defs/stringList" },
+            "learner_action": { "type": "string", "minLength": 1 },
+            "observed_result": { "type": "string", "minLength": 1 },
+            "source": { "enum": ["learner", "tool", "assessor"] },
+            "excerpt": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["observation_id", "concept_ids", "level", "outcome", "result_summary", "scaffolding", "context", "delay", "independence", "supports", "contradicts", "confidence", "assessor"],
+          "properties": {
+            "kind": { "const": "evidence" },
+            "observation_id": { "type": "string", "pattern": "^obs_" },
+            "concept_ids": { "$ref": "#/$defs/stringList" },
+            "level": { "enum": ["recognition", "recall", "explanation", "application", "transfer"] },
+            "outcome": { "enum": ["supports", "contradicts", "inconclusive"] },
+            "result_summary": { "type": "string", "minLength": 1 },
+            "scaffolding": { "enum": ["none", "light", "heavy"] },
+            "context": { "enum": ["same", "varied", "novel"] },
+            "delay": { "enum": ["immediate", "delayed"] },
+            "independence": { "enum": ["same_form", "new_form", "independent"] },
+            "supports": { "$ref": "#/$defs/stringList" },
+            "contradicts": { "$ref": "#/$defs/stringList" },
+            "confidence": { "enum": ["low", "medium", "high"] },
+            "assessor": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "stateProposal": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["concept_id", "concept_label", "before", "after", "evidence_ids", "rationale", "proposed_by"],
+          "properties": {
+            "kind": { "const": "state-proposal" },
+            "concept_id": { "type": "string", "minLength": 1 },
+            "concept_label": { "type": "string", "minLength": 1 },
+            "before": { "$ref": "#/$defs/masteryState" },
+            "after": { "$ref": "#/$defs/masteryState" },
+            "evidence_ids": { "$ref": "#/$defs/stringList" },
+            "rationale": { "type": "string", "minLength": 1 },
+            "proposed_by": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    },
+    "stateDecision": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["proposal_id", "decision", "authority", "reason", "policy_issues", "policy_overridden"],
+          "properties": {
+            "kind": { "const": "state-decision" },
+            "proposal_id": { "type": "string", "pattern": "^sp_" },
+            "decision": { "enum": ["accepted", "rejected"] },
+            "authority": {
+              "type": "object",
+              "required": ["type", "id"],
+              "properties": {
+                "type": { "enum": ["learner", "human_reviewer", "runtime_policy"] },
+                "id": { "type": "string", "minLength": 1 }
+              }
+            },
+            "reason": { "type": "string", "minLength": 1 },
+            "projection_revision": { "type": "integer", "minimum": 1 },
+            "policy_issues": { "$ref": "#/$defs/stringList" },
+            "policy_overridden": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "turn": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        {
+          "type": "object",
+          "required": ["decision_id", "observation_ids", "evidence_ids", "state_proposal_ids", "state_decision_ids", "artifact_refs", "outcome", "summary"],
+          "properties": {
+            "kind": { "const": "turn" },
+            "decision_id": { "type": "string", "pattern": "^dec_" },
+            "observation_ids": { "$ref": "#/$defs/stringList" },
+            "evidence_ids": { "$ref": "#/$defs/stringList" },
+            "state_proposal_ids": { "$ref": "#/$defs/stringList" },
+            "state_decision_ids": { "$ref": "#/$defs/stringList" },
+            "artifact_refs": { "$ref": "#/$defs/stringList" },
+            "outcome": { "enum": ["completed", "awaiting_evidence", "abandoned"] },
+            "summary": { "type": "string", "minLength": 1 }
+          }
+        }
+      ]
+    }
+  }
+}

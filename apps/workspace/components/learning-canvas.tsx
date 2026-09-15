@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { WorkspaceSnapshot } from "@/lib/types";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
@@ -105,13 +106,46 @@ function FlowView({ snapshot }: { snapshot: WorkspaceSnapshot }) {
 }
 
 export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot; mode: Mode }) {
+  const router = useRouter();
   const [representation, setRepresentation] = useState<Representation>("structure");
+  const [response, setResponse] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
+  const [submitError, setSubmitError] = useState<string>();
+  useEffect(() => {
+    setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
+    setResponse("");
+    setSubmitError(undefined);
+  }, [snapshot.decision?.id, snapshot.decision?.hasLearnerResponse]);
   const modeCopy = useMemo(() => {
     if (mode === "Study") return "Retrieve first. Repair only what fails, then apply or transfer.";
     if (mode === "Map") return "Inspect the dependency hypothesis without turning the graph into a progress score.";
     if (mode === "Review") return "Choose a high-value retrieval target from current evidence and dependency relevance.";
     return "Grow the model through one reachable cognitive move, then verify what changed.";
   }, [mode]);
+
+  async function submitLearnerResponse(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!snapshot.decision || !response.trim() || isSubmitting || submitted) return;
+    setIsSubmitting(true);
+    setSubmitError(undefined);
+    try {
+      const result = await fetch("/api/learning/respond", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ decisionId: snapshot.decision.id, response }),
+      });
+      const payload = await result.json() as { error?: string };
+      if (!result.ok) throw new Error(payload.error || "Could not save your response.");
+      setSubmitted(true);
+      setResponse("");
+      router.refresh();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Could not save your response.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <main className="learning-canvas-panel">
@@ -140,7 +174,44 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           <span>Your move</span>
           <p>{snapshot.expectedLearnerAction}</p>
         </div>
+        {snapshot.decision ? (
+          <div className="decision-expectation">
+            <div><span>Expected evidence</span><p>{snapshot.decision.expectedEvidence}</p></div>
+            <div><span>Would falsify</span><p>{snapshot.decision.falsificationSignal}</p></div>
+          </div>
+        ) : null}
       </section>
+
+      {snapshot.latestExchange?.status === "assessed" ? (
+        <section className="feedback-card" aria-labelledby="feedback-title">
+          <div className="feedback-card__header">
+            <div>
+              <span className="section-kicker">Feedback from your last move</span>
+              <strong id="feedback-title">What changed in the learner model</strong>
+            </div>
+            <span className={`feedback-outcome feedback-outcome--${snapshot.latestExchange.outcome}`}>
+              {snapshot.latestExchange.outcome}
+            </span>
+          </div>
+          <p className="feedback-card__response">“{snapshot.latestExchange.response}”</p>
+          <p className="feedback-card__message">{snapshot.latestExchange.feedback}</p>
+          <div className="feedback-card__meta">
+            <span>{snapshot.latestExchange.level} evidence</span>
+            <span>{snapshot.latestExchange.confidence} confidence</span>
+            {snapshot.latestExchange.nextDecisionId === snapshot.decision?.id ? <span>next move ready</span> : null}
+          </div>
+          {snapshot.latestExchange.supports.length > 0 || snapshot.latestExchange.contradicts.length > 0 ? (
+            <div className="feedback-card__implications">
+              {snapshot.latestExchange.supports.length > 0 ? (
+                <p><strong>Supports</strong> {snapshot.latestExchange.supports.join(" · ")}</p>
+              ) : null}
+              {snapshot.latestExchange.contradicts.length > 0 ? (
+                <p><strong>Still challenges</strong> {snapshot.latestExchange.contradicts.join(" · ")}</p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="representation-card">
         <div className="representation-toolbar">
@@ -174,16 +245,45 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         </footer>
       </section>
 
-      <section className="composer-shell" aria-label="Agent bridge placeholder">
-        <div className="composer-prompt">
+      <form className={`composer-shell ${submitted ? "is-submitted" : ""}`} onSubmit={submitLearnerResponse}>
+        <label className="composer-prompt" htmlFor="learner-response">
           <span className="composer-mark">↳</span>
-          <span>Respond, derive, sketch, or ask why…</span>
-        </div>
+          <textarea
+            id="learner-response"
+            value={response}
+            onChange={(event) => setResponse(event.target.value)}
+            disabled={!snapshot.decision || submitted || isSubmitting}
+            maxLength={12000}
+            rows={3}
+            placeholder={submitted
+              ? "Response saved. The tutor will use it as evidence for the next move."
+              : snapshot.decision
+                ? "Write what you think. Partial reasoning is useful evidence."
+                : "Start a Teach or Study turn to respond here."}
+          />
+        </label>
         <div className="composer-status">
-          <span>Agent bridge is intentionally not wired in this read-first slice.</span>
-          <span className="kbd">⌘ ↵</span>
+          <span aria-live="polite">
+            {submitError
+              || (submitted
+                ? "Saved locally · awaiting assessment"
+                : "Your response stays in the local learning workspace")}
+          </span>
+          <div className="composer-actions">
+            {submitted && snapshot.latestExchange?.status !== "assessed" ? (
+              <button className="composer-refresh" type="button" onClick={() => router.refresh()}>
+                Check feedback
+              </button>
+            ) : null}
+            <button
+              type="submit"
+              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting}
+            >
+              {isSubmitting ? "Saving…" : submitted ? "Response saved" : "Submit thinking"}
+            </button>
+          </div>
         </div>
-      </section>
+      </form>
     </main>
   );
 }
