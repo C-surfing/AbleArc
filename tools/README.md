@@ -10,6 +10,20 @@ existing unscoped v0.1 layout, and the canonical v0.2
 Workspace/Project/Mission layout without creating or migrating data. See
 [`../docs/PROJECT-STORAGE.md`](../docs/PROJECT-STORAGE.md).
 
+## Migrate a legacy workspace safely
+
+```bash
+python tools/learning.py migrate-workspace
+```
+
+This copies legacy project-local state into the v0.2 Project layout, verifies
+checksums and the runtime ledger, and writes `workspace.json` only as the final
+activation step. Root v0.1 files remain as a recovery source. A failed
+activation is moved to `.learning/migrations/failed/` and leaves legacy state
+active, so the command can be retried. Optional `--project-title`,
+`--project-id`, and `--mission-id` arguments control imported identity without
+changing learner evidence.
+
 ## Initialize learner state
 
 ```bash

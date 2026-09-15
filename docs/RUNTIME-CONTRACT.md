@@ -39,7 +39,14 @@ accepted state + prior evidence
 
 The receipt graph is an internal audit model. Learner-facing surfaces should use high-level actions and never require users to construct or understand these objects.
 
-Receipts are stored under `.learning/runtime/receipts/`. They are individual immutable JSON files so one agent cannot accidentally rewrite the evidence that justified an earlier conclusion. `.learning/runtime/state.json` is a small machine-operable projection of accepted concept-state decisions.
+In a legacy workspace, receipts are stored under
+`.learning/runtime/receipts/`. After v0.2 migration, the same unmodified v0.1
+ledger is resolved under `.learning/projects/<project-id>/runtime/receipts/`.
+Receipts are individual immutable JSON files so one agent cannot accidentally
+rewrite the evidence that justified an earlier conclusion. The neighboring
+`state.json` is a small machine-operable projection of accepted concept-state
+decisions. Project/Mission fields are added to the receipt schema separately;
+changing physical storage does not manufacture receipt scope.
 
 The existing Markdown files remain useful human projections. Agents should not infer that editing prose is equivalent to an accepted structured state transition.
 

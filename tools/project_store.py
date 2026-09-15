@@ -97,6 +97,13 @@ def _local_id(value: Any, field: str, *, optional: bool = False) -> str | None:
     return value
 
 
+def validate_local_id(value: str, field: str = "id") -> str:
+    """Validate a caller-supplied Project/Mission ID without touching storage."""
+    result = _local_id(value, field)
+    assert result is not None
+    return result
+
+
 def detect_layout(repo_root: Path) -> Layout:
     """Return the active storage layout without mutating the workspace."""
     learning_root = repo_root.resolve() / ".learning"

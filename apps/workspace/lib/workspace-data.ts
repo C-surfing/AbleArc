@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveProjectReadContext } from "./project-store";
 import type {
   DecisionTrace,
   EvidenceItem,
@@ -219,10 +220,9 @@ function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
   };
 }
 
-function runtimeArtifact(repoRoot: string, artifactRef: string | undefined): LearningArtifact | undefined {
+function runtimeArtifact(artifactRoot: string, artifactRef: string | undefined): LearningArtifact | undefined {
   if (!artifactRef?.startsWith(".learning/artifacts/")) return undefined;
-  const artifactRoot = path.resolve(repoRoot, ".learning", "artifacts");
-  const artifactPath = path.resolve(repoRoot, artifactRef);
+  const artifactPath = path.resolve(artifactRoot, path.basename(artifactRef));
   if (path.dirname(artifactPath) !== artifactRoot || !/^art_[A-Za-z0-9][A-Za-z0-9_-]{2,127}\.json$/.test(path.basename(artifactPath))) {
     return undefined;
   }
@@ -567,17 +567,18 @@ function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
 
 export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const repoRoot = findRepoRoot();
-  const learning = path.join(repoRoot, ".learning");
-  const state = readOptional(path.join(learning, "STATE.md"));
-  const roadmap = readOptional(path.join(learning, "ROADMAP.md"));
-  const mission = readOptional(path.join(learning, "MISSION.md"));
-  const learner = readOptional(path.join(learning, "LEARNER.md"));
+  const context = resolveProjectReadContext(repoRoot);
+  if (!context) return DEMO;
+  const state = readOptional(context.statePath);
+  const roadmap = readOptional(context.roadmapMarkdownPath);
+  const mission = context.missionMarkdownPath ? readOptional(context.missionMarkdownPath) : undefined;
+  const learner = readOptional(context.learnerPath);
 
-  const runtimeRoot = path.join(learning, "runtime");
+  const runtimeRoot = context.runtimeRoot;
   const structuredState = readJsonOptional<RuntimeState>(path.join(runtimeRoot, "state.json"));
   const structuredEvidence = runtimeEvidence(runtimeRoot);
   const decision = runtimeDecision(runtimeRoot);
-  const artifact = runtimeArtifact(repoRoot, decision?.artifactRef);
+  const artifact = runtimeArtifact(path.resolve(context.artifactsRoot), decision?.artifactRef);
   const latestExchange = runtimeLearnerExchange(runtimeRoot);
   const latestStateDecision = runtimeStateDecision(runtimeRoot);
   const structuredTimeline = runtimeTimeline(runtimeRoot);

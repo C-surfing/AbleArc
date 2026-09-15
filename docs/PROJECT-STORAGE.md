@@ -64,11 +64,35 @@ The published manifest schemas are:
 paths. It does not create directories, infer a Project from a Mission, migrate
 files, or update an active selection.
 
-The current runtime continues to operate on the legacy root layout. A later PR
-will make runtime commands explicitly project-aware; a separate migration PR
-will perform preflight, copy, verification, and atomic activation. Until then,
-v0.2 manifests are a storage contract and resolver target, not permission to
-partially move live learner data.
+Runtime and Workspace readers resolve the active Project's physical paths while
+receipts remain on the v0.1 schema. Project and Mission scope will be added to
+the receipt contract separately.
+
+## Safe migration
+
+```bash
+python tools/learning.py migrate-workspace
+```
+
+The migration:
+
+1. requires a legacy workspace with an explicit learner goal;
+2. refuses symbolic links and unsafe caller-supplied IDs;
+3. copies project-local files to a hidden staging directory;
+4. verifies every copied file by SHA-256;
+5. atomically renames the staged Project into place;
+6. writes a migration report;
+7. writes `workspace.json` last, activating the new resolver path;
+8. verifies the copied runtime and resolved active Project.
+
+Legacy root files are retained as a recovery source. If activation or runtime
+verification fails, the new manifest and staged Project are moved under
+`.learning/migrations/failed/`, leaving the legacy layout active and retryable.
+Repeated invocation after success is a read-only `already_activated` result.
+
+Unicode remains in display titles and Mission content. Filesystem IDs are
+portable ASCII; a stable hash-based ID is derived when a title contains no
+ASCII letters or numbers.
 
 ## Compatibility
 
@@ -76,4 +100,3 @@ The synthetic IDs `legacy-v0-1` and `legacy-mission` provide explicit adapter
 scope for the old single-project layout. They are not written into old
 receipts. The v0.1 ledger remains unmodified and continues to verify against
 its published schema and root paths.
-

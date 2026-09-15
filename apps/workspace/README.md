@@ -13,7 +13,12 @@ npm run dev
 
 Open the local Next.js URL printed by the dev server.
 
-If the repository contains `.learning/`, the workspace reads the current mission, roadmap, frontier, evidence, misconceptions, and review candidates. It also reads only arc/session metadata from `.dogfooding/` for the session rail.
+If the repository contains `.learning/`, the workspace resolves either the
+legacy root layout or the active v0.2 Project, then reads that context's current
+mission, roadmap, frontier, evidence, misconceptions, and review candidates. A
+v0.2 `workspace.json` is the atomic switch; retained legacy files are recovery
+data and are not read a second time. The Workspace also reads only arc/session
+metadata from `.dogfooding/` for the session rail.
 
 If no local learner state exists, the UI first asks what the learner wants to become able to do. It saves that explicit goal locally and immediately opens a conservative representative-attempt probe. The map stays honestly empty until a Teach agent interprets the response and creates domain-specific concepts. A clearly labeled Bayes preview remains available before mission creation without being presented as learner evidence.
 
