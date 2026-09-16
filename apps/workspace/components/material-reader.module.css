@@ -1,0 +1,52 @@
+.openButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.openButton:hover,
+.openButton:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reader {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.provenance,
+.sources {
+  display: grid;
+  gap: 3px;
+  color: var(--faint);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.body {
+  max-height: 360px;
+  overflow: auto;
+  margin: 0;
+  padding: 9px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.14);
+  color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 8px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

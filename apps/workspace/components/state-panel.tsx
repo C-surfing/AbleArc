@@ -1,4 +1,5 @@
 import type { EvidenceLevel, MasteryState, WorkspaceSnapshot } from "@/lib/types";
+import { MaterialReader } from "./material-reader";
 
 const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
   unknown: { glyph: "○", label: "Unknown" },
@@ -83,23 +84,7 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         </section>
       ) : null}
 
-      <section className="state-section">
-        <div className="section-heading"><span>Learning library</span><small>{snapshot.materials.length}</small></div>
-        {snapshot.materials.slice(0, 3).map((item) => (
-          <article className="material-card" key={item.id}>
-            <div className="material-card__meta">
-              <span>{item.materialType.replaceAll("_", " ")}</span>
-              <span>{item.evidenceCount} evidence · {item.sourceCount} source</span>
-            </div>
-            <strong>{item.title}</strong>
-            <p>{item.summary}</p>
-            <small>Return when: {item.whyReturn}</small>
-          </article>
-        ))}
-        {snapshot.materials.length === 0 ? (
-          <p className="empty-copy">No reusable material has been deliberately saved.</p>
-        ) : null}
-      </section>
+      <MaterialReader materials={snapshot.materials} />
 
       <section className="state-section">
         <div className="section-heading"><span>Active misconception</span><small>{snapshot.misconceptions.length}</small></div>

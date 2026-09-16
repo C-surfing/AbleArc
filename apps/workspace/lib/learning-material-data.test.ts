@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseLearningMaterialSummary } from "./learning-material-data.ts";
+import { parseLearningMaterialDetail, parseLearningMaterialSummary } from "./learning-material-data.ts";
 
 function material(): Record<string, unknown> {
   return {
@@ -29,6 +29,13 @@ test("material projection keeps safe summary fields and omits the Markdown body"
   assert.equal(summary.evidenceCount, 1);
   assert.equal("bodyMarkdown" in summary, false);
   assert.equal(JSON.stringify(summary).includes("script"), false);
+});
+
+test("detail parser exposes validated Markdown and provenance without rendering it", () => {
+  const detail = parseLearningMaterialDetail(material(), "ws_example123", "bayes");
+  assert.equal(detail.bodyMarkdown, "# Full body\n\n<script>must not be projected</script>");
+  assert.deepEqual(detail.evidenceIds, ["ev_example123"]);
+  assert.deepEqual(detail.tags, ["bayes"]);
 });
 
 test("material projection fails closed on scope and unsupported fields", () => {
