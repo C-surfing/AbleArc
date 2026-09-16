@@ -166,7 +166,10 @@ DecisionProposal → Observation → EvidenceReceipt
 
 The LLM still selects moves and interprets rich behavior. The runtime makes those outputs inspectable, prevents observation from silently becoming learner state, rejects unsafe mastery promotion, and maintains a machine-operable projection of accepted concept-state changes. A single immediate correct answer cannot become `stable`; `transferable` requires evidence in a novel context.
 
-See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), [`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json), and [`tools/runtime.py`](tools/runtime.py).
+See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), the immutable legacy
+[`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json) contract, the scoped
+[`schemas/runtime-v0.2.json`](schemas/runtime-v0.2.json) contract, and
+[`tools/runtime.py`](tools/runtime.py).
 
 The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. The Workspace renders the feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
 

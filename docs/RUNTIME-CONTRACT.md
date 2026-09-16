@@ -39,14 +39,27 @@ accepted state + prior evidence
 
 The receipt graph is an internal audit model. Learner-facing surfaces should use high-level actions and never require users to construct or understand these objects.
 
-In a legacy workspace, receipts are stored under
-`.learning/runtime/receipts/`. After v0.2 migration, the same unmodified v0.1
-ledger is resolved under `.learning/projects/<project-id>/runtime/receipts/`.
+In a legacy workspace, v0.1 receipts remain under
+`.learning/runtime/receipts/`. After migration, that immutable history is copied
+under `.learning/projects/<project-id>/runtime/receipts/` without adding fields.
+Every newly recorded receipt in workspace-v0.2 storage uses schema v0.2 and
+contains runtime-assigned `workspace_id`, `project_id`, and `mission_id`.
+
+The ledger may therefore be mixed-version by design. A v0.2 receipt may use an
+imported v0.1 receipt as a compatibility input because its containing Project
+was established by the migration. New v0.2 references must remain in the same
+Project, and observation → evidence → turn chains must also remain in one
+Mission. Project-level decisions and state proposals may explicitly cite older
+Mission evidence from the same Project. A receipt whose Workspace or Project
+does not match its physical storage is rejected. This implements the boundary
+required before cross-Project weak priors: historical evidence can later inform
+a probe, but it cannot be inserted directly into another Project's accepted
+chain.
+
 Receipts are individual immutable JSON files so one agent cannot accidentally
 rewrite the evidence that justified an earlier conclusion. The neighboring
-`state.json` is a small machine-operable projection of accepted concept-state
-decisions. Project/Mission fields are added to the receipt schema separately;
-changing physical storage does not manufacture receipt scope.
+v0.1 `state.json` remains a rebuildable machine projection rather than an
+immutable receipt; its version is intentionally independent of receipt scope.
 
 The existing Markdown files remain useful human projections. Agents should not infer that editing prose is equivalent to an accepted structured state transition.
 
@@ -144,7 +157,12 @@ python tools/runtime.py --repo . state
 python tools/runtime.py --repo . verify
 ```
 
-The cross-agent JSON contract is published at [`../schemas/runtime-v0.1.json`](../schemas/runtime-v0.1.json). The CLI assigns IDs and timestamps when omitted.
+The contracts are published at
+[`../schemas/runtime-v0.1.json`](../schemas/runtime-v0.1.json) for immutable
+legacy receipts and [`../schemas/runtime-v0.2.json`](../schemas/runtime-v0.2.json)
+for scoped receipts. The CLI assigns IDs, timestamps, and v0.2 scope fields;
+callers cannot select a different Workspace, Project, or Mission by editing a
+payload.
 
 ## Integration rule
 

@@ -24,7 +24,16 @@ try:
 except ImportError:  # Direct execution: python tools/runtime.py
     import project_store
 
-SCHEMA_VERSION = "0.1"
+LEGACY_SCHEMA_VERSION = "0.1"
+SCOPED_RECEIPT_SCHEMA_VERSION = "0.2"
+SUPPORTED_RECEIPT_SCHEMA_VERSIONS = (
+    LEGACY_SCHEMA_VERSION,
+    SCOPED_RECEIPT_SCHEMA_VERSION,
+)
+# The materialized state projection and existing runtime manifest stay at v0.1.
+# Receipt scope is versioned independently because receipts are immutable while
+# these two files are rebuildable projections/metadata.
+SCHEMA_VERSION = LEGACY_SCHEMA_VERSION
 ARTIFACT_SCHEMA_VERSION = "0.2"
 SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
@@ -158,7 +167,26 @@ def _string_list(data: dict[str, Any], field: str, *, required: bool = False) ->
     return result
 
 
-def _base(kind: str, data: dict[str, Any]) -> dict[str, Any]:
+def _write_scope(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+    context = _project_context(repo_root)
+    fields = ("workspace_id", "project_id", "mission_id")
+    if context is None or context.layout != project_store.LAYOUT_WORKSPACE:
+        if any(field in data for field in fields):
+            raise RuntimeContractError("legacy-v0.1 receipts cannot declare Workspace scope")
+        return {}
+
+    expected = {
+        "workspace_id": context.workspace_id,
+        "project_id": context.project_id,
+        "mission_id": context.mission_id,
+    }
+    for field, value in expected.items():
+        if field in data and data[field] != value:
+            raise RuntimeContractError(f"{field} is assigned by the active Project context")
+    return expected
+
+
+def _base(repo_root: Path, kind: str, data: dict[str, Any]) -> dict[str, Any]:
     expected_prefix = f"{ID_PREFIXES[kind]}_"
     receipt_id = data.get("id") or _new_id(kind)
     if (
@@ -172,11 +200,16 @@ def _base(kind: str, data: dict[str, Any]) -> dict[str, Any]:
     created_at = data.get("created_at") or _now()
     if not isinstance(created_at, str) or not created_at.strip():
         raise RuntimeContractError("created_at must be a non-empty ISO-8601 string")
+    scope = _write_scope(repo_root, data)
+    version = SCOPED_RECEIPT_SCHEMA_VERSION if scope else LEGACY_SCHEMA_VERSION
+    if "schema_version" in data and data["schema_version"] != version:
+        raise RuntimeContractError(f"schema_version is assigned by the active storage layout as {version}")
     return {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": version,
         "kind": kind,
         "id": receipt_id,
         "created_at": created_at,
+        **scope,
     }
 
 
@@ -242,24 +275,126 @@ def _read_json(path: Path) -> dict[str, Any]:
     return data
 
 
+def _receipt_scope(repo_root: Path, receipt: dict[str, Any]) -> tuple[str, str, str | None] | None:
+    version = receipt.get("schema_version")
+    if version == LEGACY_SCHEMA_VERSION:
+        if any(field in receipt for field in ("workspace_id", "project_id", "mission_id")):
+            raise RuntimeContractError(
+                f"{receipt.get('id', 'unknown')}: v0.1 receipt must remain unscoped"
+            )
+        return None
+    if version != SCOPED_RECEIPT_SCHEMA_VERSION:
+        raise RuntimeContractError(
+            f"{receipt.get('id', 'unknown')}: unsupported schema_version"
+        )
+
+    workspace_id = receipt.get("workspace_id")
+    project_id = receipt.get("project_id")
+    mission_id = receipt.get("mission_id")
+    if (
+        not isinstance(workspace_id, str)
+        or not project_store.WORKSPACE_ID_PATTERN.fullmatch(workspace_id)
+    ):
+        raise RuntimeContractError(f"{receipt.get('id', 'unknown')}: invalid workspace_id")
+    try:
+        validated_project_id = project_store.validate_local_id(project_id, "project_id")
+        validated_mission_id = (
+            project_store.validate_local_id(mission_id, "mission_id")
+            if mission_id is not None
+            else None
+        )
+    except project_store.ProjectStoreError as exc:
+        raise RuntimeContractError(f"{receipt.get('id', 'unknown')}: {exc}") from exc
+
+    context = _project_context(repo_root)
+    if context is None or context.layout != project_store.LAYOUT_WORKSPACE:
+        raise RuntimeContractError(
+            f"{receipt.get('id', 'unknown')}: scoped receipt requires workspace-v0.2 storage"
+        )
+    if workspace_id != context.workspace_id or validated_project_id != context.project_id:
+        raise RuntimeContractError(
+            f"{receipt.get('id', 'unknown')}: receipt scope does not match its Project storage"
+        )
+    if validated_mission_id is not None:
+        try:
+            project_store.resolve_project_context(
+                repo_root,
+                project_id=validated_project_id,
+                mission_id=validated_mission_id,
+            )
+        except project_store.ProjectStoreError as exc:
+            raise RuntimeContractError(
+                f"{receipt.get('id', 'unknown')}: receipt mission scope is invalid: {exc}"
+            ) from exc
+    return workspace_id, validated_project_id, validated_mission_id
+
+
+def _require_compatible_scope(
+    repo_root: Path,
+    owner: dict[str, Any],
+    referenced: dict[str, Any],
+    *,
+    same_mission: bool = False,
+) -> None:
+    owner_scope = _receipt_scope(repo_root, owner)
+    referenced_scope = _receipt_scope(repo_root, referenced)
+    if owner_scope is None:
+        if referenced_scope is not None:
+            raise RuntimeContractError("v0.1 receipt cannot reference a scoped v0.2 receipt")
+        return
+    # Migrated v0.1 receipts are immutable compatibility inputs. Their Project
+    # scope is established by the containing runtime directory, not rewritten.
+    if referenced_scope is None:
+        return
+    if owner_scope[:2] != referenced_scope[:2]:
+        raise RuntimeContractError("receipt references must stay within one Project scope")
+    if same_mission and owner_scope[2] != referenced_scope[2]:
+        raise RuntimeContractError("this receipt chain must stay within one Mission scope")
+
+
 def load_receipt(repo_root: Path, kind: str, receipt_id: str) -> dict[str, Any]:
+    expected_prefix = f"{ID_PREFIXES.get(kind, '')}_"
+    if (
+        kind not in RECEIPT_DIRS
+        or not receipt_id.startswith(expected_prefix)
+        or not ID_PATTERN.fullmatch(receipt_id)
+    ):
+        raise RuntimeContractError(f"invalid {kind} receipt id: {receipt_id}")
     path = _receipt_root(repo_root, kind) / f"{receipt_id}.json"
     if not path.is_file():
         raise RuntimeContractError(f"unknown {kind} receipt: {receipt_id}")
-    return _read_json(path)
+    receipt = _read_json(path)
+    if receipt.get("kind") != kind or receipt.get("id") != receipt_id:
+        raise RuntimeContractError(f"{receipt_id}: receipt kind/id does not match its path")
+    _receipt_scope(repo_root, receipt)
+    return receipt
 
 
 def list_receipts(repo_root: Path, kind: str) -> list[dict[str, Any]]:
     root = _receipt_root(repo_root, kind)
     if not root.is_dir():
         return []
-    receipts = [_read_json(path) for path in root.glob("*.json")]
+    receipts = []
+    for path in root.glob("*.json"):
+        receipt = _read_json(path)
+        if receipt.get("kind") != kind or receipt.get("id") != path.stem:
+            raise RuntimeContractError(f"{path.name}: receipt kind/id does not match its path")
+        _receipt_scope(repo_root, receipt)
+        receipts.append(receipt)
     return sorted(receipts, key=lambda item: (str(item.get("created_at", "")), str(item.get("id", ""))))
 
 
-def _require_refs(repo_root: Path, kind: str, ids: list[str]) -> None:
+def _require_refs(
+    repo_root: Path,
+    kind: str,
+    ids: list[str],
+    *,
+    owner: dict[str, Any] | None = None,
+) -> None:
     for receipt_id in ids:
-        load_receipt(repo_root, kind, receipt_id)
+        referenced = load_receipt(repo_root, kind, receipt_id)
+        if owner is not None:
+            _require_compatible_scope(repo_root, owner, referenced)
 
 
 def _save(repo_root: Path, kind: str, receipt: dict[str, Any]) -> dict[str, Any]:
@@ -434,10 +569,15 @@ def _prepare_decision(
     *,
     available_evidence_ids: set[str] | None = None,
 ) -> dict[str, Any]:
-    receipt = _base("decision", data)
+    receipt = _base(repo_root, "decision", data)
     evidence_used = _string_list(data, "evidence_used")
     available = available_evidence_ids or set()
-    _require_refs(repo_root, "evidence", [item for item in evidence_used if item not in available])
+    _require_refs(
+        repo_root,
+        "evidence",
+        [item for item in evidence_used if item not in available],
+        owner=receipt,
+    )
     representation = data.get("representation")
     if not isinstance(representation, dict):
         raise RuntimeContractError("representation must be an object")
@@ -578,9 +718,10 @@ def bootstrap_mission_decision(repo_root: Path, goal: str | None = None) -> dict
 
 
 def record_observation(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
-    receipt = _base("observation", data)
+    receipt = _base(repo_root, "observation", data)
     decision_id = _required_string(data, "decision_id")
     decision = load_receipt(repo_root, "decision", decision_id)
+    _require_compatible_scope(repo_root, receipt, decision, same_mission=True)
     receipt.update(
         {
             "decision_id": decision_id,
@@ -672,9 +813,10 @@ def record_learner_response(
 
 
 def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
-    receipt = _base("evidence", data)
+    receipt = _base(repo_root, "evidence", data)
     observation_id = _required_string(data, "observation_id")
     observation = load_receipt(repo_root, "observation", observation_id)
+    _require_compatible_scope(repo_root, receipt, observation, same_mission=True)
     concept_ids = _string_list(data, "concept_ids", required=True)
     if not set(concept_ids).issubset(set(observation["concept_ids"])):
         raise RuntimeContractError("evidence concept_ids must be present on the observation")
@@ -786,6 +928,7 @@ def advance_learning_turn(
         next_data,
         available_evidence_ids={evidence_id},
     )
+    _require_compatible_scope(repo_root, prepared_next, prepared_evidence)
 
     evidence = _save(repo_root, "evidence", prepared_evidence)
     next_decision = _save(repo_root, "decision", prepared_next)
@@ -811,13 +954,15 @@ def advance_learning_turn(
 
 
 def record_state_proposal(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
-    receipt = _base("state-proposal", data)
+    receipt = _base(repo_root, "state-proposal", data)
     before = _enum(data, "before", MASTERY_STATES)
     after = _enum(data, "after", MASTERY_STATES)
     if before == after:
         raise RuntimeContractError("state proposal must change the concept state")
     evidence_ids = _string_list(data, "evidence_ids", required=True)
     evidence = [load_receipt(repo_root, "evidence", item) for item in evidence_ids]
+    for item in evidence:
+        _require_compatible_scope(repo_root, receipt, item)
     concept_id = _required_string(data, "concept_id")
     if any(concept_id not in item["concept_ids"] for item in evidence):
         raise RuntimeContractError("all proposal evidence must reference concept_id")
@@ -912,7 +1057,12 @@ def decide_state_proposal(
         raise RuntimeContractError("runtime_policy cannot override its own safety checks")
 
     data: dict[str, Any] = {"id": receipt_id, "created_at": created_at}
-    receipt = _base("state-decision", {key: value for key, value in data.items() if value is not None})
+    receipt = _base(
+        repo_root,
+        "state-decision",
+        {key: value for key, value in data.items() if value is not None},
+    )
+    _require_compatible_scope(repo_root, receipt, proposal, same_mission=True)
     receipt.update(
         {
             "proposal_id": proposal_id,
@@ -950,9 +1100,9 @@ def decide_state_proposal(
 
 
 def record_turn(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
-    receipt = _base("turn", data)
+    receipt = _base(repo_root, "turn", data)
     decision_id = _required_string(data, "decision_id")
-    load_receipt(repo_root, "decision", decision_id)
+    decision = load_receipt(repo_root, "decision", decision_id)
     refs = {
         "observation_ids": ("observation", _string_list(data, "observation_ids")),
         "evidence_ids": ("evidence", _string_list(data, "evidence_ids")),
@@ -965,6 +1115,8 @@ def record_turn(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     evidence = [load_receipt(repo_root, "evidence", item) for item in refs["evidence_ids"][1]]
     proposals = [load_receipt(repo_root, "state-proposal", item) for item in refs["state_proposal_ids"][1]]
     state_decisions = [load_receipt(repo_root, "state-decision", item) for item in refs["state_decision_ids"][1]]
+    for referenced in [decision, *observations, *evidence, *proposals, *state_decisions]:
+        _require_compatible_scope(repo_root, receipt, referenced, same_mission=True)
     observation_ids = {item["id"] for item in observations}
     evidence_ids = {item["id"] for item in evidence}
     proposal_ids = {item["id"] for item in proposals}
@@ -1037,26 +1189,48 @@ RECORDERS: dict[str, Callable[[Path, dict[str, Any]], dict[str, Any]]] = {
 def verify_runtime(repo_root: Path) -> list[str]:
     """Validate every stored receipt and important cross-receipt invariants."""
     problems: list[str] = []
+    receipts_by_kind: dict[str, list[dict[str, Any]]] = {}
     for kind in RECEIPT_DIRS:
         try:
             receipts = list_receipts(repo_root, kind)
         except RuntimeContractError as exc:
             problems.append(str(exc))
+            receipts_by_kind[kind] = []
             continue
+        receipts_by_kind[kind] = receipts
         for receipt in receipts:
-            if receipt.get("schema_version") != SCHEMA_VERSION:
+            if receipt.get("schema_version") not in SUPPORTED_RECEIPT_SCHEMA_VERSIONS:
                 problems.append(f"{receipt.get('id', 'unknown')}: unsupported schema_version")
             if receipt.get("kind") != kind:
                 problems.append(f"{receipt.get('id', 'unknown')}: kind/path mismatch")
-    decisions = {item["id"]: item for item in list_receipts(repo_root, "decision")}
-    observations = {item["id"]: item for item in list_receipts(repo_root, "observation")}
-    evidence = {item["id"]: item for item in list_receipts(repo_root, "evidence")}
-    proposals = {item["id"]: item for item in list_receipts(repo_root, "state-proposal")}
-    state_decisions = list_receipts(repo_root, "state-decision")
+    decisions = {item["id"]: item for item in receipts_by_kind["decision"]}
+    observations = {item["id"]: item for item in receipts_by_kind["observation"]}
+    evidence = {item["id"]: item for item in receipts_by_kind["evidence"]}
+    proposals = {item["id"]: item for item in receipts_by_kind["state-proposal"]}
+    state_decisions = receipts_by_kind["state-decision"]
+    turns = receipts_by_kind["turn"]
     for item in observations.values():
         if item.get("decision_id") not in decisions:
             problems.append(f"{item['id']}: missing decision {item.get('decision_id')}")
+        else:
+            try:
+                _require_compatible_scope(
+                    repo_root,
+                    item,
+                    decisions[item["decision_id"]],
+                    same_mission=True,
+                )
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
     for item in decisions.values():
+        for evidence_id in item.get("evidence_used", []):
+            if evidence_id not in evidence:
+                problems.append(f"{item['id']}: missing evidence {evidence_id}")
+            else:
+                try:
+                    _require_compatible_scope(repo_root, item, evidence[evidence_id])
+                except RuntimeContractError as exc:
+                    problems.append(f"{item['id']}: {exc}")
         representation = item.get("representation", {})
         artifact_ref = representation.get("artifact_ref") if isinstance(representation, dict) else None
         if artifact_ref:
@@ -1074,18 +1248,70 @@ def verify_runtime(repo_root: Path) -> list[str]:
     for item in evidence.values():
         if item.get("observation_id") not in observations:
             problems.append(f"{item['id']}: missing observation {item.get('observation_id')}")
+        else:
+            try:
+                _require_compatible_scope(
+                    repo_root,
+                    item,
+                    observations[item["observation_id"]],
+                    same_mission=True,
+                )
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
     for item in proposals.values():
         missing = set(item.get("evidence_ids", [])) - evidence.keys()
         if missing:
             problems.append(f"{item['id']}: missing evidence {', '.join(sorted(missing))}")
+        for evidence_id in set(item.get("evidence_ids", [])) & evidence.keys():
+            try:
+                _require_compatible_scope(repo_root, item, evidence[evidence_id])
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
     seen_proposals: set[str] = set()
     for item in state_decisions:
         proposal_id = item.get("proposal_id")
         if proposal_id not in proposals:
             problems.append(f"{item['id']}: missing proposal {proposal_id}")
+        else:
+            try:
+                _require_compatible_scope(
+                    repo_root,
+                    item,
+                    proposals[proposal_id],
+                    same_mission=True,
+                )
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
         if proposal_id in seen_proposals:
             problems.append(f"{item['id']}: duplicate decision for proposal {proposal_id}")
         seen_proposals.add(proposal_id)
+    collections = {
+        "decision_id": decisions,
+        "observation_ids": observations,
+        "evidence_ids": evidence,
+        "state_proposal_ids": proposals,
+        "state_decision_ids": {item["id"]: item for item in state_decisions},
+    }
+    for turn in turns:
+        for field, collection in collections.items():
+            values = [turn.get(field)] if field == "decision_id" else turn.get(field, [])
+            if not isinstance(values, list):
+                problems.append(f"{turn['id']}: {field} must be a list")
+                continue
+            for receipt_id in values:
+                referenced = collection.get(receipt_id)
+                if referenced is None:
+                    problems.append(f"{turn['id']}: missing receipt {receipt_id}")
+                    continue
+                try:
+                    _require_compatible_scope(
+                        repo_root,
+                        turn,
+                        referenced,
+                        same_mission=True,
+                    )
+                except RuntimeContractError as exc:
+                    problems.append(f"{turn['id']}: {exc}")
     try:
         projected = rebuild_state(repo_root)
         stored = _current_state(repo_root)
