@@ -206,17 +206,24 @@ The initial palette is warm-neutral with one cool interaction accent and restrai
 
 ## Data boundary
 
-The implementation reads from the existing local files and, when present, the structured runtime:
+The implementation resolves the active Project and reads its local files and
+structured runtime:
 
 ```text
-.learning/MISSION.md
 .learning/LEARNER.md
-.learning/ROADMAP.md
-.learning/STATE.md
-.learning/runtime/state.json
-.learning/runtime/receipts/
+.learning/projects/<project-id>/missions/<mission-id>/MISSION.md
+.learning/projects/<project-id>/map/current.json
+.learning/projects/<project-id>/map/ROADMAP.md
+.learning/projects/<project-id>/STATE.md
+.learning/projects/<project-id>/runtime/state.json
+.learning/projects/<project-id>/runtime/receipts/
 .dogfooding/<arc>/sessions/
 ```
+
+The canonical map contains topology only. The Workspace validates it, joins
+accepted Runtime mastery by node ID, asks ELK for a deterministic layered
+layout, and renders the result with React Flow. A missing canonical map may use
+the legacy Markdown projection; an invalid canonical map fails closed.
 
 The web app is local-first: learner state is stored in the repository workspace
 and Git-ignored. When a remote Provider is explicitly configured, the minimized
@@ -261,6 +268,7 @@ Stack:
 - TypeScript;
 - Tailwind CSS 4;
 - React Flow for the dependency-map surface;
+- ELK for deterministic, disposable graph layout;
 - local filesystem adapter for `.learning/` / `.dogfooding/`;
 - server-only OpenAI-compatible AgentAdapter for strict assessment and next-move proposals;
 - no database in the first cut.
@@ -279,7 +287,10 @@ The first app provides:
 - optional Provider-backed response assessment with retryable local pending state;
 - graceful demo snapshot when no local learner state exists;
 - responsive layout;
-- build validation in CI.
+- build validation in CI;
+- canonical typed LearningMap topology with explicit semantic edges;
+- append-only map revision history and generated Markdown projection;
+- Runtime mastery overlay kept separate from map authority.
 
 It does **not** yet provide:
 

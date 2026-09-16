@@ -14,6 +14,7 @@ export interface ProjectReadContext {
   missionId?: string;
   learnerPath: string;
   missionMarkdownPath?: string;
+  learningMapPath?: string;
   roadmapMarkdownPath: string;
   statePath: string;
   runtimeRoot: string;
@@ -151,6 +152,7 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
       missionId: fs.existsSync(missionPath) ? "legacy-mission" : undefined,
       learnerPath: path.join(learningRoot, "LEARNER.md"),
       missionMarkdownPath: fs.existsSync(missionPath) ? missionPath : undefined,
+      learningMapPath: undefined,
       roadmapMarkdownPath: path.join(learningRoot, "ROADMAP.md"),
       statePath: path.join(learningRoot, "STATE.md"),
       runtimeRoot: path.join(learningRoot, "runtime"),
@@ -185,6 +187,7 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
     missionId,
     learnerPath: path.join(learningRoot, "LEARNER.md"),
     missionMarkdownPath,
+    learningMapPath: path.join(projectRoot, "map", "current.json"),
     roadmapMarkdownPath: path.join(projectRoot, "map", "ROADMAP.md"),
     statePath: path.join(projectRoot, "STATE.md"),
     runtimeRoot: path.join(projectRoot, "runtime"),

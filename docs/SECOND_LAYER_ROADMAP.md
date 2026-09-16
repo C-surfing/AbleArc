@@ -30,11 +30,16 @@ MISSION + ROADMAP + STATE + longitudinal arc metadata
         map / canvas / evidence / timeline
 ```
 
-The workspace is not a second source of learner truth. The current implementation is deliberately read-first: it visualizes local `.learning/` state and limited `.dogfooding/` metadata without silently promoting mastery or rewriting learner-model conclusions.
+The workspace is not a second source of learner truth. The current
+implementation captures learner action and Project lifecycle changes through
+guarded Runtime/server boundaries while keeping assessment, mastery, and
+topology authority outside React.
 
 See [`VISUAL-WORKSPACE.md`](VISUAL-WORKSPACE.md).
 
-The next product step is an authority-aware write / agent bridge that keeps explicit learner edits, agent proposals, evidence-backed accepted state changes, and evaluation records distinct.
+The authority-aware learner-response / agent bridge is implemented. The next
+product steps should deepen completion verification and learning-library value
+without moving evidence interpretation into the client.
 
 ## Layer 1: Learning Memory
 
@@ -81,11 +86,15 @@ A Review view may exist before a scheduler. Scheduling automation remains deferr
 The basic roadmap visualization is now part of the Workspace MVP. What remains deferred is product-level editing/automation such as:
 
 - full-screen graph editing;
-- automatic graph layout persistence;
 - animated roadmap transitions;
 - node-level history/diff;
-- roadmap revision proposals with evidence receipts;
+- in-product review/acceptance of roadmap revision proposals;
 - large-graph navigation and filtering.
+
+The canonical typed topology, project-local Evidence requirement, append-only
+revision/delta history, generated Markdown projection, and deterministic ELK
+layout are implemented. Layout remains disposable and is intentionally not
+persisted in the LearningMap.
 
 The roadmap remains a living dependency hypothesis, not a syllabus or completion chart.
 

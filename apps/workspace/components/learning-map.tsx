@@ -9,8 +9,9 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react";
-import { useMemo } from "react";
-import type { MasteryState, RoadmapNode } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import { layoutLearningMap, type LearningMapPosition } from "@/lib/learning-map-layout";
+import type { LearningMapView, LearningNodeKind, MasteryState } from "@/lib/types";
 
 const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
   unknown: { glyph: "○", label: "Unknown" },
@@ -20,17 +21,23 @@ const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
   transferable: { glyph: "◆", label: "Transferable" },
 };
 
-type ConceptNodeData = { label: string; state: MasteryState; frontier: boolean };
+type ConceptNodeData = {
+  label: string;
+  state: MasteryState;
+  frontier: boolean;
+  kind: LearningNodeKind;
+  missionRelevance: "core" | "supporting" | "optional";
+};
 
 function ConceptNode({ data }: NodeProps<Node<ConceptNodeData, "concept">>) {
   const meta = stateMeta[data.state];
   return (
-    <div className={`map-node map-node--${data.state} ${data.frontier ? "map-node--frontier" : ""}`}>
+    <div className={`map-node map-node--${data.state} map-node--${data.kind} ${data.frontier ? "map-node--frontier" : ""}`}>
       <Handle type="target" position={Position.Top} className="map-handle" />
       <div className="map-node__state" aria-label={meta.label}>{meta.glyph}</div>
       <div className="map-node__content">
         <span>{data.label}</span>
-        {data.frontier ? <small>YOU ARE HERE</small> : null}
+        <small>{data.frontier ? "YOU ARE HERE" : `${data.kind} · ${data.missionRelevance}`}</small>
       </div>
       <Handle type="source" position={Position.Bottom} className="map-handle" />
     </div>
@@ -39,43 +46,52 @@ function ConceptNode({ data }: NodeProps<Node<ConceptNodeData, "concept">>) {
 
 const nodeTypes = { concept: ConceptNode };
 
-export function LearningMap({ nodes: roadmap, frontier }: { nodes: RoadmapNode[]; frontier: string }) {
+export function LearningMap({ map }: { map: LearningMapView }) {
+  const [positions, setPositions] = useState<LearningMapPosition[] | null | undefined>();
+  const layoutIdentity = `${map.revision ?? map.source}:${map.nodes.map((node) => node.id).join(",")}:${map.edges.map((edge) => edge.id).join(",")}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    setPositions(undefined);
+    layoutLearningMap(map)
+      .then((next) => {
+        if (!cancelled) setPositions(next);
+      })
+      .catch(() => {
+        if (!cancelled) setPositions(null);
+      });
+    return () => { cancelled = true; };
+  }, [layoutIdentity, map]);
+
   const { nodes, edges } = useMemo(() => {
-    const flowNodes: Node<ConceptNodeData, "concept">[] = roadmap.map((node, index) => ({
+    const positionById = new Map((positions || []).map((position) => [position.id, position]));
+    const flowNodes: Node<ConceptNodeData, "concept">[] = map.nodes.map((node) => ({
       id: node.id,
       type: "concept",
-      position: { x: 16 + (index % 2) * 22, y: index * 98 },
+      position: positionById.get(node.id) || { x: 0, y: 0 },
       data: {
         label: node.label,
         state: node.state,
-        frontier: node.label === frontier || node.id === "frontier",
+        frontier: map.frontier.includes(node.id),
+        kind: node.kind,
+        missionRelevance: node.missionRelevance,
       },
       draggable: false,
       selectable: true,
     }));
-
-    const ids = new Set(roadmap.map((node) => node.id));
-    const labelToId = new Map(roadmap.map((node) => [node.label.toLowerCase(), node.id]));
-    const flowEdges: Edge[] = roadmap.slice(1).map((node, index) => {
-      const dependency = node.dependsOn;
-      const source = dependency && ids.has(dependency)
-        ? dependency
-        : dependency && labelToId.has(dependency.toLowerCase())
-          ? labelToId.get(dependency.toLowerCase())!
-          : roadmap[index].id;
-      return {
-        id: `${source}->${node.id}`,
-        source,
-        target: node.id,
-        type: "smoothstep",
-        className: "map-edge",
-      };
-    });
-
+    const flowEdges: Edge[] = map.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      type: "smoothstep",
+      label: edge.relation === "prerequisite" ? undefined : edge.relation,
+      className: `map-edge map-edge--${edge.confidence}`,
+      labelStyle: { fill: "#747775", fontSize: 8, fontWeight: 700 },
+    }));
     return { nodes: flowNodes, edges: flowEdges };
-  }, [roadmap, frontier]);
+  }, [map, positions]);
 
-  if (roadmap.length === 0) {
+  if (map.nodes.length === 0) {
     return (
       <div className="learning-map learning-map--empty">
         <strong>No map invented yet</strong>
@@ -84,24 +100,48 @@ export function LearningMap({ nodes: roadmap, frontier }: { nodes: RoadmapNode[]
     );
   }
 
+  if (positions === undefined) {
+    return (
+      <div className="learning-map learning-map--loading" aria-live="polite">
+        <span>Arranging the evidence-grounded route…</span>
+      </div>
+    );
+  }
+
+  if (positions === null) {
+    return (
+      <div className="learning-map learning-map--empty" role="alert">
+        <strong>Map layout unavailable</strong>
+        <span>The semantic map is retained; reload after checking the topology.</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="learning-map" aria-label="Learning roadmap">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.5}
-        maxZoom={1.15}
-        nodesConnectable={false}
-        panOnScroll
-        zoomOnScroll={false}
-        zoomOnPinch
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background gap={22} size={1} className="map-background" />
-      </ReactFlow>
+    <div className="learning-map-shell">
+      <div className="learning-map__meta">
+        <span>{map.source === "structured" ? `MAP REVISION ${map.revision}` : "LEGACY MAP PROJECTION"}</span>
+        {map.rationale ? <p title={map.rationale}>{map.rationale}</p> : null}
+      </div>
+      <div className="learning-map" aria-label="Learning roadmap">
+        <ReactFlow
+          key={layoutIdentity}
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.35}
+          maxZoom={1.15}
+          nodesConnectable={false}
+          panOnScroll
+          zoomOnScroll={false}
+          zoomOnPinch
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background gap={22} size={1} className="map-background" />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

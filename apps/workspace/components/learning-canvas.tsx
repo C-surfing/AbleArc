@@ -152,11 +152,11 @@ function FrequencyTreeArtifactView({
 function StructureView({ snapshot }: { snapshot: WorkspaceSnapshot }) {
   return (
     <div className="structure-strip">
-      {snapshot.nodes.slice(0, 5).map((node, index) => (
+      {snapshot.map.nodes.slice(0, 5).map((node, index) => (
         <div className="structure-step" key={node.id}>
           <span className={`state-mark state-mark--${node.state}`}>{node.state === "transferable" ? "◆" : node.state === "stable" ? "●" : node.state === "developing" ? "◐" : node.state === "exposed" ? "◔" : "○"}</span>
           <span>{node.label}</span>
-          {index < Math.min(snapshot.nodes.length, 5) - 1 ? <span className="structure-arrow">→</span> : null}
+          {index < Math.min(snapshot.map.nodes.length, 5) - 1 ? <span className="structure-arrow">→</span> : null}
         </div>
       ))}
     </div>

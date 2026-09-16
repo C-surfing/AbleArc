@@ -12,13 +12,39 @@ export type EvidenceLevel =
   | "application"
   | "transfer";
 
+export type LearningNodeKind = "concept" | "procedure" | "strategy";
+
+export type LearningEdgeRelation =
+  | "prerequisite"
+  | "component"
+  | "prepares"
+  | "contrast"
+  | "transfer";
+
 export interface RoadmapNode {
   id: string;
   label: string;
+  kind: LearningNodeKind;
   state: MasteryState;
-  dependsOn?: string;
-  missionRelevance?: "core" | "supporting" | "optional";
+  missionRelevance: "core" | "supporting" | "optional";
   evidence?: string;
+}
+
+export interface RoadmapEdge {
+  id: string;
+  source: string;
+  target: string;
+  relation: LearningEdgeRelation;
+  confidence: "low" | "medium" | "high";
+}
+
+export interface LearningMapView {
+  source: "structured" | "markdown" | "empty";
+  revision?: number;
+  rationale?: string;
+  frontier: string[];
+  nodes: RoadmapNode[];
+  edges: RoadmapEdge[];
 }
 
 export interface EvidenceItem {
@@ -168,7 +194,7 @@ export interface WorkspaceSnapshot {
   frontierReason: string;
   nextMove: string;
   expectedLearnerAction: string;
-  nodes: RoadmapNode[];
+  map: LearningMapView;
   evidence: EvidenceItem[];
   misconceptions: MisconceptionItem[];
   reviewCandidates: ReviewCandidate[];

@@ -1,15 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getAgentProviderStatus } from "./agent-adapter";
+import { parseCanonicalLearningMap } from "./learning-map-data";
 import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
 import type {
   DecisionTrace,
   EvidenceItem,
   LearningArtifact,
   LearnerExchange,
+  LearningMapView,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
+  RoadmapEdge,
   RoadmapNode,
   SessionPoint,
   StateDecisionTrace,
@@ -45,12 +48,23 @@ const DEMO: WorkspaceSnapshot = {
   frontierReason: "Frequency reasoning works, but symbolic reversal has not yet survived an independent context switch.",
   nextMove: "Switch from a frequency tree to conditional notation and ask the learner to reconstruct the same inference.",
   expectedLearnerAction: "Translate the tree into P(A|B) / P(B|A) and explain why the denominator changes.",
-  nodes: [
-    { id: "sample-space", label: "Sample space", state: "stable", missionRelevance: "supporting" },
-    { id: "conditional", label: "Conditional probability", state: "stable", dependsOn: "sample-space", missionRelevance: "core" },
-    { id: "bayes", label: "Bayes reasoning", state: "developing", dependsOn: "conditional", missionRelevance: "core", evidence: "frequency-tree application" },
-    { id: "bayesian", label: "Bayesian inference", state: "unknown", dependsOn: "bayes", missionRelevance: "core" },
-  ],
+  map: {
+    source: "structured",
+    revision: 3,
+    rationale: "The current route separates conditional direction from application and later inference.",
+    frontier: ["bayes"],
+    nodes: [
+      { id: "sample-space", label: "Sample space", kind: "concept", state: "stable", missionRelevance: "supporting" },
+      { id: "conditional", label: "Conditional probability", kind: "concept", state: "stable", missionRelevance: "core" },
+      { id: "bayes", label: "Bayes reasoning", kind: "strategy", state: "developing", missionRelevance: "core", evidence: "frequency-tree application" },
+      { id: "bayesian", label: "Bayesian inference", kind: "procedure", state: "unknown", missionRelevance: "core" },
+    ],
+    edges: [
+      { id: "sample-to-conditional", source: "sample-space", target: "conditional", relation: "prerequisite", confidence: "high" },
+      { id: "conditional-to-bayes", source: "conditional", target: "bayes", relation: "prerequisite", confidence: "high" },
+      { id: "bayes-to-inference", source: "bayes", target: "bayesian", relation: "prepares", confidence: "medium" },
+    ],
+  },
   evidence: [
     {
       task: "Medical-test frequency tree",
@@ -379,18 +393,11 @@ function runtimeStateDecision(runtimeRoot: string): StateDecisionTrace | undefin
 
 function applyRuntimeState(nodes: RoadmapNode[], runtimeState: RuntimeState | undefined): RoadmapNode[] {
   if (!runtimeState) return nodes;
-  const result = nodes.map((node) => {
+  return nodes.map((node) => {
     const concept = runtimeState.concepts[node.id]
       || Object.values(runtimeState.concepts).find((item) => item.label.toLowerCase() === node.label.toLowerCase());
     return concept ? { ...node, state: concept.state, evidence: `${concept.evidence_ids.length} accepted receipt(s)` } : node;
   });
-  const known = new Set(result.map((node) => node.id));
-  for (const [id, concept] of Object.entries(runtimeState.concepts)) {
-    if (!known.has(id)) {
-      result.push({ id, label: concept.label, state: concept.state, evidence: `${concept.evidence_ids.length} accepted receipt(s)` });
-    }
-  }
-  return result;
 }
 
 function escapeRegExp(value: string): string {
@@ -467,21 +474,63 @@ function slug(value: string, fallback: string): string {
   return cleaned || fallback;
 }
 
-function parseRoadmap(markdown: string | undefined): RoadmapNode[] {
+function parseRoadmap(markdown: string | undefined): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
   const rows = tableRows(section(markdown, "Nodes"));
   const nodes = rows
     .filter((cells) => cells[0])
     .map((cells, index) => ({
       id: slug(cells[0], `node-${index + 1}`),
       label: cells[0],
+      kind: "concept" as const,
       state: normalizeState(cells[1]),
-      dependsOn: cells[2] ? slug(cells[2], "") : undefined,
       missionRelevance: ["core", "supporting", "optional"].includes(cells[4])
         ? (cells[4] as RoadmapNode["missionRelevance"])
-        : undefined,
+        : "supporting" as const,
       evidence: cells[5] || undefined,
     }));
-  return nodes;
+  const ids = new Set(nodes.map((node) => node.id));
+  const edges = rows.flatMap((cells, index): RoadmapEdge[] => {
+    if (!cells[0] || !cells[2]) return [];
+    const target = nodes[index]?.id;
+    const source = slug(cells[2], "");
+    if (!target || !source || !ids.has(source) || source === target) return [];
+    return [{
+      id: `legacy-edge-${index + 1}`,
+      source,
+      target,
+      relation: "prerequisite",
+      confidence: "medium",
+    }];
+  });
+  return { nodes, edges };
+}
+
+function readCanonicalLearningMap(filePath: string | undefined, projectId: string): LearningMapView | undefined {
+  if (!filePath || !fs.existsSync(filePath)) return undefined;
+  const value = readJsonOptional<unknown>(filePath);
+  return parseCanonicalLearningMap(value, projectId);
+}
+
+function workspaceLearningMap(
+  canonical: LearningMapView | undefined,
+  markdown: string | undefined,
+  runtimeState: RuntimeState | undefined,
+  frontierLabel: string,
+): LearningMapView {
+  if (canonical) {
+    return { ...canonical, nodes: applyRuntimeState(canonical.nodes, runtimeState) };
+  }
+  const fallback = parseRoadmap(markdown);
+  const nodes = applyRuntimeState(fallback.nodes, runtimeState);
+  const frontier = nodes
+    .filter((node) => node.label.toLowerCase() === frontierLabel.toLowerCase())
+    .map((node) => node.id);
+  return {
+    source: nodes.length > 0 ? "markdown" : "empty",
+    frontier,
+    nodes,
+    edges: fallback.edges,
+  };
 }
 
 function parseEvidence(markdown: string | undefined): EvidenceItem[] {
@@ -583,6 +632,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
 
   const runtimeRoot = context.runtimeRoot;
   const structuredState = readJsonOptional<RuntimeState>(path.join(runtimeRoot, "state.json"));
+  const canonicalMap = readCanonicalLearningMap(context.learningMapPath, context.projectId);
   const structuredEvidence = runtimeEvidence(runtimeRoot);
   const decision = runtimeDecision(runtimeRoot);
   const artifact = runtimeArtifact(path.resolve(context.artifactsRoot), decision?.artifactRef);
@@ -603,6 +653,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const structuredFrontier = structuredState?.concepts[slug(frontier, "frontier")]
     || Object.values(structuredState?.concepts || {}).find((item) => item.label.toLowerCase() === frontier.toLowerCase());
   const frontierState = structuredFrontier?.state || markdownFrontierState;
+  const learningMap = workspaceLearningMap(canonicalMap, roadmap, structuredState, frontier);
   const timeline = localTimeline(repoRoot);
   const evidence = structuredEvidence.length > 0 ? structuredEvidence : parseEvidence(state);
   const misconceptions = parseMisconceptions(state);
@@ -658,9 +709,9 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     expectedLearnerAction: decision?.learnerAction || field(state, "Learner action expected") || (awaitingFirstDecision
       ? "Continue with a Teach agent that can read this workspace; it should not ask you to restate the goal."
       : "Learner action has not been specified yet."),
-    nodes: awaitingFirstDecision
-      ? []
-      : applyRuntimeState(parseRoadmap(roadmap), structuredState),
+    map: awaitingFirstDecision
+      ? { ...learningMap, frontier: [], nodes: [], edges: [] }
+      : learningMap,
     evidence,
     misconceptions,
     reviewCandidates,

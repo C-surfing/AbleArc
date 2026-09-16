@@ -37,6 +37,7 @@ be read twice.
     │   └── MISSION.md
     ├── map/
     │   ├── current.json
+    │   ├── revisions/<revision>.json
     │   └── ROADMAP.md
     ├── STATE.md
     ├── misconceptions.json
@@ -57,6 +58,13 @@ The published manifest schemas are:
 - [`workspace-v0.2.json`](../schemas/workspace-v0.2.json)
 - [`project-v0.2.json`](../schemas/project-v0.2.json)
 - [`mission-v0.2.json`](../schemas/mission-v0.2.json)
+- [`learning-map-v0.1.json`](../schemas/learning-map-v0.1.json)
+
+`map/current.json` is the canonical topology and frontier. Immutable numbered
+revisions preserve provenance; `ROADMAP.md` is regenerated as a human-readable
+projection. Accepted mastery remains in `runtime/state.json` and is joined by
+readers, not copied into the topology. See
+[`LEARNING-MAP.md`](LEARNING-MAP.md).
 
 ## Read boundary
 
@@ -111,6 +119,8 @@ python tools/learning.py archive-project <project-id>
 python tools/learning.py maintenance-due <project-id>
 python tools/learning.py maintenance-start <project-id>
 python tools/learning.py maintenance-finish <project-id> retention_confirmed
+python tools/learning.py map
+python tools/learning.py map-update <payload.json>
 ```
 
 The `create-project` JSON requires `title` and `goal`. Optional fields are

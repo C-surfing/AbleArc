@@ -18,9 +18,11 @@ from pathlib import Path
 from typing import Iterator
 
 try:
+    from tools import learning_map
     from tools import project_store
     from tools import runtime as learning_runtime
 except ImportError:  # Direct execution from tools/
+    import learning_map
     import project_store
     import runtime as learning_runtime
 
@@ -331,6 +333,7 @@ def create_project(
                 or context.mission_id != selected_mission_id
             ):
                 raise ProjectLifecycleError("created Project did not become the active context")
+            learning_map.initialize_learning_map(repo_root)
             decision = learning_runtime.bootstrap_mission_decision(repo_root, goal)
             problems = learning_runtime.verify_runtime(repo_root)
             if problems:
