@@ -171,7 +171,7 @@ See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), the immutable legacy
 [`schemas/runtime-v0.2.json`](schemas/runtime-v0.2.json) contract, and
 [`tools/runtime.py`](tools/runtime.py).
 
-The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. The Workspace renders the feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
+The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. An optional server-only OpenAI-compatible adapter can perform that assessment automatically with strict structured output, but the same Runtime validates and commits the turn. The Workspace renders feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
 
 ## Local runner
 
@@ -209,6 +209,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — state model, control loop, persistence, mode selection.
 - [`docs/adr/`](docs/adr/) — accepted product/runtime boundaries and compatibility consequences.
 - [`docs/PROJECT-STORAGE.md`](docs/PROJECT-STORAGE.md) — v0.2 Workspace/Project/Mission manifests and legacy read compatibility.
+- [`docs/AGENT-ADAPTER.md`](docs/AGENT-ADAPTER.md) — Provider configuration, strict turn contract, failure handling, and authority boundary.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
 - [`docs/VISUAL-TEACHING.md`](docs/VISUAL-TEACHING.md) — representations as cognitive instruments, semantic contracts, and visual audits.
@@ -242,4 +243,4 @@ The project intentionally does not clone any one of those systems. It turns comp
 
 **v0.1 — complete first usable protocol.** Teach + Study, persistent learner state, dynamic roadmap, evidence-aware mastery, Feynman model debugging, teaching taste, bootstrap/agent metadata, and behavioral acceptance scenarios are in place.
 
-**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop works locally. The first typed interactive LearningArtifact now requires prediction before reveal and preserves validated exploration context for the assessor without auto-grading it. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Hosted provider transport, additional artifact renderers, scheduling, and specialized subagents remain deferred until evidence justifies them.
+**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop works both through an external Agent and through the first optional OpenAI-compatible Workspace adapter. The first typed interactive LearningArtifact requires prediction before reveal and preserves validated exploration context for the assessor without auto-grading it. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Additional Provider adapters, artifact renderers, scheduling, and specialized subagents remain deferred until evidence justifies them.

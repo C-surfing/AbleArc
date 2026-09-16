@@ -218,7 +218,10 @@ The implementation reads from the existing local files and, when present, the st
 .dogfooding/<arc>/sessions/
 ```
 
-The web app is local-first. Raw learner evidence remains local under the privacy contract in `evaluation/PRIVACY.md`.
+The web app is local-first: learner state is stored in the repository workspace
+and Git-ignored. When a remote Provider is explicitly configured, the minimized
+pending-turn context is sent to that endpoint for assessment under the boundary
+documented in `evaluation/PRIVACY.md` and `docs/AGENT-ADAPTER.md`.
 
 ### Source of truth
 
@@ -259,6 +262,7 @@ Stack:
 - Tailwind CSS 4;
 - React Flow for the dependency-map surface;
 - local filesystem adapter for `.learning/` / `.dogfooding/`;
+- server-only OpenAI-compatible AgentAdapter for strict assessment and next-move proposals;
 - no database in the first cut.
 
 The first app provides:
@@ -272,13 +276,14 @@ The first app provides:
 - Project creation, switching, pause/resume, retained Archive, and maintenance entry;
 - lifecycle-aware read-only interaction states;
 - a short session brief instead of a repeated product introduction;
+- optional Provider-backed response assessment with retryable local pending state;
 - graceful demo snapshot when no local learner state exists;
 - responsive layout;
 - build validation in CI.
 
 It does **not** yet provide:
 
-- a model/provider bridge;
+- additional Provider adapters, streaming, or Provider tool calls;
 - client authority to interpret evidence or promote mastery;
 - automated visualizer subagent;
 - scheduler;
@@ -290,8 +295,8 @@ It does **not** yet provide:
 
 After the shell is validated visually and through actual use:
 
-1. connect the existing authority-aware receipt runtime to an agent/model transport;
-2. validate the first typed `frequency_tree_v1` artifact in a real Bayes learning arc, then add another renderer only when the target relation requires it;
+1. validate the Provider-backed turn loop and `frequency_tree_v1` artifact in a real Bayes learning arc;
+2. add another renderer only when the target relation requires it;
 3. add a learner-facing proposal review interaction for explicit edits and policy overrides;
 4. add full-screen Map mode with node inspection and roadmap revision proposals;
 5. add session diff/replay around learner-model changes, not raw chat;

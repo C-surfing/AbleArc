@@ -223,8 +223,10 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   const [representation, setRepresentation] = useState<Representation>(snapshot.artifact ? "artifact" : "structure");
   const [response, setResponse] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAssessing, setIsAssessing] = useState(false);
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
   const [submitError, setSubmitError] = useState<string>();
+  const [assessmentError, setAssessmentError] = useState<string>();
   const [artifactInteraction, setArtifactInteraction] = useState<ArtifactInteraction>();
   const [missionTitle, setMissionTitle] = useState("");
   const [missionGoal, setMissionGoal] = useState("");
@@ -241,6 +243,8 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
     setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
     setResponse("");
     setSubmitError(undefined);
+    setAssessmentError(undefined);
+    setIsAssessing(false);
     setArtifactInteraction(undefined);
   }, [snapshot.decision?.id, snapshot.decision?.hasLearnerResponse]);
   useEffect(() => {
@@ -257,6 +261,40 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
     if (mode === "Review") return "Choose a high-value retrieval target from current evidence and dependency relevance.";
     return "Grow the model through one reachable cognitive move, then verify what changed.";
   }, [mode]);
+  let composerMessage = "Your response stays in the local learning workspace";
+  if (!projectWritable) {
+    composerMessage = "This Project is read-only in its current lifecycle state";
+  } else if (isAssessing) {
+    composerMessage = `Assessing with ${snapshot.agent.model || "the configured Provider"}…`;
+  } else if (submitted && snapshot.agent.configured) {
+    composerMessage = `Saved locally · ${snapshot.agent.model} is ready to assess`;
+  } else if (submitted && snapshot.agent.error) {
+    composerMessage = snapshot.agent.error;
+  } else if (submitted) {
+    composerMessage = "Saved locally · continue with an external Agent";
+  } else if (snapshot.artifact && !artifactInteraction) {
+    composerMessage = "Commit a prediction in the artifact before submitting";
+  }
+
+  async function assessPendingResponse(decisionId: string) {
+    if (isAssessing || !snapshot.agent.configured) return;
+    setIsAssessing(true);
+    setAssessmentError(undefined);
+    try {
+      const result = await fetch("/api/learning/advance", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ decisionId }),
+      });
+      const payload = await result.json() as { error?: string };
+      if (!result.ok) throw new Error(payload.error || "Could not assess the saved response.");
+      router.refresh();
+    } catch (error) {
+      setAssessmentError(error instanceof Error ? error.message : "Could not assess the saved response.");
+    } finally {
+      setIsAssessing(false);
+    }
+  }
 
   async function submitLearnerResponse(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -280,7 +318,11 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
       if (!result.ok) throw new Error(payload.error || "Could not save your response.");
       setSubmitted(true);
       setResponse("");
-      router.refresh();
+      if (snapshot.agent.configured) {
+        await assessPendingResponse(snapshot.decision.id);
+      } else {
+        router.refresh();
+      }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Could not save your response.");
     } finally {
@@ -325,6 +367,13 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
           <div className="eyebrow-row">
             <span className="mode-chip">{mode}</span>
             <span className="source-chip">{snapshot.source === "local" ? "LOCAL STATE" : "DEMO SNAPSHOT"}</span>
+            <span className={`provider-chip ${snapshot.agent.configured ? "is-ready" : ""}`}>
+              {snapshot.agent.configured
+                ? `AGENT · ${snapshot.agent.model}`
+                : snapshot.agent.error
+                  ? "AGENT CONFIG ERROR"
+                  : "EXTERNAL AGENT"}
+            </span>
           </div>
           <h1>{snapshot.hasMission ? snapshot.frontier : "What do you want to become able to do?"}</h1>
           <p>{snapshot.hasMission
@@ -500,24 +549,28 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         </label>
         <div className="composer-status">
           <span aria-live="polite">
-            {submitError
-              || (!projectWritable
-                ? "This Project is read-only in its current lifecycle state"
-                : submitted
-                ? "Saved locally · awaiting assessment"
-                : snapshot.artifact && !artifactInteraction
-                  ? "Commit a prediction in the artifact before submitting"
-                : "Your response stays in the local learning workspace")}
+            {assessmentError || submitError || composerMessage}
           </span>
           <div className="composer-actions">
             {submitted && snapshot.latestExchange?.status !== "assessed" ? (
-              <button className="composer-refresh" type="button" onClick={() => router.refresh()}>
-                Check feedback
+              <button
+                className="composer-refresh"
+                type="button"
+                disabled={isAssessing}
+                onClick={() => snapshot.agent.configured
+                  ? assessPendingResponse(snapshot.latestExchange?.decisionId || snapshot.decision?.id || "")
+                  : router.refresh()}
+              >
+                {isAssessing
+                  ? "Assessing…"
+                  : snapshot.agent.configured
+                    ? `Assess with ${snapshot.agent.model}`
+                    : "Check feedback"}
               </button>
             ) : null}
             <button
               type="submit"
-              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting || !projectWritable || Boolean(snapshot.artifact && !artifactInteraction)}
+              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting || isAssessing || !projectWritable || Boolean(snapshot.artifact && !artifactInteraction)}
             >
               {isSubmitting
                 ? "Saving…"

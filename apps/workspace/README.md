@@ -13,6 +13,12 @@ npm run dev
 
 Open the local Next.js URL printed by the dev server.
 
+To let the official Workspace assess a saved response and generate the next
+move, copy `.env.example` to `.env.local`, set the server-only API key and
+model, then restart the dev server. The configured endpoint must support the
+OpenAI-compatible Chat Completions strict JSON Schema contract. See
+[`../../docs/AGENT-ADAPTER.md`](../../docs/AGENT-ADAPTER.md).
+
 If the repository contains `.learning/`, the workspace resolves either the
 legacy root layout or the active v0.2 Project, then reads that context's current
 mission, roadmap, frontier, evidence, misconceptions, and review candidates. A
@@ -52,6 +58,9 @@ Implemented:
 - learner-visible feedback joined to the previous response;
 - automatic composer reset when an evidence-grounded next decision arrives;
 - agent inbox/advance CLI bridge without provider coupling;
+- first OpenAI-compatible `AgentAdapter` with server-only configuration;
+- strict structured assessment + next-move generation after response capture;
+- Runtime-mediated validated advance, stale-turn protection, and retryable Provider failures;
 - typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;
 - prediction-before-reveal and validated interaction context on the learner Observation;
 - zero-state workspace-v0.2 Project onboarding from one observable capability goal;
@@ -61,15 +70,20 @@ Implemented:
 
 Not implemented yet:
 
-- model/provider connection;
-- hosted model/provider transport;
+- additional Provider adapters, streaming, or Provider tool calls;
 - general client-side authoritative learner-state writes (the Workspace exposes guarded Project lifecycle mutations, while evidence interpretation and mastery changes remain in the runtime/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - additional artifact renderers beyond the validated frequency-tree slice;
 - scheduler or cloud persistence.
 
-The composer records one response to the current structured learning decision. The Teach/Study agent can consume it through `runtime.py pending`, then commit feedback plus the next move through `runtime.py advance`. The Workspace renders the feedback and enables the new decision without exposing receipt mechanics or silently changing mastery.
+The composer records one response to the current structured learning decision.
+When a Provider is configured, the server asks the adapter for a strict
+assessment and one next move, then commits both through `runtime.py advance`.
+Without a Provider, any Teach/Study agent can still consume the response
+through `runtime.py pending` and advance it explicitly. The Workspace renders
+feedback and enables the new decision without exposing receipt mechanics or
+silently changing mastery.
 
 The Project menu never deletes learning state. Starting archived maintenance
 temporarily reopens scoped Runtime writes; the connected Agent finishes that
@@ -79,17 +93,17 @@ learner self-declare retention.
 ## Architecture boundary
 
 ```text
-Teach / Study runtime
-      ↓
-structured decision / evidence / state receipts
-      ↓
-.learning/runtime + Markdown projections
-      ↓
-workspace filesystem adapter
-      ↓
 Visual Learning Workspace
+      ↓
+server-only AgentAdapter (optional)
+      ↓
+strict assessment + next-move proposal
+      ↓
+authority-aware Runtime validation
+      ↓
+.learning/runtime receipts + projections
 ```
 
-The current artifact slice is intentionally narrow. The next renderer must be earned by a real learning arc whose target relation cannot be expressed by the frequency tree. Hosted model transport can remain an adapter over the same local boundary.
+The current artifact slice is intentionally narrow. The next renderer must be earned by a real learning arc whose target relation cannot be expressed by the frequency tree. Additional Provider transports remain adapters over the same local boundary.
 
 See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the product specification.
