@@ -20,12 +20,14 @@ from pathlib import Path
 
 try:
     from tools import completion_gate
+    from tools import learning_library
     from tools import learning_map
     from tools import project_lifecycle
     from tools import runtime as learning_runtime
     from tools import project_store
 except ImportError:  # Direct execution: python tools/learning.py
     import completion_gate
+    import learning_library
     import learning_map
     import project_lifecycle
     import runtime as learning_runtime
@@ -551,6 +553,22 @@ def read_completion_payload(value: str) -> dict:
     return payload
 
 
+def read_material_payload(value: str) -> dict:
+    try:
+        if value == "-":
+            import sys
+
+            payload = json.load(sys.stdin)
+        else:
+            with Path(value).open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LearningToolError("LearningMaterial input must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise LearningToolError("LearningMaterial input must be a JSON object")
+    return payload
+
+
 def next_arc_id(root: Path, domain: str, name: str) -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     base = f"{stamp}-{slugify(domain)}-{slugify(name)}"
@@ -672,6 +690,7 @@ def doctor(repo_root: Path) -> list[str]:
         "tools/project_store.py",
         "tools/project_lifecycle.py",
         "tools/completion_gate.py",
+        "tools/learning_library.py",
         "tools/learning_map.py",
         "tools/runtime.py",
         "schemas/workspace-v0.2.json",
@@ -683,10 +702,12 @@ def doctor(repo_root: Path) -> list[str]:
         "schemas/learning-artifact-v0.2.json",
         "schemas/learning-map-v0.1.json",
         "schemas/mission-completion-v0.1.json",
+        "schemas/learning-material-v0.1.json",
         "docs/RUNTIME-CONTRACT.md",
         "docs/LEARNING-ARTIFACTS.md",
         "docs/LEARNING-MAP.md",
         "docs/MISSION-COMPLETION.md",
+        "docs/LEARNING-LIBRARY.md",
         "examples/learning-artifacts/bayes-frequency-tree.json",
     ):
         if not (repo_root / required).is_file():
@@ -762,6 +783,12 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="?",
         help="optional expected selected Project ID for stale-selection protection",
     )
+    material_save = sub.add_parser(
+        "material-save",
+        help="save one typed, provenance-aware LearningMaterial",
+    )
+    material_save.add_argument("input", nargs="?", default="-", help="JSON file or - for stdin")
+    sub.add_parser("materials", help="list the selected Project's saved LearningMaterials")
     sub.add_parser(
         "brief",
         help="print a concise read-only session-start learning brief as JSON",
@@ -884,6 +911,19 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             ))
             return 0
 
+        if args.command == "material-save":
+            value = learning_library.save_material(root, read_material_payload(args.input))
+            print(json.dumps(value, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "materials":
+            print(json.dumps(
+                {"materials": learning_library.list_materials(root)},
+                ensure_ascii=False,
+                indent=2,
+            ))
+            return 0
+
         if args.command == "brief":
             print(
                 json.dumps(
@@ -969,6 +1009,7 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
     except (
         LearningToolError,
         completion_gate.CompletionGateError,
+        learning_library.LearningLibraryError,
         learning_map.LearningMapError,
         project_lifecycle.ProjectLifecycleError,
     ) as exc:

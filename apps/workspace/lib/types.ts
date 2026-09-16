@@ -176,6 +176,30 @@ export interface LearningBrief {
   detail: string;
 }
 
+export type LearningMaterialType =
+  | "concept_note"
+  | "derivation"
+  | "worked_example"
+  | "formula_sheet"
+  | "code_artifact"
+  | "diagram"
+  | "misconception_note"
+  | "source_note"
+  | "feynman_explanation";
+
+export interface LearningMaterialSummary {
+  id: string;
+  missionId: string;
+  materialType: LearningMaterialType;
+  title: string;
+  summary: string;
+  whyReturn: string;
+  conceptIds: string[];
+  evidenceCount: number;
+  sourceCount: number;
+  createdAt: string;
+}
+
 export interface AgentProviderStatus {
   configured: boolean;
   adapter: "openai-compatible";
@@ -210,5 +234,6 @@ export interface WorkspaceSnapshot {
   projectStatus?: ProjectStatus;
   maintenanceStatus?: MaintenanceStatus;
   projects: ProjectSummary[];
+  materials: LearningMaterialSummary[];
   sessionBrief?: LearningBrief;
 }

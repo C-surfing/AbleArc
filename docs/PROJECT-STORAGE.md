@@ -61,12 +61,18 @@ The published manifest schemas are:
 - [`mission-v0.2.json`](../schemas/mission-v0.2.json)
 - [`learning-map-v0.1.json`](../schemas/learning-map-v0.1.json)
 - [`mission-completion-v0.1.json`](../schemas/mission-completion-v0.1.json)
+- [`learning-material-v0.1.json`](../schemas/learning-material-v0.1.json)
 
 `map/current.json` is the canonical topology and frontier. Immutable numbered
 revisions preserve provenance; `ROADMAP.md` is regenerated as a human-readable
 projection. Accepted mastery remains in `runtime/state.json` and is joined by
 readers, not copied into the topology. See
 [`LEARNING-MAP.md`](LEARNING-MAP.md).
+
+`materials/*.json` contains immutable typed LearningMaterials rather than raw
+chat summaries. Every material records its originating Mission and Evidence or
+source provenance while remaining non-authoritative for mastery. See
+[`LEARNING-LIBRARY.md`](LEARNING-LIBRARY.md).
 
 ## Read boundary
 
@@ -129,6 +135,8 @@ python tools/learning.py map-update <payload.json>
 python tools/learning.py criteria-set <payload.json>
 python tools/learning.py completion-status
 python tools/learning.py complete-project
+python tools/learning.py material-save <payload.json>
+python tools/learning.py materials
 ```
 
 The `create-project` JSON requires `title` and `goal`. Optional fields are

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --experimental-transform-types --test lib/agent-adapter.test.ts lib/completion-status.test.ts lib/learning-map-layout.test.ts lib/learning-orchestrator.test.ts lib/workspace-data.test.ts",
+    "test": "node --experimental-transform-types --test lib/agent-adapter.test.ts lib/completion-status.test.ts lib/learning-map-layout.test.ts lib/learning-material-data.test.ts lib/learning-orchestrator.test.ts lib/workspace-data.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

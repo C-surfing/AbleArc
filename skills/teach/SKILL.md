@@ -55,7 +55,8 @@ When the current Project is writable, use `.learning/` as persistent state. Read
     │   └── ROADMAP.md
     ├── runtime/
     ├── records/
-    └── references/
+    ├── references/
+    └── materials/
 ```
 
 Use `python tools/learning.py create-project ...` and the lifecycle commands instead of hand-building this tree. The helper resolves the selected Project and enforces lifecycle boundaries.
@@ -141,6 +142,20 @@ Create a learning record only for meaningful changes worth preserving: a misconc
 ### references/
 
 Optional compressed materials: formula sheets, concept maps, glossaries, derivations, worked examples, or checklists. Generate them when they reduce future learning friction; do not make artifact production the default activity.
+
+### Learning Library
+
+For workspace-v0.2, read
+[`../../docs/LEARNING-LIBRARY.md`](../../docs/LEARNING-LIBRARY.md) before saving
+a reusable material. Use `python tools/learning.py material-save <payload>`;
+do not hand-write `materials/*.json`.
+
+Save only an asset with a concrete future return value, and state that value in
+`why_return`. Do not summarize every turn, save a transcript, or generate a
+batch of generic notes. A misconception note or final Feynman explanation must
+cite the assessed Runtime Evidence that makes it meaningful. Other materials
+must cite Evidence or an explicit source. A saved material is not mastery
+Evidence and cannot justify a state or Completion transition.
 
 ## The internal control loop
 

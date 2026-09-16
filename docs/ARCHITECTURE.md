@@ -84,6 +84,15 @@ It therefore stores frontier, misconception, evidence, open questions, and next 
 
 `records/` is sparse human-readable history. It exists for meaningful state transitions, not every session. `.learning/runtime/receipts/` is the machine-operable, append-only transaction ledger; `.learning/runtime/state.json` is its accepted concept-state projection.
 
+### Learning Library
+
+`materials/` stores typed, immutable knowledge assets that are worth returning
+to: derivations, worked examples, source notes, code, diagrams, misconception
+repairs, and verified Feynman explanations. Every material says why it should
+be revisited and cites Runtime Evidence or a source. Materials remain
+projections, never learner-state or completion authority. See
+[`LEARNING-LIBRARY.md`](LEARNING-LIBRARY.md).
+
 ## Concept-state model
 
 The visible roadmap uses five coarse states:

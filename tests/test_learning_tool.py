@@ -51,6 +51,10 @@ class LearningToolTests(unittest.TestCase):
             "# completion gate\n",
             encoding="utf-8",
         )
+        (self.root / "tools" / "learning_library.py").write_text(
+            "# learning library\n",
+            encoding="utf-8",
+        )
         (self.root / "tools" / "learning_map.py").write_text("# learning map\n", encoding="utf-8")
         (self.root / "tools" / "runtime.py").write_text("# runtime\n", encoding="utf-8")
         (self.root / "schemas").mkdir()
@@ -66,12 +70,20 @@ class LearningToolTests(unittest.TestCase):
             "{}\n",
             encoding="utf-8",
         )
+        (self.root / "schemas" / "learning-material-v0.1.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
         (self.root / "docs").mkdir()
         (self.root / "docs" / "RUNTIME-CONTRACT.md").write_text("# Runtime\n", encoding="utf-8")
         (self.root / "docs" / "LEARNING-ARTIFACTS.md").write_text("# Artifacts\n", encoding="utf-8")
         (self.root / "docs" / "LEARNING-MAP.md").write_text("# LearningMap\n", encoding="utf-8")
         (self.root / "docs" / "MISSION-COMPLETION.md").write_text(
             "# Mission Completion\n",
+            encoding="utf-8",
+        )
+        (self.root / "docs" / "LEARNING-LIBRARY.md").write_text(
+            "# Learning Library\n",
             encoding="utf-8",
         )
         (self.root / "examples" / "learning-artifacts").mkdir(parents=True)

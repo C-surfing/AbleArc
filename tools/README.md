@@ -151,6 +151,20 @@ and archives the retained Project with maintenance scheduled. The existing
 claim that the gate passed. See
 [`../docs/MISSION-COMPLETION.md`](../docs/MISSION-COMPLETION.md).
 
+## Save reusable learning materials
+
+The Learning Library stores deliberate, typed assets rather than automatic
+conversation summaries:
+
+```bash
+python tools/learning.py material-save material.json
+python tools/learning.py materials
+```
+
+Every material requires a return reason plus Runtime Evidence or source
+provenance. Material records are immutable and cannot update learner state.
+See [`../docs/LEARNING-LIBRARY.md`](../docs/LEARNING-LIBRARY.md).
+
 ## Revise the canonical LearningMap
 
 Read the active Project's topology:
