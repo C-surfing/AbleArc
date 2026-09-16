@@ -492,11 +492,26 @@ def completion_status(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def complete_project(repo_root: Path) -> dict[str, Any]:
+def complete_project(
+    repo_root: Path,
+    expected_project_id: str | None = None,
+) -> dict[str, Any]:
     repo_root = repo_root.resolve()
     learning_root = repo_root / ".learning"
     with _lifecycle_lock(learning_root):
         context = _context(repo_root)
+        if expected_project_id is not None:
+            try:
+                expected = project_store.validate_local_id(
+                    expected_project_id,
+                    "expected_project_id",
+                )
+            except project_store.ProjectStoreError as exc:
+                raise CompletionGateError(str(exc)) from exc
+            if context.project_id != expected:
+                raise CompletionGateError(
+                    "selected Project changed before completion could be committed"
+                )
         assert context.mission_manifest_path is not None
         assert context.mission_markdown_path is not None
         assert context.mission_root is not None

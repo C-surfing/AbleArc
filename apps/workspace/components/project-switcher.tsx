@@ -49,7 +49,9 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
   function act(action: ProjectAction, projectId: string) {
     if (
       action === "archive"
-      && !window.confirm("Archive this Project? Its state will be retained and become read-only.")
+      && !window.confirm(
+        "Archive without verified completion? State is retained and becomes read-only, but the Completion Gate will not be marked passed.",
+      )
     ) return;
     return send({ action, projectId });
   }

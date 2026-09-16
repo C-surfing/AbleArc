@@ -282,6 +282,8 @@ The first app provides:
 - representation-switching learning canvas;
 - session timeline;
 - Project creation, switching, pause/resume, retained Archive, and maintenance entry;
+- a Runtime-backed Mission Gate card that distinguishes collecting Evidence,
+  ready, verified completion, and unverified administrative Archive;
 - lifecycle-aware read-only interaction states;
 - a short session brief instead of a repeated product introduction;
 - optional Provider-backed response assessment with retryable local pending state;

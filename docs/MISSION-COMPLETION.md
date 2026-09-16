@@ -92,8 +92,11 @@ Optional criteria are recorded but do not block completion.
 ```bash
 python tools/learning.py criteria-set completion-criteria.json
 python tools/learning.py completion-status
-python tools/learning.py complete-project
+python tools/learning.py complete-project [expected-project-id]
 ```
+
+The optional Project ID protects UI and automation callers from completing a
+different Project after a stale selection change.
 
 Criteria may be refined while the Project and Mission are active. Completion
 freezes their final form, including cited Evidence, in

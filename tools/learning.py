@@ -753,9 +753,14 @@ def build_parser() -> argparse.ArgumentParser:
         "completion-status",
         help="evaluate the active Mission criteria against cited Runtime Evidence",
     )
-    sub.add_parser(
+    complete_project_parser = sub.add_parser(
         "complete-project",
         help="complete the active Mission and Archive its Project only if the gate passes",
+    )
+    complete_project_parser.add_argument(
+        "project_id",
+        nargs="?",
+        help="optional expected selected Project ID for stale-selection protection",
     )
     sub.add_parser(
         "brief",
@@ -872,7 +877,11 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             return 0
 
         if args.command == "complete-project":
-            print(json.dumps(completion_gate.complete_project(root), ensure_ascii=False, indent=2))
+            print(json.dumps(
+                completion_gate.complete_project(root, args.project_id),
+                ensure_ascii=False,
+                indent=2,
+            ))
             return 0
 
         if args.command == "brief":

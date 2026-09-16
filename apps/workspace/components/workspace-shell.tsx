@@ -7,6 +7,7 @@ import { LearningCanvas } from "./learning-canvas";
 import { StatePanel } from "./state-panel";
 import { SessionTimeline } from "./session-timeline";
 import { ProjectSwitcher } from "./project-switcher";
+import { CompletionGate } from "./completion-gate";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 
@@ -67,6 +68,12 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
             <span>Mission</span>
             <p>{snapshot.mission}</p>
           </div>
+          {snapshot.projectId ? (
+            <CompletionGate
+              projectId={snapshot.projectId}
+              projectStatus={snapshot.projectStatus}
+            />
+          ) : null}
           <LearningMap map={snapshot.map} />
           <div className="map-legend" aria-label="Mastery legend">
             <span>○ unknown</span>

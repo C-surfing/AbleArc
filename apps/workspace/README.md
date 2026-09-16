@@ -41,6 +41,7 @@ Implemented:
 - three-column desktop workspace;
 - responsive tablet/mobile collapse;
 - local Project creation, switching, pause/resume, Archive, and maintenance entry;
+- Runtime-backed Mission Completion status, criterion Evidence inspection, and verified Complete + Archive action;
 - lifecycle-aware read-only composer behavior;
 - concise session brief derived from the selected Project and due reviews;
 - Teach / Study / Map / Review mode navigation;
@@ -92,6 +93,14 @@ The Project menu never deletes learning state. Starting archived maintenance
 temporarily reopens scoped Runtime writes; the connected Agent finishes that
 review only after interpreting recorded evidence. The Workspace does not let a
 learner self-declare retention.
+
+The Mission Gate card calls the headless `completion-status` command rather
+than reinterpreting learner evidence in React. A ready card can request
+`complete-project`, but the Python Runtime re-checks the selected Project,
+pending response, criteria thresholds, and distinct Feynman/performance
+Evidence before writing the immutable completion record. Manual Archive stays
+available as an administrative transition and is explicitly labeled as
+unverified.
 
 ## Architecture boundary
 
