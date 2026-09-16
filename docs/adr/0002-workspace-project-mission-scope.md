@@ -53,3 +53,10 @@ then add an explicit, non-destructive migration.
 - Global indexes should be projections that can be rebuilt from project
   manifests, rather than an independent source of project truth.
 
+## Implementation status
+
+The compatibility reader, non-destructive migration, scoped receipt contract,
+and explicit Project lifecycle are implemented. Project manifests now move
+through active, paused, and archived states without deleting local learning
+assets. Archived Projects become writable only during an explicit maintenance
+study and remain archived when that study finishes.

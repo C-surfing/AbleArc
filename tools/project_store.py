@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Read-only storage discovery for legacy and project-scoped learning state.
 
-This module centralizes path selection before the runtime becomes project-aware.
-It deliberately does not create or migrate data. The v0.1 root layout remains
-readable, while a v0.2 workspace manifest acts as the atomic switch to canonical
+This module centralizes validated path and status selection. Mutations live in
+project_lifecycle.py. The v0.1 root layout remains readable, while a v0.2
+workspace manifest acts as the atomic switch to canonical
 Workspace/Project/Mission paths.
 """
 
@@ -48,7 +48,10 @@ class ProjectContext:
     layout: Layout
     workspace_id: str | None
     project_id: str
+    project_status: str
+    maintenance_status: str
     mission_id: str | None
+    mission_status: str | None
     learning_root: Path
     learner_path: Path
     project_root: Path
@@ -69,6 +72,8 @@ class ProjectContext:
 
 
 def _read_object(path: Path, label: str) -> dict[str, Any]:
+    if path.is_symlink():
+        raise ProjectStoreError(f"{label} must not be a symbolic link: {path}")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
@@ -129,7 +134,10 @@ def _legacy_context(repo_root: Path, project_id: str | None, mission_id: str | N
         layout=LAYOUT_LEGACY,
         workspace_id=None,
         project_id=LEGACY_PROJECT_ID,
+        project_status="active",
+        maintenance_status="none",
         mission_id=LEGACY_MISSION_ID if mission_path.is_file() else None,
+        mission_status="active" if mission_path.is_file() else None,
         learning_root=learning_root,
         learner_path=learning_root / "LEARNER.md",
         project_root=learning_root,
@@ -167,32 +175,55 @@ def _validate_workspace(data: dict[str, Any]) -> tuple[str, str | None]:
     return workspace_id, active_project_id
 
 
-def _validate_project(data: dict[str, Any], expected_id: str) -> str | None:
+def load_workspace_manifest(repo_root: Path) -> dict[str, Any]:
+    """Read and validate workspace.json without requiring an active Project."""
+    repo_root = repo_root.resolve()
+    if (repo_root / ".learning").is_symlink():
+        raise ProjectStoreError(".learning must not be a symbolic link")
+    if detect_layout(repo_root) != LAYOUT_WORKSPACE:
+        raise ProjectStoreError("workspace-v0.2 is not initialized")
+    workspace = _read_object(
+        repo_root / ".learning" / "workspace.json",
+        "workspace manifest",
+    )
+    _validate_workspace(workspace)
+    return workspace
+
+
+def _validate_project(data: dict[str, Any], expected_id: str) -> tuple[str | None, str, str]:
     if data.get("schema_version") != WORKSPACE_SCHEMA_VERSION:
         raise ProjectStoreError("project manifest schema_version must be 0.2")
     if data.get("id") != expected_id:
         raise ProjectStoreError("project manifest id does not match its directory")
     _required_string(data, "title", "project manifest")
-    if data.get("status") not in ("active", "paused", "archived"):
+    status = data.get("status")
+    if status not in ("active", "paused", "archived"):
         raise ProjectStoreError("project manifest status is invalid")
-    if data.get("maintenance_status") not in ("none", "scheduled", "due", "study_active"):
+    maintenance_status = data.get("maintenance_status")
+    if maintenance_status not in ("none", "scheduled", "due", "study_active"):
         raise ProjectStoreError("project manifest maintenance_status is invalid")
     _required_string(data, "created_at", "project manifest")
     _required_string(data, "updated_at", "project manifest")
     archived_at = data.get("archived_at")
     if archived_at is not None and (not isinstance(archived_at, str) or not archived_at.strip()):
         raise ProjectStoreError("project manifest archived_at must be null or a timestamp")
-    return _local_id(data.get("active_mission_id"), "active_mission_id", optional=True)
+    active_mission_id = _local_id(
+        data.get("active_mission_id"),
+        "active_mission_id",
+        optional=True,
+    )
+    return active_mission_id, status, maintenance_status
 
 
-def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) -> None:
+def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) -> str:
     if data.get("schema_version") != WORKSPACE_SCHEMA_VERSION:
         raise ProjectStoreError("mission manifest schema_version must be 0.2")
     if data.get("id") != mission_id:
         raise ProjectStoreError("mission manifest id does not match its directory")
     if data.get("project_id") != project_id:
         raise ProjectStoreError("mission manifest project_id does not match its project")
-    if data.get("status") not in ("planned", "active", "completed", "superseded"):
+    status = data.get("status")
+    if status not in ("planned", "active", "completed", "superseded"):
         raise ProjectStoreError("mission manifest status is invalid")
     _required_string(data, "goal", "mission manifest")
     if not isinstance(data.get("why"), str):
@@ -223,6 +254,7 @@ def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) ->
             raise ProjectStoreError("mission criterion evidence_ids must be unique runtime evidence ids")
     _required_string(data, "created_at", "mission manifest")
     _required_string(data, "updated_at", "mission manifest")
+    return status
 
 
 def resolve_project_context(
@@ -239,6 +271,8 @@ def resolve_project_context(
         return _legacy_context(repo_root, project_id, mission_id)
 
     learning_root = repo_root / ".learning"
+    if learning_root.is_symlink():
+        raise ProjectStoreError(".learning must not be a symbolic link")
     workspace_path = learning_root / "workspace.json"
     workspace = _read_object(workspace_path, "workspace manifest")
     workspace_id, active_project_id = _validate_workspace(workspace)
@@ -249,9 +283,14 @@ def resolve_project_context(
     assert selected_project_id is not None
 
     project_root = learning_root / "projects" / selected_project_id
+    if project_root.is_symlink():
+        raise ProjectStoreError("project directory must not be a symbolic link")
     project_manifest_path = project_root / "project.json"
     project = _read_object(project_manifest_path, "project manifest")
-    active_mission_id = _validate_project(project, selected_project_id)
+    active_mission_id, project_status, maintenance_status = _validate_project(
+        project,
+        selected_project_id,
+    )
     selected_mission_id = _local_id(
         mission_id if mission_id is not None else active_mission_id,
         "mission_id",
@@ -261,11 +300,18 @@ def resolve_project_context(
     mission_root: Path | None = None
     mission_manifest_path: Path | None = None
     mission_markdown_path: Path | None = None
+    mission_status: str | None = None
     if selected_mission_id is not None:
         mission_root = project_root / "missions" / selected_mission_id
+        if mission_root.is_symlink():
+            raise ProjectStoreError("mission directory must not be a symbolic link")
         mission_manifest_path = mission_root / "mission.json"
         mission = _read_object(mission_manifest_path, "mission manifest")
-        _validate_mission(mission, selected_project_id, selected_mission_id)
+        mission_status = _validate_mission(
+            mission,
+            selected_project_id,
+            selected_mission_id,
+        )
         candidate = mission_root / "MISSION.md"
         mission_markdown_path = candidate if candidate.is_file() else None
 
@@ -273,7 +319,10 @@ def resolve_project_context(
         layout=LAYOUT_WORKSPACE,
         workspace_id=workspace_id,
         project_id=selected_project_id,
+        project_status=project_status,
+        maintenance_status=maintenance_status,
         mission_id=selected_mission_id,
+        mission_status=mission_status,
         learning_root=learning_root,
         learner_path=learning_root / "LEARNER.md",
         project_root=project_root,

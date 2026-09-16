@@ -178,8 +178,8 @@ The Workspace now exposes a complete local handoff: **Your move** captures the l
 The protocol remains usable without tooling, but v0.2 includes a tiny standard-library helper that removes repeated workspace bookkeeping without moving teaching policy into code:
 
 ```bash
-python tools/learning.py init
-printf '%s' '{"goal":"Explain and apply Bayes in unfamiliar decisions"}' | python tools/learning.py start-mission -
+printf '%s' '{"title":"Bayes","goal":"Explain and apply Bayes in unfamiliar decisions"}' | python tools/learning.py create-project -
+python tools/learning.py projects
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
@@ -187,7 +187,14 @@ python tools/learning.py doctor
 python tools/runtime.py --repo . verify
 ```
 
-`init` never overwrites existing learner state. `start-mission` stores an explicit learner goal only when the Mission template is untouched, then opens one fixed representative-attempt probe so the learner can act immediately. It does not invent a map, domain model, or mastery claim. Real arc evidence is scaffolded under Git-ignored `.dogfooding/`, while `.learning/` remains the operational learner state. Domain teaching and roadmap revision remain responsibilities of the Teach/Study protocol.
+`create-project` initializes workspace-v0.2, stores an explicit learner goal,
+and opens one fixed representative-attempt probe so the learner can act
+immediately. It does not invent a map, domain model, or mastery claim. The
+legacy `init` / `start-mission` path remains compatible; migrate it before
+creating additional Projects. Real arc evidence is scaffolded under Git-ignored
+`.dogfooding/`, while `.learning/` remains the operational learner state.
+Domain teaching and roadmap revision remain responsibilities of the Teach/Study
+protocol.
 
 The repository now has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
 
