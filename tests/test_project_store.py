@@ -112,7 +112,10 @@ class ProjectStoreTests(unittest.TestCase):
         self.assertEqual(context.layout, store.LAYOUT_WORKSPACE)
         self.assertEqual(context.workspace_id, "ws_local001")
         self.assertEqual(context.project_id, "transformer")
+        self.assertEqual(context.project_status, "active")
+        self.assertEqual(context.maintenance_status, "none")
         self.assertEqual(context.mission_id, "self-attention")
+        self.assertEqual(context.mission_status, "active")
         self.assertEqual(
             context.runtime_root,
             self.root / ".learning" / "projects" / "transformer" / "runtime",
@@ -122,6 +125,19 @@ class ProjectStoreTests(unittest.TestCase):
             self.root / ".learning" / "projects" / "transformer" / "map" / "current.json",
         )
         self.assertEqual(context.learner_path, self.root / ".learning" / "LEARNER.md")
+
+    def test_workspace_manifest_can_be_read_without_an_active_project(self):
+        self.create_workspace()
+        workspace_path = self.root / ".learning" / "workspace.json"
+        workspace = json.loads(workspace_path.read_text(encoding="utf-8"))
+        workspace["active_project_id"] = None
+        self.write_json(".learning/workspace.json", workspace)
+
+        loaded = store.load_workspace_manifest(self.root)
+
+        self.assertIsNone(loaded["active_project_id"])
+        with self.assertRaisesRegex(store.ProjectStoreError, "project_id"):
+            store.resolve_project_context(self.root)
 
     def test_explicit_project_and_mission_override_active_selection(self):
         self.create_workspace()

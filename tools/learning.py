@@ -19,9 +19,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 try:
+    from tools import project_lifecycle
     from tools import runtime as learning_runtime
     from tools import project_store
 except ImportError:  # Direct execution: python tools/learning.py
+    import project_lifecycle
     import runtime as learning_runtime
     import project_store
 
@@ -485,6 +487,34 @@ def read_mission_payload(value: str) -> tuple[str, str]:
     return goal, context
 
 
+def read_project_payload(value: str) -> dict:
+    try:
+        if value == "-":
+            import sys
+
+            payload = json.load(sys.stdin)
+        else:
+            with Path(value).open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LearningToolError("Project input must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise LearningToolError("Project input must be a JSON object")
+    allowed = {"title", "goal", "why", "project_id", "mission_id", "source"}
+    unknown = set(payload) - allowed
+    if unknown:
+        raise LearningToolError(
+            "unknown Project fields: " + ", ".join(sorted(unknown))
+        )
+    for required in ("title", "goal"):
+        if not isinstance(payload.get(required), str):
+            raise LearningToolError(f"Project {required} must be a string")
+    for optional in ("why", "project_id", "mission_id", "source"):
+        if optional in payload and not isinstance(payload[optional], str):
+            raise LearningToolError(f"Project {optional} must be a string")
+    return payload
+
+
 def next_arc_id(root: Path, domain: str, name: str) -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     base = f"{stamp}-{slugify(domain)}-{slugify(name)}"
@@ -604,11 +634,13 @@ def doctor(repo_root: Path) -> list[str]:
 
     for required in (
         "tools/project_store.py",
+        "tools/project_lifecycle.py",
         "tools/runtime.py",
         "schemas/workspace-v0.2.json",
         "schemas/project-v0.2.json",
         "schemas/mission-v0.2.json",
         "schemas/runtime-v0.1.json",
+        "schemas/runtime-v0.2.json",
         "schemas/learning-artifact-v0.1.json",
         "schemas/learning-artifact-v0.2.json",
         "docs/RUNTIME-CONTRACT.md",
@@ -652,6 +684,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="save an explicit learner goal from a JSON file or stdin",
     )
     mission.add_argument("input", nargs="?", default="-", help="JSON file or - for stdin")
+
+    create_project_parser = sub.add_parser(
+        "create-project",
+        help="create and select a workspace-v0.2 Project from JSON",
+    )
+    create_project_parser.add_argument(
+        "input",
+        nargs="?",
+        default="-",
+        help="JSON file or - for stdin",
+    )
+    sub.add_parser("projects", help="list Projects and lifecycle state as JSON")
+    for command, help_text in (
+        ("switch-project", "select an existing non-archived Project"),
+        ("pause-project", "make an active Project read-only"),
+        ("resume-project", "resume and select a paused Project"),
+        ("archive-project", "archive a Project without deleting its learning state"),
+        ("maintenance-start", "temporarily open an archived Project for review"),
+        ("maintenance-due", "mark an archived Project due for review"),
+    ):
+        command_parser = sub.add_parser(command, help=help_text)
+        command_parser.add_argument("project_id")
+    maintenance_finish_parser = sub.add_parser(
+        "maintenance-finish",
+        help="close an archived Project maintenance study",
+    )
+    maintenance_finish_parser.add_argument("project_id")
+    maintenance_finish_parser.add_argument(
+        "outcome",
+        choices=("retention_confirmed", "needs_study"),
+    )
 
     start = sub.add_parser("start-arc", help="create a local longitudinal arc")
     start.add_argument("domain", choices=tuple(DOMAIN_FILES))
@@ -702,6 +765,44 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
 
+        if args.command == "create-project":
+            payload = read_project_payload(args.input)
+            result = project_lifecycle.create_project(root, **payload)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "projects":
+            print(
+                json.dumps(
+                    {"projects": project_lifecycle.list_projects(root)},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
+
+        lifecycle_commands = {
+            "switch-project": project_lifecycle.switch_project,
+            "pause-project": project_lifecycle.pause_project,
+            "resume-project": project_lifecycle.resume_project,
+            "archive-project": project_lifecycle.archive_project,
+            "maintenance-start": project_lifecycle.maintenance_start,
+            "maintenance-due": project_lifecycle.maintenance_due,
+        }
+        if args.command in lifecycle_commands:
+            result = lifecycle_commands[args.command](root, args.project_id)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "maintenance-finish":
+            result = project_lifecycle.maintenance_finish(
+                root,
+                args.project_id,
+                args.outcome,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
+
         if args.command == "start-arc":
             init_learning(root)
             arc_dir = start_arc(root, args.domain, args.name)
@@ -717,6 +818,15 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
         if args.command == "status":
             learning = root / ".learning"
             print(f"Learning workspace: {'present' if learning.is_dir() else 'not initialized'}")
+            if project_store.detect_layout(root) == project_store.LAYOUT_WORKSPACE:
+                projects = project_lifecycle.list_projects(root)
+                print(f"Projects: {len(projects)}")
+                for project in projects:
+                    marker = "*" if project["selected"] else " "
+                    print(
+                        f"  {marker} {project['id']}: {project['status']} "
+                        f"(maintenance: {project['maintenance_status']})"
+                    )
             arcs = list_arcs(root)
             print(f"Local arcs: {len(arcs)}")
             for arc in arcs:
@@ -743,7 +853,7 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             print("Repository scaffolding checks passed.")
             return 0
 
-    except LearningToolError as exc:
+    except (LearningToolError, project_lifecycle.ProjectLifecycleError) as exc:
         parser.error(str(exc))
 
     return 2

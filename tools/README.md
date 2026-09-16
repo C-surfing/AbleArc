@@ -101,6 +101,31 @@ The returned `artifact_ref` can be attached to a Decision representation. Artifa
 
 The Workspace uses the companion `respond-context` command when a learner submits from an artifact. It preserves the committed prediction and final explored value on the Observation after validating them against the artifact. Agents receive this context through `pending`; they must still judge the learner's explanation rather than infer mastery from interaction telemetry.
 
+## Manage Projects
+
+Create the first or an additional Project from JSON:
+
+```bash
+printf '%s' '{"title":"Transformer","goal":"Implement and debug self-attention"}' \
+  | python tools/learning.py create-project -
+python tools/learning.py projects
+```
+
+Selection and lifecycle changes are explicit:
+
+```bash
+python tools/learning.py switch-project transformer
+python tools/learning.py pause-project transformer
+python tools/learning.py resume-project transformer
+python tools/learning.py archive-project transformer
+python tools/learning.py maintenance-start transformer
+python tools/learning.py maintenance-finish transformer retention_confirmed
+```
+
+Paused and archived Projects are read-only. Archive retains the complete local
+Project. A maintenance study temporarily permits new scoped Runtime receipts;
+finishing it returns the Project to read-only `scheduled` or `due` state.
+
 ## Start a real longitudinal arc
 
 ```bash

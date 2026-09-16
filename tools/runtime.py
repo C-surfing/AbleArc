@@ -174,6 +174,29 @@ def _write_scope(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
         if any(field in data for field in fields):
             raise RuntimeContractError("legacy-v0.1 receipts cannot declare Workspace scope")
         return {}
+    if context.mission_id is None:
+        raise RuntimeContractError("scoped learning receipts require an active Mission")
+    if context.project_status == "paused":
+        raise RuntimeContractError("paused Project is read-only; resume it before recording receipts")
+    if (
+        context.project_status == "archived"
+        and context.maintenance_status != "study_active"
+    ):
+        raise RuntimeContractError(
+            "archived Project is read-only outside an active maintenance study"
+        )
+    if (
+        context.project_status == "archived"
+        and context.maintenance_status == "study_active"
+        and context.mission_status not in ("active", "completed")
+    ):
+        raise RuntimeContractError(
+            "maintenance study requires an active or completed Mission"
+        )
+    if context.project_status == "active" and context.mission_status != "active":
+        raise RuntimeContractError(
+            "active Project requires an active Mission before recording receipts"
+        )
 
     expected = {
         "workspace_id": context.workspace_id,
