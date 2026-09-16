@@ -40,19 +40,25 @@ A successful interaction leaves the learner more able to derive, explain, apply,
 
 ## Workspace
 
-When the current project is writable, use `.learning/` as persistent state. Read existing files before teaching and create them only when useful.
+When the current Project is writable, use `.learning/` as persistent state. Read existing files before teaching and create them only when useful. Prefer the current workspace-v0.2 layout; keep the root-file layout only as a legacy read/write fallback.
 
 ```text
 .learning/
-├── MISSION.md
+├── workspace.json
 ├── LEARNER.md
-├── ROADMAP.md
-├── STATE.md
-├── records/
-└── references/
+└── projects/<project-id>/
+    ├── project.json
+    ├── missions/<mission-id>/MISSION.md
+    ├── map/
+    │   ├── current.json
+    │   ├── revisions/
+    │   └── ROADMAP.md
+    ├── runtime/
+    ├── records/
+    └── references/
 ```
 
-Use the templates in `../../templates/` when creating these files.
+Use `python tools/learning.py project-create ...` and the lifecycle commands instead of hand-building this tree. The helper resolves the selected Project and enforces lifecycle boundaries.
 
 ### Structured runtime receipts
 
@@ -88,9 +94,11 @@ The Workspace may create a learner-owned mission containing `Source: learner-exp
 
 Store durable teaching-relevant properties only: preferred explanation style, language, mathematical maturity, desired rigor, tolerance for Socratic interaction, recurring learning constraints, and stable preferences. Do not use it as a transcript or as a dump of temporary mistakes.
 
-### ROADMAP.md
+### LearningMap and ROADMAP.md
 
-Maintain a revisable dependency map of the subject with a learner overlay. This is not a syllabus and not a flat chapter list. Mark nodes using:
+In workspace-v0.2, `map/current.json` is the canonical, revisioned topology hypothesis. Read [`../../docs/LEARNING-MAP.md`](../../docs/LEARNING-MAP.md) before revising it. `map/ROADMAP.md` is generated as a human-readable projection; do not edit it directly.
+
+The topology contains typed nodes (`concept`, `procedure`, `strategy`), explicit semantic edges, mission relevance, and the current frontier. It must not contain learner mastery or pixel positions. Mastery remains in `runtime/state.json` and readers join that overlay onto topology:
 
 ```text
 ○ unknown
@@ -100,7 +108,9 @@ Maintain a revisable dependency map of the subject with a learner overlay. This 
 ◆ transferable
 ```
 
-The roadmap is a hypothesis. Revise it when evidence shows that the assumed prerequisite structure or learning order is wrong for this learner.
+Revise the map only when project-local Evidence changes the topology hypothesis or frontier. Pass the full proposed topology through `python tools/learning.py map-update <payload>`; never write `current.json`, its immutable revision history, or `ROADMAP.md` by hand. The helper validates references and scope, computes the delta, and requires evidence. Do not revise the map merely because mastery changed.
+
+Legacy workspaces may still use a root `ROADMAP.md` that combines topology and learner overlay. Preserve that fallback until the Project has an evidence-grounded structured map revision.
 
 ### STATE.md
 
@@ -398,7 +408,7 @@ When introducing a new node, make clear:
 
 Do not force a canonical textbook order. If the learner has an unusual but productive route, adapt.
 
-When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority.
+When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority. For workspace-v0.2, read the current map with `python tools/learning.py map`; after the Evidence receipt exists, use `map-update` only if topology or frontier actually changed. A state proposal must never silently rewrite topology.
 
 ## Source grounding and factual reliability
 
@@ -474,7 +484,7 @@ Avoid asking several unrelated questions at the end of one turn.
 At the start of a teaching session:
 
 1. run `python tools/learning.py brief` when the local helper is available;
-2. read the selected Project's Mission, shared learner profile, map, and state as needed;
+2. read the selected Project's Mission, shared learner profile, `python tools/learning.py map`, and state as needed;
 3. reconstruct the learner's current frontier;
 4. identify whether the current request is new acquisition, repair, review, application, or transfer;
 5. continue from actual state rather than restarting the curriculum;

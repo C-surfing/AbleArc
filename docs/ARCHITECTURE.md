@@ -59,9 +59,13 @@ It prevents the tutor from optimizing generic subject coverage when the learner 
 
 ### Knowledge-map layer
 
-`ROADMAP.md` describes concept dependencies and the learner's status on those nodes. It provides global orientation while allowing local teaching.
+In workspace-v0.2, `map/current.json` describes typed concepts, procedures,
+strategies, explicit dependencies, and the current frontier. `ROADMAP.md` is its
+human-readable projection. Accepted node mastery stays in
+`runtime/state.json`; the Workspace joins the two layers for display.
 
 The roadmap is not authoritative curriculum. It is revised as teaching produces new evidence.
+See [`LEARNING-MAP.md`](LEARNING-MAP.md) for its evidence-grounded write path.
 
 ### Operational state layer
 

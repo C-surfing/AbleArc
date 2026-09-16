@@ -1,6 +1,6 @@
 # ADR 0003: Separate LearningMap topology and learner overlay
 
-- Status: Accepted
+- Status: Accepted and implemented
 - Date: 2026-09-15
 
 ## Context
@@ -39,10 +39,12 @@ renders and provides interaction.
 
 ## Consequences
 
-- The current single `dependsOn` field will be replaced by explicit edge
+- The former single `dependsOn` view field is replaced by explicit edge
   objects.
 - The UI can provide dependency, mastery, evidence, mission, and review lenses
   over the same topology without duplicating authority.
-- ELK or an equivalent deterministic engine can be added without changing the
+- ELK now derives a deterministic layered layout without changing the
   LearningMap schema.
 
+The implementation contract and agent write path are documented in
+[`../LEARNING-MAP.md`](../LEARNING-MAP.md).

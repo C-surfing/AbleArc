@@ -132,6 +132,27 @@ Agent or UI. It prioritizes a pending learner response, a due archived review,
 or the selected Project's current decision. It is deliberately not a repeated
 product introduction or a dump of the full learner model.
 
+## Revise the canonical LearningMap
+
+Read the active Project's topology:
+
+```bash
+python tools/learning.py map
+```
+
+After project-local Evidence changes the topology hypothesis or frontier,
+submit the full semantic map (nodes, edges, frontier, rationale, and Evidence
+IDs):
+
+```bash
+python tools/learning.py map-update map-update.json
+```
+
+The write boundary validates scope and lifecycle, computes the delta, appends
+an immutable revision, updates `map/current.json`, and regenerates
+`map/ROADMAP.md`. It rejects mastery fields and pixel positions. See
+[`../docs/LEARNING-MAP.md`](../docs/LEARNING-MAP.md).
+
 ## Start a real longitudinal arc
 
 ```bash

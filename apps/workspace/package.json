@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --experimental-transform-types --test lib/agent-adapter.test.ts lib/learning-orchestrator.test.ts",
+    "test": "node --experimental-transform-types --test lib/agent-adapter.test.ts lib/learning-map-layout.test.ts lib/learning-orchestrator.test.ts lib/workspace-data.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@xyflow/react": "12.11.3",
+    "elkjs": "0.12.0",
     "next": "16.3.3",
     "react": "19.2.7",
     "react-dom": "19.2.7"

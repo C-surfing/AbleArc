@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/C-surfing/ai4learning/schemas/learning-map-v0.1.json",
+  "title": "ai4learning canonical LearningMap",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "project_id",
+    "revision",
+    "parent_revision",
+    "created_at",
+    "updated_at",
+    "rationale",
+    "evidence_ids",
+    "frontier",
+    "nodes",
+    "edges",
+    "delta"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "kind": { "const": "learning-map" },
+    "project_id": { "$ref": "#/$defs/localId" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "parent_revision": {
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "null" }
+      ]
+    },
+    "created_at": { "type": "string", "minLength": 1 },
+    "updated_at": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 1600 },
+    "evidence_ids": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
+      "uniqueItems": true,
+      "maxItems": 50
+    },
+    "frontier": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/localId" },
+      "uniqueItems": true,
+      "maxItems": 12
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/node" },
+      "maxItems": 500
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" },
+      "maxItems": 2000
+    },
+    "delta": { "$ref": "#/$defs/delta" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 0 } }, "required": ["revision"] },
+      "then": {
+        "properties": {
+          "parent_revision": { "type": "null" },
+          "evidence_ids": { "maxItems": 0 },
+          "frontier": { "maxItems": 0 },
+          "nodes": { "maxItems": 0 },
+          "edges": { "maxItems": 0 },
+          "delta": {
+            "properties": {
+              "added_node_ids": { "maxItems": 0 },
+              "removed_node_ids": { "maxItems": 0 },
+              "changed_node_ids": { "maxItems": 0 },
+              "added_edge_ids": { "maxItems": 0 },
+              "removed_edge_ids": { "maxItems": 0 },
+              "changed_edge_ids": { "maxItems": 0 },
+              "frontier_changed": { "const": false }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "revision": { "minimum": 1 } }, "required": ["revision"] },
+      "then": {
+        "properties": {
+          "parent_revision": { "type": "integer", "minimum": 0 },
+          "evidence_ids": { "minItems": 1 },
+          "frontier": { "minItems": 1 },
+          "nodes": { "minItems": 1 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "localId": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "mission_relevance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/localId" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "kind": { "enum": ["concept", "procedure", "strategy"] },
+        "mission_relevance": { "enum": ["core", "supporting", "optional"] }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "target", "relation", "confidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/localId" },
+        "source": { "$ref": "#/$defs/localId" },
+        "target": { "$ref": "#/$defs/localId" },
+        "relation": { "enum": ["prerequisite", "component", "prepares", "contrast", "transfer"] },
+        "confidence": { "enum": ["low", "medium", "high"] }
+      }
+    },
+    "delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "added_node_ids",
+        "removed_node_ids",
+        "changed_node_ids",
+        "added_edge_ids",
+        "removed_edge_ids",
+        "changed_edge_ids",
+        "frontier_changed"
+      ],
+      "properties": {
+        "added_node_ids": { "$ref": "#/$defs/idList" },
+        "removed_node_ids": { "$ref": "#/$defs/idList" },
+        "changed_node_ids": { "$ref": "#/$defs/idList" },
+        "added_edge_ids": { "$ref": "#/$defs/idList" },
+        "removed_edge_ids": { "$ref": "#/$defs/idList" },
+        "changed_edge_ids": { "$ref": "#/$defs/idList" },
+        "frontier_changed": { "type": "boolean" }
+      }
+    },
+    "idList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/localId" },
+      "uniqueItems": true
+    }
+  }
+}

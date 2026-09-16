@@ -67,7 +67,7 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
             <span>Mission</span>
             <p>{snapshot.mission}</p>
           </div>
-          <LearningMap nodes={snapshot.nodes} frontier={snapshot.frontier} />
+          <LearningMap map={snapshot.map} />
           <div className="map-legend" aria-label="Mastery legend">
             <span>○ unknown</span>
             <span>◔ exposed</span>

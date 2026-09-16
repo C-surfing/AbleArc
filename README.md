@@ -88,23 +88,27 @@ When used in a learning project, the skill maintains a small `.learning/` worksp
 
 ```text
 .learning/
-├── MISSION.md     # Why this matters; what success means
-├── LEARNER.md     # Durable learning preferences and learner-specific constraints
-├── ROADMAP.md     # Knowledge/dependency map + learner overlay
-├── STATE.md       # Current frontier, misconceptions, evidence, next move
-├── records/       # Significant learning-state changes
-├── references/    # Optional compressed reference material
-└── runtime/       # Structured receipts + accepted state projection
+├── workspace.json
+├── LEARNER.md
+└── projects/<project-id>/
+    ├── project.json
+    ├── missions/<mission-id>/MISSION.md
+    ├── map/        # Canonical topology, revisions, Markdown projection
+    ├── STATE.md
+    ├── records/
+    ├── references/
+    └── runtime/    # Structured receipts + accepted mastery projection
 ```
 
 The four important objects are intentionally separate:
 
 - **MISSION** grounds what is worth learning.
 - **LEARNER** stores durable teaching-relevant preferences, not a transcript.
-- **ROADMAP** is a revisable hypothesis about the dependency structure of the subject.
+- **LearningMap** is a revisable hypothesis about the dependency structure of the subject.
 - **STATE** represents the learner now: stable, shaky, unknown, misconceptions, evidence, and next frontier.
 
-A roadmap is not a chapter list. It is a dependency graph with a learner overlay.
+A roadmap is not a chapter list. The canonical graph and learner overlay have
+separate authority and are joined for display.
 
 ```text
 Vectors ● ──→ Covectors ◐ ──→ Wedge product ○ ──→ Differential forms ○
@@ -181,6 +185,7 @@ The protocol remains usable without tooling, but v0.2 includes a tiny standard-l
 printf '%s' '{"title":"Bayes","goal":"Explain and apply Bayes in unfamiliar decisions"}' | python tools/learning.py create-project -
 python tools/learning.py projects
 python tools/learning.py brief
+python tools/learning.py map
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
@@ -197,6 +202,12 @@ creating additional Projects. Real arc evidence is scaffolded under Git-ignored
 Domain teaching and roadmap revision remain responsibilities of the Teach/Study
 protocol.
 
+For workspace-v0.2, the roadmap is now a canonical typed LearningMap with
+explicit semantic edges and append-only, Evidence-grounded revisions. Learner
+mastery remains in the Runtime state projection; the Workspace joins it onto
+the map and uses ELK for deterministic layout. See
+[`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md).
+
 The official Workspace exposes the same Project lifecycle and a concise
 session-start brief. Paused and archived Projects become read-only in both the
 UI and Runtime; archived maintenance must be opened explicitly before new
@@ -209,6 +220,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — state model, control loop, persistence, mode selection.
 - [`docs/adr/`](docs/adr/) — accepted product/runtime boundaries and compatibility consequences.
 - [`docs/PROJECT-STORAGE.md`](docs/PROJECT-STORAGE.md) — v0.2 Workspace/Project/Mission manifests and legacy read compatibility.
+- [`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md) — canonical topology, evidence-grounded revisions, Runtime overlay, and deterministic rendering.
 - [`docs/AGENT-ADAPTER.md`](docs/AGENT-ADAPTER.md) — Provider configuration, strict turn contract, failure handling, and authority boundary.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.

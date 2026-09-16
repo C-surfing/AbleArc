@@ -491,6 +491,36 @@ button {
   border-bottom: 1px solid var(--line-soft);
 }
 
+.learning-map-shell {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(260px, 1fr);
+}
+
+.learning-map__meta {
+  padding: 8px 14px 7px;
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.learning-map__meta span {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.learning-map__meta p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .map-background {
   opacity: 0.24;
 }
@@ -512,6 +542,14 @@ button {
 .map-node--frontier {
   border-color: rgba(87, 85, 217, 0.62);
   box-shadow: 0 0 0 3px rgba(87, 85, 217, 0.075), 0 8px 22px rgba(33, 35, 37, 0.06);
+}
+
+.map-node--procedure {
+  border-style: dashed;
+}
+
+.map-node--strategy {
+  border-left: 3px solid rgba(87, 85, 217, 0.45);
 }
 
 .map-node__state {
@@ -552,6 +590,9 @@ button {
   stroke: #b8bab5;
   stroke-width: 1.15;
 }
+
+.map-edge--low .react-flow__edge-path { stroke-dasharray: 4 4; opacity: 0.58; }
+.map-edge--high .react-flow__edge-path { stroke-width: 1.65; }
 
 .map-legend {
   padding: 11px 14px 14px;
@@ -807,6 +848,13 @@ button {
   justify-content: center;
   gap: 7px;
   text-align: center;
+}
+
+.learning-map--loading {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 9px;
 }
 
 .learning-map--empty strong {

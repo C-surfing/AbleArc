@@ -44,7 +44,10 @@ Implemented:
 - lifecycle-aware read-only composer behavior;
 - concise session brief derived from the selected Project and due reviews;
 - Teach / Study / Map / Review mode navigation;
-- React Flow learning map;
+- canonical typed LearningMap with explicit semantic edges;
+- deterministic ELK layout rendered through React Flow;
+- accepted Runtime mastery joined as a separate display overlay;
+- legacy Markdown map fallback when no canonical map exists;
 - current learner frontier and state;
 - evidence ladder;
 - active misconception and review cards;
@@ -106,4 +109,6 @@ authority-aware Runtime validation
 
 The current artifact slice is intentionally narrow. The next renderer must be earned by a real learning arc whose target relation cannot be expressed by the frequency tree. Additional Provider transports remain adapters over the same local boundary.
 
-See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the product specification.
+See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the
+product specification and [`../../docs/LEARNING-MAP.md`](../../docs/LEARNING-MAP.md)
+for the topology, revision, and authority contract.
