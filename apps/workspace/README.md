@@ -20,7 +20,13 @@ v0.2 `workspace.json` is the atomic switch; retained legacy files are recovery
 data and are not read a second time. The Workspace also reads only arc/session
 metadata from `.dogfooding/` for the session rail.
 
-If no local learner state exists, the UI first asks what the learner wants to become able to do. It saves that explicit goal locally and immediately opens a conservative representative-attempt probe. The map stays honestly empty until a Teach agent interprets the response and creates domain-specific concepts. A clearly labeled Bayes preview remains available before mission creation without being presented as learner evidence.
+If no local learner state exists, the UI first asks what the learner wants to
+become able to do. It creates workspace-v0.2 and the first Project directly,
+saves that explicit goal, and immediately opens a conservative
+representative-attempt probe. The map stays honestly empty until a Teach agent
+interprets the response and creates domain-specific concepts. A clearly
+labeled Bayes preview remains available before Project creation without being
+presented as learner evidence.
 
 ## Current scope
 
@@ -28,6 +34,9 @@ Implemented:
 
 - three-column desktop workspace;
 - responsive tablet/mobile collapse;
+- local Project creation, switching, pause/resume, Archive, and maintenance entry;
+- lifecycle-aware read-only composer behavior;
+- concise session brief derived from the selected Project and due reviews;
 - Teach / Study / Map / Review mode navigation;
 - React Flow learning map;
 - current learner frontier and state;
@@ -45,7 +54,7 @@ Implemented:
 - agent inbox/advance CLI bridge without provider coupling;
 - typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;
 - prediction-before-reveal and validated interaction context on the learner Observation;
-- zero-state mission onboarding from one observable capability goal;
+- zero-state workspace-v0.2 Project onboarding from one observable capability goal;
 - learner-owned Mission persistence without inferred mastery or a fabricated map;
 - immediate baseline action using the existing Decision/response path;
 - demo fallback for design review.
@@ -54,13 +63,18 @@ Not implemented yet:
 
 - model/provider connection;
 - hosted model/provider transport;
-- general client-side authoritative writes to `.learning/` (the only high-level learner write is guarded Mission creation; learning-state writes remain in the runtime/agent bridge);
+- general client-side authoritative learner-state writes (the Workspace exposes guarded Project lifecycle mutations, while evidence interpretation and mastery changes remain in the runtime/agent bridge);
 - source drawer content;
 - full-screen interactive Map editor;
 - additional artifact renderers beyond the validated frequency-tree slice;
 - scheduler or cloud persistence.
 
 The composer records one response to the current structured learning decision. The Teach/Study agent can consume it through `runtime.py pending`, then commit feedback plus the next move through `runtime.py advance`. The Workspace renders the feedback and enables the new decision without exposing receipt mechanics or silently changing mastery.
+
+The Project menu never deletes learning state. Starting archived maintenance
+temporarily reopens scoped Runtime writes; the connected Agent finishes that
+review only after interpreting recorded evidence. The Workspace does not let a
+learner self-declare retention.
 
 ## Architecture boundary
 

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveProjectReadContext } from "./project-store";
+import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
 import type {
   DecisionTrace,
   EvidenceItem,
@@ -81,6 +81,7 @@ const DEMO: WorkspaceSnapshot = {
       form: "retrieve from a non-medical scenario",
     },
   ],
+  projects: [],
   sessions: [
     { id: "s1", label: "S1 · Frontier", detail: "Inverse-condition confusion located", kind: "frontier" },
     { id: "s2", label: "S2 · Representation", detail: "Frequency tree supported correct inference", kind: "representation" },
@@ -569,6 +570,9 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const repoRoot = findRepoRoot();
   const context = resolveProjectReadContext(repoRoot);
   if (!context) return DEMO;
+  const projects = context.layout === "workspace-v0.2"
+    ? listProjectSummaries(repoRoot)
+    : [];
   const state = readOptional(context.statePath);
   const roadmap = readOptional(context.roadmapMarkdownPath);
   const mission = context.missionMarkdownPath ? readOptional(context.missionMarkdownPath) : undefined;
@@ -600,6 +604,39 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const evidence = structuredEvidence.length > 0 ? structuredEvidence : parseEvidence(state);
   const misconceptions = parseMisconceptions(state);
   const reviewCandidates = parseReview(state);
+  const dueReviews = projects.filter((project) => project.maintenanceStatus === "due").length;
+  const projectCountLabel = `${projects.length} ${projects.length === 1 ? "PROJECT" : "PROJECTS"}`;
+  const sessionBrief = context.projectStatus === "paused"
+    ? {
+        label: `SESSION BRIEF · ${projectCountLabel}`,
+        title: `${context.projectTitle} is paused`,
+        detail: "The retained state is readable, but new learning evidence is blocked until you resume this Project.",
+      }
+    : context.projectStatus === "archived" && context.maintenanceStatus === "study_active"
+      ? {
+          label: `MAINTENANCE · ${projectCountLabel}`,
+          title: `Reviewing ${context.projectTitle}`,
+          detail: `Use one short retrieval or transfer check at ${frontier}; finish maintenance only after recording the result.`,
+        }
+      : context.projectStatus === "archived"
+        ? {
+            label: `ARCHIVED · ${dueReviews} DUE`,
+            title: `${context.projectTitle} remains available`,
+            detail: context.maintenanceStatus === "due"
+              ? "A maintenance retrieval is due. Start a short review when you are ready."
+              : "The main learning line is complete; retained evidence and future maintenance remain available.",
+          }
+        : latestExchange?.status === "awaiting_assessment"
+          ? {
+              label: `SESSION BRIEF · ${projectCountLabel}`,
+              title: "Your response is saved",
+              detail: "The connected Teach/Study agent should assess it before asking you to repeat the attempt.",
+            }
+          : {
+              label: `SESSION BRIEF · ${projectCountLabel}${dueReviews ? ` · ${dueReviews} REVIEW DUE` : ""}`,
+              title: `${frontier} · ${frontierState}`,
+              detail: decision?.learnerAction || "Continue from the current frontier instead of restarting the topic.",
+            };
 
   return {
     source: "local",
@@ -624,11 +661,17 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     misconceptions,
     reviewCandidates,
     sessions: [...timeline.sessions, ...structuredTimeline],
-    activeArc: timeline.activeArc,
+    activeArc: context.projectTitle || timeline.activeArc,
     runtimeRevision: structuredState?.revision,
     decision,
     artifact,
     latestExchange,
     latestStateDecision,
+    projectId: context.layout === "workspace-v0.2" ? context.projectId : undefined,
+    projectTitle: context.projectTitle,
+    projectStatus: context.projectStatus,
+    maintenanceStatus: context.maintenanceStatus,
+    projects,
+    sessionBrief,
   };
 }

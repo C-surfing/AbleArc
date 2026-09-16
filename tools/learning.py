@@ -696,6 +696,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="JSON file or - for stdin",
     )
     sub.add_parser("projects", help="list Projects and lifecycle state as JSON")
+    sub.add_parser(
+        "brief",
+        help="print a concise read-only session-start learning brief as JSON",
+    )
     for command, help_text in (
         ("switch-project", "select an existing non-archived Project"),
         ("pause-project", "make an active Project read-only"),
@@ -775,6 +779,16 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             print(
                 json.dumps(
                     {"projects": project_lifecycle.list_projects(root)},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
+
+        if args.command == "brief":
+            print(
+                json.dumps(
+                    project_lifecycle.learning_brief(root),
                     ensure_ascii=False,
                     indent=2,
                 )

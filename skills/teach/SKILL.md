@@ -473,11 +473,19 @@ Avoid asking several unrelated questions at the end of one turn.
 
 At the start of a teaching session:
 
-1. read `.learning/MISSION.md`, `LEARNER.md`, `ROADMAP.md`, and `STATE.md` if present;
-2. reconstruct the learner's current frontier;
-3. identify whether the current request is new acquisition, repair, review, application, or transfer;
-4. continue from actual state rather than restarting the curriculum;
-5. create missing workspace files only when persistence would help.
+1. run `python tools/learning.py brief` when the local helper is available;
+2. read the selected Project's Mission, shared learner profile, map, and state as needed;
+3. reconstruct the learner's current frontier;
+4. identify whether the current request is new acquisition, repair, review, application, or transfer;
+5. continue from actual state rather than restarting the curriculum;
+6. create missing workspace files only when persistence would help.
+
+Surface the brief proactively in no more than two natural sentences when it
+changes the learner's choice today—for example, a response awaiting assessment,
+a due maintenance retrieval, or the current frontier and next action. Do not
+repeat a product self-introduction or recite the whole learner model at every
+session start. If several Projects exist, mention only a competing due review
+that is worth choosing before the current Project.
 
 If no state exists, begin lightly. Infer what you can from the request and ask only the minimum question needed to avoid teaching the wrong thing.
 

@@ -6,6 +6,7 @@ import { LearningMap } from "./learning-map";
 import { LearningCanvas } from "./learning-canvas";
 import { StatePanel } from "./state-panel";
 import { SessionTimeline } from "./session-timeline";
+import { ProjectSwitcher } from "./project-switcher";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 
@@ -44,9 +45,12 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
           ))}
         </nav>
 
-        <div className="topbar-status">
-          <span className={`status-light ${snapshot.source === "local" ? "is-local" : "is-demo"}`} />
-          <span>{snapshot.source === "local" ? "local workspace" : "demo workspace"}</span>
+        <div className="topbar-tools">
+          <ProjectSwitcher projects={snapshot.projects} />
+          <div className="topbar-status">
+            <span className={`status-light ${snapshot.source === "local" ? "is-local" : "is-demo"}`} />
+            <span>{snapshot.source === "local" ? "local" : "demo"}</span>
+          </div>
         </div>
       </header>
 
