@@ -215,6 +215,21 @@ class CompletionGateTests(unittest.TestCase):
         with self.assertRaisesRegex(completion_gate.CompletionGateError, "pending learner response"):
             completion_gate.complete_project(self.root)
 
+    def test_expected_project_prevents_stale_workspace_completion(self):
+        feynman, performance = self.evidence_pair()
+        completion_gate.set_completion_criteria(self.root, {"criteria": [
+            self.criterion("explain", "feynman", [feynman]),
+            self.criterion("perform", "performance", [performance]),
+        ]})
+
+        with self.assertRaisesRegex(completion_gate.CompletionGateError, "selected Project changed"):
+            completion_gate.complete_project(self.root, "different-project")
+
+        context = project_store.resolve_project_context(self.root)
+        self.assertEqual(context.project_status, "active")
+        self.assertEqual(context.mission_status, "active")
+        self.assertFalse((context.mission_root / "completion.json").exists())
+
     def test_published_completion_schema_requires_feynman_provenance(self):
         schema = json.loads(
             (REPO_ROOT / "schemas" / "mission-completion-v0.1.json").read_text(encoding="utf-8")

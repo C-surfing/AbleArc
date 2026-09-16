@@ -214,6 +214,11 @@ session-start brief. Paused and archived Projects become read-only in both the
 UI and Runtime; archived maintenance must be opened explicitly before new
 evidence can be recorded.
 
+The Workspace also projects the headless Completion Gate and can request the
+guarded Complete + Archive transition. React never decides that learning is
+complete: the Python gate revalidates Mission scope, pending responses,
+criteria thresholds, and distinct Feynman/performance Evidence before commit.
+
 Mission completion is now a separate, evidence-gated authority path. A Mission
 must cite distinct qualifying Runtime Evidence for Feynman reconstruction and
 independent performance before `complete-project` can freeze an immutable

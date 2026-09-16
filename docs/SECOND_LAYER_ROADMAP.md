@@ -37,9 +37,9 @@ topology authority outside React.
 
 See [`VISUAL-WORKSPACE.md`](VISUAL-WORKSPACE.md).
 
-The authority-aware learner-response / agent bridge and the headless Mission
-Completion Gate are implemented. The next product steps should expose verified
-completion clearly in the Workspace and add learning-library value without
+The authority-aware learner-response / agent bridge, headless Mission
+Completion Gate, and its non-authoritative Workspace projection are
+implemented. The next product step should add learning-library value without
 moving evidence interpretation into the client.
 
 ## Core now: Mission completion verification
@@ -47,8 +47,10 @@ moving evidence interpretation into the client.
 Mission criteria can require explanation, application, transfer, delayed
 retrieval, context, scaffolding, independence, and repeated Evidence. Verified
 completion requires distinct Feynman and independent-performance receipts,
-then freezes the criteria and provenance before retained archival. Automated
-review scheduling and the completion UI remain separate work.
+then freezes the criteria and provenance before retained archival. The
+Workspace can inspect that status and request the guarded transition, while
+manual Archive remains visibly unverified. Automated review scheduling remains
+separate work.
 
 ## Layer 1: Learning Memory
 
