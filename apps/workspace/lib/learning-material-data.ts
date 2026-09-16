@@ -21,6 +21,17 @@ const FIELDS = new Set([
   "concept_ids", "evidence_ids", "source_refs", "tags", "created_at",
 ]);
 
+export interface LearningMaterialDetail extends LearningMaterialSummary {
+  bodyMarkdown: string;
+  evidenceIds: string[];
+  sourceRefs: string[];
+  tags: string[];
+}
+
+export function isLearningMaterialId(value: string): boolean {
+  return MATERIAL_ID.test(value);
+}
+
 function text(value: unknown, maximum: number): string | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim();
@@ -42,11 +53,11 @@ function stringArray(
   return result;
 }
 
-export function parseLearningMaterialSummary(
+export function parseLearningMaterialDetail(
   input: unknown,
   expectedWorkspaceId: string,
   expectedProjectId: string,
-): LearningMaterialSummary {
+): LearningMaterialDetail {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("LearningMaterial must be an object");
   }
@@ -73,14 +84,14 @@ export function parseLearningMaterialSummary(
   const title = text(value.title, 200);
   const summary = text(value.summary, 800);
   const whyReturn = text(value.why_return, 800);
-  const body = text(value.body_markdown, 100_000);
+  const bodyMarkdown = text(value.body_markdown, 100_000);
   const conceptIds = stringArray(value.concept_ids, 30, 64, LOCAL_ID);
   const evidenceIds = stringArray(value.evidence_ids, 30, 131, EVIDENCE_ID);
   const sourceRefs = stringArray(value.source_refs, 20, 1000);
   const tags = stringArray(value.tags, 20, 64);
   const createdAt = text(value.created_at, 100);
   if (
-    !title || !summary || !whyReturn || !body || !conceptIds || !evidenceIds
+    !title || !summary || !whyReturn || !bodyMarkdown || !conceptIds || !evidenceIds
     || !sourceRefs || !tags || !createdAt || Number.isNaN(Date.parse(createdAt))
     || (evidenceIds.length === 0 && sourceRefs.length === 0)
   ) {
@@ -104,5 +115,29 @@ export function parseLearningMaterialSummary(
     evidenceCount: evidenceIds.length,
     sourceCount: sourceRefs.length,
     createdAt,
+    bodyMarkdown,
+    evidenceIds,
+    sourceRefs,
+    tags,
+  };
+}
+
+export function parseLearningMaterialSummary(
+  input: unknown,
+  expectedWorkspaceId: string,
+  expectedProjectId: string,
+): LearningMaterialSummary {
+  const detail = parseLearningMaterialDetail(input, expectedWorkspaceId, expectedProjectId);
+  return {
+    id: detail.id,
+    missionId: detail.missionId,
+    materialType: detail.materialType,
+    title: detail.title,
+    summary: detail.summary,
+    whyReturn: detail.whyReturn,
+    conceptIds: detail.conceptIds,
+    evidenceCount: detail.evidenceCount,
+    sourceCount: detail.sourceCount,
+    createdAt: detail.createdAt,
   };
 }
