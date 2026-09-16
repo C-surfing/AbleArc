@@ -5,6 +5,103 @@
   gap: 8px;
 }
 
+.browserToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+
+.browserToolbar small,
+.matchCount {
+  color: var(--faint);
+  font-size: 7px;
+}
+
+.browserToggle,
+.curatedFilter {
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: transparent;
+  padding: 3px 7px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 7px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.browserToggle:hover,
+.browserToggle:focus-visible,
+.curatedFilter:hover:not(:disabled),
+.curatedFilter:focus-visible:not(:disabled) {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(94px, 0.6fr);
+  gap: 7px;
+  margin: 7px 0 4px;
+  padding: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.filterField {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  color: var(--faint);
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filterField input,
+.filterField select {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--surface-strong);
+  padding: 5px 6px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 8px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.curatedFilter {
+  justify-self: start;
+}
+
+.curatedFilter:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.curatedFilterActive {
+  border-color: currentColor;
+  color: var(--ink);
+}
+
+.matchCount {
+  align-self: center;
+  justify-self: end;
+}
+
+.browserList {
+  max-height: 620px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
 .openButton {
   appearance: none;
   border: 0;
@@ -85,4 +182,18 @@
   line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .matchCount {
+    justify-self: start;
+  }
+
+  .browserList {
+    max-height: none;
+  }
 }
