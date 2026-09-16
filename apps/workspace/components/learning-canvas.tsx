@@ -226,10 +226,17 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
   const [submitError, setSubmitError] = useState<string>();
   const [artifactInteraction, setArtifactInteraction] = useState<ArtifactInteraction>();
+  const [missionTitle, setMissionTitle] = useState("");
   const [missionGoal, setMissionGoal] = useState("");
   const [missionContext, setMissionContext] = useState("");
   const [missionError, setMissionError] = useState<string>();
   const [isStartingMission, setIsStartingMission] = useState(false);
+  const projectWritable = snapshot.projectStatus === undefined
+    || snapshot.projectStatus === "active"
+    || (
+      snapshot.projectStatus === "archived"
+      && snapshot.maintenanceStatus === "study_active"
+    );
   useEffect(() => {
     setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
     setResponse("");
@@ -258,6 +265,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
       || !response.trim()
       || isSubmitting
       || submitted
+      || !projectWritable
       || (snapshot.artifact && !artifactInteraction)
     ) return;
     setIsSubmitting(true);
@@ -289,7 +297,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
       const result = await fetch("/api/learning/start", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ goal: missionGoal, context: missionContext }),
+        body: JSON.stringify({ title: missionTitle, goal: missionGoal, context: missionContext }),
       });
       const payload = await result.json() as { error?: string };
       if (!result.ok) throw new Error(payload.error || "Could not start the learning mission.");
@@ -303,6 +311,15 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
 
   return (
     <main className="learning-canvas-panel">
+      {snapshot.sessionBrief ? (
+        <section className="session-brief" aria-label="Session brief">
+          <span>{snapshot.sessionBrief.label}</span>
+          <div>
+            <strong>{snapshot.sessionBrief.title}</strong>
+            <p>{snapshot.sessionBrief.detail}</p>
+          </div>
+        </section>
+      ) : null}
       <header className="canvas-header">
         <div>
           <div className="eyebrow-row">
@@ -326,6 +343,15 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             <h2>Describe the capability, not just the topic.</h2>
             <p>For example: “Read an empirical ML paper and challenge its causal claims,” not only “learn machine learning.”</p>
           </div>
+          <label>
+            <span>Project name <small>optional</small></span>
+            <input
+              value={missionTitle}
+              onChange={(event) => setMissionTitle(event.target.value)}
+              maxLength={200}
+              placeholder="A short name for this learning line"
+            />
+          </label>
           <label>
             <span>I want to become able to</span>
             <textarea
@@ -460,11 +486,13 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             id="learner-response"
             value={response}
             onChange={(event) => setResponse(event.target.value)}
-            disabled={!snapshot.decision || submitted || isSubmitting}
+            disabled={!snapshot.decision || submitted || isSubmitting || !projectWritable}
             maxLength={12000}
             rows={3}
             placeholder={submitted
               ? "Response saved. The tutor will use it as evidence for the next move."
+              : !projectWritable
+                ? "Resume this Project or start an archived maintenance review before adding evidence."
               : snapshot.decision
                 ? "Write what you think. Partial reasoning is useful evidence."
                 : "Start a Teach or Study turn to respond here."}
@@ -473,7 +501,9 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         <div className="composer-status">
           <span aria-live="polite">
             {submitError
-              || (submitted
+              || (!projectWritable
+                ? "This Project is read-only in its current lifecycle state"
+                : submitted
                 ? "Saved locally · awaiting assessment"
                 : snapshot.artifact && !artifactInteraction
                   ? "Commit a prediction in the artifact before submitting"
@@ -487,7 +517,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             ) : null}
             <button
               type="submit"
-              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting || Boolean(snapshot.artifact && !artifactInteraction)}
+              disabled={!snapshot.decision || !response.trim() || submitted || isSubmitting || !projectWritable || Boolean(snapshot.artifact && !artifactInteraction)}
             >
               {isSubmitting
                 ? "Saving…"

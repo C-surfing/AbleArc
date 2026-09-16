@@ -163,6 +163,54 @@ class ProjectLifecycleTests(unittest.TestCase):
         self.assertEqual(context.project_status, "archived")
         self.assertEqual(context.maintenance_status, "due")
 
+    def test_active_maintenance_can_be_reselected_after_opening_another_project(self):
+        self.create()
+        project_lifecycle.archive_project(self.root, "bayes")
+        project_lifecycle.maintenance_start(self.root, "bayes")
+        project_lifecycle.create_project(
+            self.root,
+            title="Rust ownership",
+            goal="Debug ownership errors independently",
+            project_id="rust",
+        )
+
+        selected = project_lifecycle.switch_project(self.root, "bayes")
+
+        self.assertEqual(selected["project_id"], "bayes")
+        context = project_store.resolve_project_context(self.root)
+        self.assertEqual(context.project_status, "archived")
+        self.assertEqual(context.maintenance_status, "study_active")
+
+    def test_learning_brief_prioritizes_pending_response_without_long_intro(self):
+        empty = project_lifecycle.learning_brief(self.root)
+        self.assertEqual(empty["next_action"], "create-project")
+        self.create()
+        decision = runtime.list_receipts(self.root, "decision")[-1]
+        observation = runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "I would compare the prior populations before conditioning.",
+        )
+
+        brief = project_lifecycle.learning_brief(self.root)
+
+        self.assertEqual(brief["status"], "ready")
+        self.assertEqual(brief["next_action"], "runtime-pending")
+        self.assertEqual(brief["pending_observation_id"], observation["id"])
+        self.assertIn("ready for assessment", brief["headline"])
+        self.assertNotIn("ai4learning", brief["headline"].lower())
+
+    def test_learning_brief_surfaces_due_archived_review(self):
+        self.create()
+        project_lifecycle.archive_project(self.root, "bayes")
+        project_lifecycle.maintenance_due(self.root, "bayes")
+
+        brief = project_lifecycle.learning_brief(self.root)
+
+        self.assertEqual(brief["project_status"], "archived")
+        self.assertEqual(brief["due_review_count"], 1)
+        self.assertEqual(brief["next_action"], "maintenance-start")
+
     def test_legacy_workspace_requires_explicit_migration(self):
         learning = self.root / ".learning"
         learning.mkdir()
@@ -220,6 +268,14 @@ class ProjectLifecycleTests(unittest.TestCase):
         self.assertEqual(result, 0)
         listed = json.loads(output.getvalue())["projects"]
         self.assertEqual([item["id"] for item in listed], ["transformer"])
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = learning.main(["brief"], repo_root=self.root)
+        self.assertEqual(result, 0)
+        brief = json.loads(output.getvalue())
+        self.assertEqual(brief["project_id"], "transformer")
+        self.assertEqual(brief["next_action"], "continue-current-decision")
 
     def test_failed_creation_keeps_workspace_uninitialized_and_is_retryable(self):
         with mock.patch.object(

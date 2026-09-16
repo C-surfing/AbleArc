@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveProjectReadContext } from "@/lib/project-store";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
@@ -8,15 +9,25 @@ export const runtime = "nodejs";
 const MAX_GOAL_LENGTH = 1200;
 const MAX_CONTEXT_LENGTH = 2400;
 
-function saveMission(repoRoot: string, goal: string, context: string): Promise<void> {
+function saveMission(
+  repoRoot: string,
+  title: string,
+  goal: string,
+  context: string,
+): Promise<void> {
   const python = process.env.AI4LEARNING_PYTHON
     || (process.platform === "win32" ? "python" : "python3");
   const script = path.join(repoRoot, "tools", "learning.py");
 
+  const storage = resolveProjectReadContext(repoRoot);
+  if (storage?.layout === "workspace-v0.2") {
+    return Promise.reject(new Error("an active Project already exists"));
+  }
+  const createProject = storage === undefined;
   return new Promise((resolve, reject) => {
     const child = spawn(
       /* turbopackIgnore: true */ python,
-      [script, "start-mission", "-"],
+      [script, createProject ? "create-project" : "start-mission", "-"],
       { cwd: repoRoot, stdio: ["pipe", "ignore", "pipe"] },
     );
     let stderr = "";
@@ -28,7 +39,11 @@ function saveMission(repoRoot: string, goal: string, context: string): Promise<v
       if (code === 0) resolve();
       else reject(new Error(stderr.trim() || `learning tool exited with code ${code}`));
     });
-    child.stdin.end(JSON.stringify({ goal, context }), "utf8");
+    child.stdin.end(JSON.stringify(
+      createProject
+        ? { title, goal, why: context }
+        : { goal, context },
+    ), "utf8");
   });
 }
 
@@ -51,22 +66,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Expected a JSON request body." }, { status: 400 });
   }
 
-  const payload = body as { goal?: unknown; context?: unknown };
+  const payload = body as { title?: unknown; goal?: unknown; context?: unknown };
   const goal = typeof payload.goal === "string" ? payload.goal.trim() : "";
   const context = typeof payload.context === "string" ? payload.context.trim() : "";
+  const suppliedTitle = typeof payload.title === "string" ? payload.title.trim() : "";
+  const title = suppliedTitle || goal.slice(0, 80);
   if (!goal) {
     return NextResponse.json({ error: "Describe what you want to become able to do." }, { status: 400 });
   }
-  if (goal.length > MAX_GOAL_LENGTH || context.length > MAX_CONTEXT_LENGTH) {
+  if (title.length > 200 || goal.length > MAX_GOAL_LENGTH || context.length > MAX_CONTEXT_LENGTH) {
     return NextResponse.json({ error: "Keep the mission concise enough to guide one learning route." }, { status: 400 });
   }
 
   try {
-    await saveMission(findRepoRoot(), goal, context);
+    await saveMission(findRepoRoot(), title, goal, context);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    const conflict = message.includes("mission already started");
+    const conflict = message.includes("mission already started")
+      || message.includes("active Project already exists");
     return NextResponse.json(
       { error: conflict
         ? "A learning mission already exists. Edit it explicitly instead of replacing it from onboarding."

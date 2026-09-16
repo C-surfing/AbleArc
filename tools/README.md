@@ -109,6 +109,7 @@ Create the first or an additional Project from JSON:
 printf '%s' '{"title":"Transformer","goal":"Implement and debug self-attention"}' \
   | python tools/learning.py create-project -
 python tools/learning.py projects
+python tools/learning.py brief
 ```
 
 Selection and lifecycle changes are explicit:
@@ -125,6 +126,11 @@ python tools/learning.py maintenance-finish transformer retention_confirmed
 Paused and archived Projects are read-only. Archive retains the complete local
 Project. A maintenance study temporarily permits new scoped Runtime receipts;
 finishing it returns the Project to read-only `scheduled` or `due` state.
+
+`brief` is read-only and returns a compact JSON session orientation for an
+Agent or UI. It prioritizes a pending learner response, a due archived review,
+or the selected Project's current decision. It is deliberately not a repeated
+product introduction or a dump of the full learner model.
 
 ## Start a real longitudinal arc
 

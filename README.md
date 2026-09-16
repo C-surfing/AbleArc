@@ -180,6 +180,7 @@ The protocol remains usable without tooling, but v0.2 includes a tiny standard-l
 ```bash
 printf '%s' '{"title":"Bayes","goal":"Explain and apply Bayes in unfamiliar decisions"}' | python tools/learning.py create-project -
 python tools/learning.py projects
+python tools/learning.py brief
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
@@ -195,6 +196,11 @@ creating additional Projects. Real arc evidence is scaffolded under Git-ignored
 `.dogfooding/`, while `.learning/` remains the operational learner state.
 Domain teaching and roadmap revision remain responsibilities of the Teach/Study
 protocol.
+
+The official Workspace exposes the same Project lifecycle and a concise
+session-start brief. Paused and archived Projects become read-only in both the
+UI and Runtime; archived maintenance must be opened explicitly before new
+evidence can be recorded.
 
 The repository now has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
 

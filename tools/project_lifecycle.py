@@ -399,6 +399,106 @@ def list_projects(repo_root: Path) -> list[dict]:
     )
 
 
+def learning_brief(repo_root: Path) -> dict:
+    """Return a short, read-only session brief from persisted learning state."""
+    repo_root = repo_root.resolve()
+    layout = project_store.detect_layout(repo_root)
+    if layout == project_store.LAYOUT_UNINITIALIZED:
+        return {
+            "status": "uninitialized",
+            "headline": "No learning Project exists yet.",
+            "detail": "Create one Project from an observable capability goal.",
+            "next_action": "create-project",
+            "project_count": 0,
+            "due_review_count": 0,
+        }
+
+    try:
+        context = project_store.resolve_project_context(repo_root)
+    except project_store.ProjectStoreError as exc:
+        raise ProjectLifecycleError(str(exc)) from exc
+
+    if layout == project_store.LAYOUT_WORKSPACE:
+        projects = list_projects(repo_root)
+        _, project = _project_data(repo_root, context.project_id)
+        title = project["title"]
+    else:
+        projects = [
+            {
+                "id": context.project_id,
+                "status": "active",
+                "maintenance_status": "none",
+            }
+        ]
+        title = "Legacy learning workspace"
+
+    due_review_count = sum(
+        item["maintenance_status"] == "due" for item in projects
+    )
+    pending = learning_runtime.pending_learner_turn(repo_root)
+    decisions = learning_runtime.list_receipts(repo_root, "decision")
+    latest_decision = decisions[-1] if decisions else None
+
+    if context.project_status == "paused":
+        headline = f"{title} is paused."
+        detail = "Its state is readable, but new evidence is blocked."
+        next_action = "resume-project"
+    elif (
+        context.project_status == "archived"
+        and context.maintenance_status == "study_active"
+    ):
+        headline = f"Maintenance review is active for {title}."
+        detail = "Use one short retrieval or transfer check, then record the result."
+        next_action = "continue-maintenance"
+    elif context.project_status == "archived":
+        headline = f"{title} is archived and retained."
+        detail = (
+            "A maintenance retrieval is due."
+            if context.maintenance_status == "due"
+            else "The main learning line is complete; future maintenance remains available."
+        )
+        next_action = (
+            "maintenance-start"
+            if context.maintenance_status == "due"
+            else "wait-for-maintenance"
+        )
+    elif pending:
+        headline = "The learner's latest response is ready for assessment."
+        detail = "Assess it before asking the learner to repeat the attempt."
+        next_action = "runtime-pending"
+    elif latest_decision:
+        target = str(latest_decision.get("target") or "the current frontier")
+        learner_action = str(
+            latest_decision.get("learner_action")
+            or "Continue with the next evidence-bearing move."
+        )
+        headline = f"Continue {title} at {target}."
+        detail = learner_action
+        next_action = "continue-current-decision"
+    else:
+        headline = f"Continue {title} from its retained state."
+        detail = "Locate one current frontier before choosing the next learning move."
+        next_action = "orient"
+
+    return {
+        "status": "ready",
+        "project_id": context.project_id,
+        "project_title": title,
+        "project_status": context.project_status,
+        "maintenance_status": context.maintenance_status,
+        "mission_id": context.mission_id,
+        "project_count": len(projects),
+        "due_review_count": due_review_count,
+        "headline": headline,
+        "detail": detail,
+        "next_action": next_action,
+        "pending_observation_id": (
+            pending["observation"]["id"] if pending else None
+        ),
+        "decision_id": latest_decision.get("id") if latest_decision else None,
+    }
+
+
 def _select(repo_root: Path, project_id: str, *, allow_archived: bool = False) -> dict:
     _, workspace_path, workspace = _require_workspace(repo_root)
     original_workspace = workspace_path.read_bytes()
@@ -429,7 +529,15 @@ def _select(repo_root: Path, project_id: str, *, allow_archived: bool = False) -
 
 def switch_project(repo_root: Path, project_id: str) -> dict:
     with _lifecycle_lock(repo_root.resolve() / ".learning"):
-        return _select(repo_root, project_id)
+        context, _ = _project_data(repo_root, project_id)
+        return _select(
+            repo_root,
+            project_id,
+            allow_archived=(
+                context.project_status == "archived"
+                and context.maintenance_status == "study_active"
+            ),
+        )
 
 
 def _transition_project(

@@ -269,6 +269,9 @@ The first app provides:
 - learner frontier/evidence/misconception panel;
 - representation-switching learning canvas;
 - session timeline;
+- Project creation, switching, pause/resume, retained Archive, and maintenance entry;
+- lifecycle-aware read-only interaction states;
+- a short session brief instead of a repeated product introduction;
 - graceful demo snapshot when no local learner state exists;
 - responsive layout;
 - build validation in CI.
@@ -276,7 +279,7 @@ The first app provides:
 It does **not** yet provide:
 
 - a model/provider bridge;
-- authoritative state mutation;
+- client authority to interpret evidence or promote mastery;
 - automated visualizer subagent;
 - scheduler;
 - Obsidian sync;

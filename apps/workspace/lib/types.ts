@@ -131,6 +131,25 @@ export interface LearnerExchange {
   nextDecisionId?: string;
 }
 
+export type ProjectStatus = "active" | "paused" | "archived";
+
+export type MaintenanceStatus = "none" | "scheduled" | "due" | "study_active";
+
+export interface ProjectSummary {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+  maintenanceStatus: MaintenanceStatus;
+  missionId?: string;
+  selected: boolean;
+}
+
+export interface LearningBrief {
+  label: string;
+  title: string;
+  detail: string;
+}
+
 export interface WorkspaceSnapshot {
   source: "local" | "demo";
   hasMission: boolean;
@@ -152,4 +171,10 @@ export interface WorkspaceSnapshot {
   artifact?: LearningArtifact;
   latestExchange?: LearnerExchange;
   latestStateDecision?: StateDecisionTrace;
+  projectId?: string;
+  projectTitle?: string;
+  projectStatus?: ProjectStatus;
+  maintenanceStatus?: MaintenanceStatus;
+  projects: ProjectSummary[];
+  sessionBrief?: LearningBrief;
 }
