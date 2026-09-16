@@ -52,3 +52,9 @@ or embedding-based state transfer is out of scope.
 - Real learner research must test whether weak priors save time or create
   harmful anchoring before matching becomes more automatic.
 
+## Implementation status
+
+Runtime receipt v0.2 now assigns Workspace, Project, and Mission provenance and
+rejects direct cross-Project references. The future `PriorCandidate` projection
+remains a separate feature: this guardrail prevents accidental evidence
+transfer before that explicitly weaker read model exists.

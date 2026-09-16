@@ -67,6 +67,13 @@ python tools/runtime.py --repo . init
 
 The full command contract, authority rules, privacy boundary, and JSON schema are documented in [`../docs/RUNTIME-CONTRACT.md`](../docs/RUNTIME-CONTRACT.md).
 
+Legacy storage continues to append unscoped v0.1 receipts. In a v0.2 Workspace,
+the runtime appends v0.2 receipts and derives `workspace_id`, `project_id`, and
+`mission_id` from the active manifests. Payloads cannot override this scope,
+direct references cannot cross Projects, and each learner-action chain stays
+inside one Mission. Project-level decisions may still cite evidence from an
+earlier Mission in the same Project.
+
 Learner-facing clients should normally use the high-level response façade:
 
 ```bash

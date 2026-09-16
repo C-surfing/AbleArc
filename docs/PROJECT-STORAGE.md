@@ -65,8 +65,11 @@ paths. It does not create directories, infer a Project from a Mission, migrate
 files, or update an active selection.
 
 Runtime and Workspace readers resolve the active Project's physical paths while
-receipts remain on the v0.1 schema. Project and Mission scope will be added to
-the receipt contract separately.
+new receipts use the v0.2 scoped contract. The runtime assigns
+`workspace_id`, `project_id`, and `mission_id` from the resolved context; agents
+cannot override those fields. Migrated v0.1 receipts remain byte-for-byte
+unchanged and readable as compatibility inputs inside the Project that contains
+them.
 
 ## Safe migration
 
@@ -99,4 +102,9 @@ ASCII letters or numbers.
 The synthetic IDs `legacy-v0-1` and `legacy-mission` provide explicit adapter
 scope for the old single-project layout. They are not written into old
 receipts. The v0.1 ledger remains unmodified and continues to verify against
-its published schema and root paths.
+its published schema and root paths. A workspace-v0.2 Project may therefore
+contain a mixed ledger: imported unscoped v0.1 history plus newly appended,
+scoped v0.2 receipts. Direct cross-Project references are rejected. Receipts
+that form one learner-action chain stay in one Mission, while Project-level
+decisions may explicitly reuse evidence from an earlier Mission in that same
+Project. Old receipts are never rewritten to manufacture provenance.
