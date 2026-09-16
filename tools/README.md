@@ -132,6 +132,25 @@ Agent or UI. It prioritizes a pending learner response, a due archived review,
 or the selected Project's current decision. It is deliberately not a repeated
 product introduction or a dump of the full learner model.
 
+## Complete a Mission from Evidence
+
+Configure explicit Mission criteria, inspect their current Evidence status,
+and perform the verified completion transition:
+
+```bash
+python tools/learning.py criteria-set completion-criteria.json
+python tools/learning.py completion-status
+python tools/learning.py complete-project
+```
+
+The gate requires Mission-local Runtime Evidence for both a Feynman
+reconstruction and an independent performance capability, with distinct
+receipts. Success writes an immutable `completion.json`, completes the Mission,
+and archives the retained Project with maintenance scheduled. The existing
+`archive-project` command remains an administrative transition and does not
+claim that the gate passed. See
+[`../docs/MISSION-COMPLETION.md`](../docs/MISSION-COMPLETION.md).
+
 ## Revise the canonical LearningMap
 
 Read the active Project's topology:

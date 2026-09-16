@@ -58,7 +58,7 @@ When the current Project is writable, use `.learning/` as persistent state. Read
     └── references/
 ```
 
-Use `python tools/learning.py project-create ...` and the lifecycle commands instead of hand-building this tree. The helper resolves the selected Project and enforces lifecycle boundaries.
+Use `python tools/learning.py create-project ...` and the lifecycle commands instead of hand-building this tree. The helper resolves the selected Project and enforces lifecycle boundaries.
 
 ### Structured runtime receipts
 
@@ -87,6 +87,13 @@ Artifact v0.2 makes the learner predict before revealing derived counts. When `p
 ### MISSION.md
 
 What is the learner trying to become able to do, and why does it matter? Keep success criteria concrete enough to guide teaching decisions. A mission can evolve, but do not silently redefine it.
+
+When the target capability is clear enough, configure its completion contract
+with `python tools/learning.py criteria-set <payload>`. Required criteria must
+include one Feynman reconstruction and one independent performance,
+application, or transfer capability. Do not weaken the criteria merely to
+finish a Project; cite Evidence only after the corresponding learner action has
+been assessed through the Runtime.
 
 The Workspace may create a learner-owned mission containing `Source: learner-explicit`. Treat that goal as the session input: do not ask the learner to restate it. New missions normally include a conservative `mission-entry` Decision asking for one representative attempt. Let the learner answer it before constructing a domain-specific map. Ask at most one clarification only when the answer would materially change the route. Do not infer prior knowledge, misconceptions, or mastery merely from the mission text.
 
@@ -381,6 +388,13 @@ Use evidence to update state conservatively:
 - `transferable` requires successful use outside the original presentation pattern.
 
 If long-term retention matters, schedule or suggest later retrieval rather than pretending immediate fluency proves storage strength.
+
+Before telling the learner that a Mission is complete, run
+`python tools/learning.py completion-status`. Use `complete-project` only when
+the gate is ready; it requires distinct qualifying receipts for Feynman
+reconstruction and independent performance. `archive-project` is an
+administrative pause/retention transition and must never be presented as proof
+of completion. A completed Project remains retained for later maintenance.
 
 ## Study mode inside teaching
 

@@ -190,6 +190,32 @@ class ProjectStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(store.ProjectStoreError, "evidence_ids"):
             store.resolve_project_context(self.root)
 
+    def test_rejects_partial_completion_criterion_configuration(self):
+        self.create_workspace()
+        mission_path = (
+            self.root
+            / ".learning"
+            / "projects"
+            / "transformer"
+            / "missions"
+            / "self-attention"
+            / "mission.json"
+        )
+        mission = json.loads(mission_path.read_text(encoding="utf-8"))
+        mission["criteria"] = [
+            {
+                "id": "explain",
+                "capability": "Explain the mechanism without borrowed jargon.",
+                "required": True,
+                "kind": "feynman",
+                "evidence_ids": [],
+            }
+        ]
+        mission_path.write_text(json.dumps(mission), encoding="utf-8")
+
+        with self.assertRaisesRegex(store.ProjectStoreError, "configuration is incomplete"):
+            store.resolve_project_context(self.root)
+
     def test_published_manifest_schemas_share_scope_identifiers(self):
         workspace = json.loads((REPO_ROOT / "schemas" / "workspace-v0.2.json").read_text(encoding="utf-8"))
         project = json.loads((REPO_ROOT / "schemas" / "project-v0.2.json").read_text(encoding="utf-8"))

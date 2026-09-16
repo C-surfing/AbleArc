@@ -27,6 +27,12 @@ LEGACY_MISSION_ID = "legacy-mission"
 LOCAL_ID_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
 WORKSPACE_ID_PATTERN = re.compile(r"^ws_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 EVIDENCE_ID_PATTERN = re.compile(r"^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
+COMPLETION_KINDS = ("feynman", "performance", "application", "transfer", "retrieval")
+EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
+SCAFFOLDING_LEVELS = ("none", "light", "heavy")
+EVIDENCE_CONTEXTS = ("same", "varied", "novel")
+EVIDENCE_DELAYS = ("immediate", "delayed")
+EVIDENCE_INDEPENDENCE = ("same_form", "new_form", "independent")
 LEGACY_MARKERS = (
     "MISSION.md",
     "LEARNER.md",
@@ -248,10 +254,46 @@ def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) ->
         evidence_ids = criterion.get("evidence_ids")
         if (
             not isinstance(evidence_ids, list)
+            or len(evidence_ids) > 30
             or any(not isinstance(item, str) or not EVIDENCE_ID_PATTERN.fullmatch(item) for item in evidence_ids)
             or len(set(evidence_ids)) != len(evidence_ids)
         ):
-            raise ProjectStoreError("mission criterion evidence_ids must be unique runtime evidence ids")
+            raise ProjectStoreError(
+                "mission criterion evidence_ids must contain at most 30 unique runtime evidence ids"
+            )
+        base_fields = {"id", "capability", "required", "evidence_ids"}
+        gate_fields = {
+            "kind", "minimum_level", "max_scaffolding", "minimum_context",
+            "minimum_delay", "minimum_independence", "minimum_evidence",
+        }
+        unknown = set(criterion) - base_fields - gate_fields
+        if unknown:
+            raise ProjectStoreError(
+                "mission criterion has unsupported fields: " + ", ".join(sorted(unknown))
+            )
+        configured = set(criterion) & gate_fields
+        if configured and configured != gate_fields:
+            raise ProjectStoreError("mission completion criterion configuration is incomplete")
+        if configured:
+            if criterion["kind"] not in COMPLETION_KINDS:
+                raise ProjectStoreError("mission criterion kind is invalid")
+            if criterion["minimum_level"] not in EVIDENCE_LEVELS:
+                raise ProjectStoreError("mission criterion minimum_level is invalid")
+            if criterion["max_scaffolding"] not in SCAFFOLDING_LEVELS:
+                raise ProjectStoreError("mission criterion max_scaffolding is invalid")
+            if criterion["minimum_context"] not in EVIDENCE_CONTEXTS:
+                raise ProjectStoreError("mission criterion minimum_context is invalid")
+            if criterion["minimum_delay"] not in EVIDENCE_DELAYS:
+                raise ProjectStoreError("mission criterion minimum_delay is invalid")
+            if criterion["minimum_independence"] not in EVIDENCE_INDEPENDENCE:
+                raise ProjectStoreError("mission criterion minimum_independence is invalid")
+            minimum_evidence = criterion["minimum_evidence"]
+            if (
+                isinstance(minimum_evidence, bool)
+                or not isinstance(minimum_evidence, int)
+                or not 1 <= minimum_evidence <= 5
+            ):
+                raise ProjectStoreError("mission criterion minimum_evidence must be between 1 and 5")
     _required_string(data, "created_at", "mission manifest")
     _required_string(data, "updated_at", "mission manifest")
     return status

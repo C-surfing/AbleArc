@@ -19,11 +19,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 try:
+    from tools import completion_gate
     from tools import learning_map
     from tools import project_lifecycle
     from tools import runtime as learning_runtime
     from tools import project_store
 except ImportError:  # Direct execution: python tools/learning.py
+    import completion_gate
     import learning_map
     import project_lifecycle
     import runtime as learning_runtime
@@ -533,6 +535,22 @@ def read_learning_map_payload(value: str) -> dict:
     return payload
 
 
+def read_completion_payload(value: str) -> dict:
+    try:
+        if value == "-":
+            import sys
+
+            payload = json.load(sys.stdin)
+        else:
+            with Path(value).open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise LearningToolError("Completion Gate input must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise LearningToolError("Completion Gate input must be a JSON object")
+    return payload
+
+
 def next_arc_id(root: Path, domain: str, name: str) -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
     base = f"{stamp}-{slugify(domain)}-{slugify(name)}"
@@ -653,6 +671,7 @@ def doctor(repo_root: Path) -> list[str]:
     for required in (
         "tools/project_store.py",
         "tools/project_lifecycle.py",
+        "tools/completion_gate.py",
         "tools/learning_map.py",
         "tools/runtime.py",
         "schemas/workspace-v0.2.json",
@@ -663,9 +682,11 @@ def doctor(repo_root: Path) -> list[str]:
         "schemas/learning-artifact-v0.1.json",
         "schemas/learning-artifact-v0.2.json",
         "schemas/learning-map-v0.1.json",
+        "schemas/mission-completion-v0.1.json",
         "docs/RUNTIME-CONTRACT.md",
         "docs/LEARNING-ARTIFACTS.md",
         "docs/LEARNING-MAP.md",
+        "docs/MISSION-COMPLETION.md",
         "examples/learning-artifacts/bayes-frequency-tree.json",
     ):
         if not (repo_root / required).is_file():
@@ -723,6 +744,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="record one evidence-grounded LearningMap topology revision",
     )
     map_update.add_argument("input", nargs="?", default="-", help="JSON file or - for stdin")
+    criteria_set = sub.add_parser(
+        "criteria-set",
+        help="configure evidence thresholds for the active Mission Completion Gate",
+    )
+    criteria_set.add_argument("input", nargs="?", default="-", help="JSON file or - for stdin")
+    sub.add_parser(
+        "completion-status",
+        help="evaluate the active Mission criteria against cited Runtime Evidence",
+    )
+    sub.add_parser(
+        "complete-project",
+        help="complete the active Mission and Archive its Project only if the gate passes",
+    )
     sub.add_parser(
         "brief",
         help="print a concise read-only session-start learning brief as JSON",
@@ -825,6 +859,22 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             print(json.dumps(value, ensure_ascii=False, indent=2))
             return 0
 
+        if args.command == "criteria-set":
+            value = completion_gate.set_completion_criteria(
+                root,
+                read_completion_payload(args.input),
+            )
+            print(json.dumps(value, ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "completion-status":
+            print(json.dumps(completion_gate.completion_status(root), ensure_ascii=False, indent=2))
+            return 0
+
+        if args.command == "complete-project":
+            print(json.dumps(completion_gate.complete_project(root), ensure_ascii=False, indent=2))
+            return 0
+
         if args.command == "brief":
             print(
                 json.dumps(
@@ -909,6 +959,7 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
 
     except (
         LearningToolError,
+        completion_gate.CompletionGateError,
         learning_map.LearningMapError,
         project_lifecycle.ProjectLifecycleError,
     ) as exc:

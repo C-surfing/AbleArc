@@ -34,7 +34,8 @@ be read twice.
     ├── project.json
     ├── missions/<mission-id>/
     │   ├── mission.json
-    │   └── MISSION.md
+    │   ├── MISSION.md
+    │   └── completion.json  # present only after verified completion
     ├── map/
     │   ├── current.json
     │   ├── revisions/<revision>.json
@@ -59,6 +60,7 @@ The published manifest schemas are:
 - [`project-v0.2.json`](../schemas/project-v0.2.json)
 - [`mission-v0.2.json`](../schemas/mission-v0.2.json)
 - [`learning-map-v0.1.json`](../schemas/learning-map-v0.1.json)
+- [`mission-completion-v0.1.json`](../schemas/mission-completion-v0.1.json)
 
 `map/current.json` is the canonical topology and frontier. Immutable numbered
 revisions preserve provenance; `ROADMAP.md` is regenerated as a human-readable
@@ -90,17 +92,20 @@ read-only. The supported transitions are:
 | active | `pause-project` | paused | blocked |
 | paused | `resume-project` | active and selected | allowed |
 | active or paused | `archive-project` | archived + maintenance scheduled | blocked |
+| active + gate ready | `complete-project` | Mission completed, Project archived + maintenance scheduled | blocked |
 | archived | `maintenance-due` | maintenance due | blocked |
 | archived | `maintenance-start` | temporary `study_active` | allowed |
 | archived + `study_active` | `maintenance-finish` | scheduled or due | blocked |
 
-Archive means the main learning line is complete; it is not deletion. Mission
+Archive means the main learning line is no longer active; it is not deletion. Mission
 manifests, maps, materials, artifacts, evidence, and Runtime receipts stay in
 place. A maintenance study appends new scoped receipts to the retained Project
 and does not change its archived status. `archive-project` is the storage
 transition only: it does not itself prove mastery or satisfy a Mission
-Completion Gate. Teaching policy must establish that evidence before choosing
-to archive a completed learning line.
+Completion Gate. `complete-project` is the evidence-authoritative transition:
+it checks Mission-local Feynman and independent-performance Evidence, writes an
+immutable completion record, and then archives. See
+[`MISSION-COMPLETION.md`](MISSION-COMPLETION.md).
 
 Creating a Project uses a hidden staging directory, initializes its Runtime,
 selects it through an atomic workspace manifest update, and verifies the result.
@@ -121,6 +126,9 @@ python tools/learning.py maintenance-start <project-id>
 python tools/learning.py maintenance-finish <project-id> retention_confirmed
 python tools/learning.py map
 python tools/learning.py map-update <payload.json>
+python tools/learning.py criteria-set <payload.json>
+python tools/learning.py completion-status
+python tools/learning.py complete-project
 ```
 
 The `create-project` JSON requires `title` and `goal`. Optional fields are
