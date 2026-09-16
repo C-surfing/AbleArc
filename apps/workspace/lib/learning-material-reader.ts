@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isLearningMaterialId, parseLearningMaterialDetail, type LearningMaterialDetail } from "./learning-material-data";
-import { resolveProjectReadContext } from "./project-store";
+import { isLearningMaterialId, parseLearningMaterialDetail, type LearningMaterialDetail } from "./learning-material-data.ts";
+import { resolveProjectReadContext } from "./project-store.ts";
 
 function readObject(filePath: string, label: string): Record<string, unknown> {
   if (fs.lstatSync(filePath).isSymbolicLink()) {
