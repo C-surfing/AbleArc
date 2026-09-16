@@ -1,6 +1,6 @@
 # Learner Evidence Privacy
 
-ai4learning depends on persistent learner modeling, which means real use can produce sensitive educational context even when no conventional secret is present. The repository is public; raw learner evidence therefore stays local by default.
+ai4learning depends on persistent learner modeling, which means real use can produce sensitive educational context even when no conventional secret is present. The repository is public; raw learner evidence is stored locally and Git-ignored by default. Configuring a remote Provider is an explicit choice to send the minimized pending-turn context needed for assessment to that Provider.
 
 ## Three layers
 
@@ -16,6 +16,14 @@ Contains the state needed to teach the current learner:
 - evidence that affects future teaching decisions.
 
 This directory is Git-ignored by default.
+
+When the official Workspace Provider adapter is enabled, the current Mission,
+Decision, learner Observation, and learner-state projection are sent to the
+configured endpoint. They remain locally persisted, but are no longer
+local-only in transit or at the Provider. Choose the endpoint and its data
+policy accordingly; do not enable it for material that must never leave the
+machine. The headless external-Agent flow remains available without this
+transport.
 
 ### 2. `.dogfooding/` — raw evaluation evidence
 

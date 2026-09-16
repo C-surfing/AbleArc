@@ -608,6 +608,7 @@ button {
 
 .mode-chip,
 .source-chip,
+.provider-chip,
 .state-pill,
 .strength {
   display: inline-flex;
@@ -629,6 +630,22 @@ button {
   padding: 4px 7px;
   border: 1px solid var(--line);
   color: var(--muted);
+}
+
+.provider-chip {
+  max-width: 210px;
+  overflow: hidden;
+  padding: 4px 7px;
+  border: 1px solid #d8d9d4;
+  color: var(--faint);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-chip.is-ready {
+  border-color: rgba(51, 112, 94, 0.28);
+  background: rgba(51, 112, 94, 0.07);
+  color: var(--stable);
 }
 
 .teacher-move {
@@ -1605,6 +1622,12 @@ button {
 .composer-status .composer-refresh:hover {
   border-color: #c3c4bd;
   color: var(--ink);
+}
+
+.composer-status .composer-refresh:disabled {
+  border-color: var(--line-soft);
+  background: transparent;
+  color: var(--faint);
 }
 
 .composer-shell.is-submitted {

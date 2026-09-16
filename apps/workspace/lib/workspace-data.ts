@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { getAgentProviderStatus } from "./agent-adapter";
 import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
 import type {
   DecisionTrace,
@@ -34,6 +35,7 @@ interface RuntimeReceipt {
 }
 
 const DEMO: WorkspaceSnapshot = {
+  agent: { configured: false, adapter: "openai-compatible" },
   source: "demo",
   hasMission: false,
   mission: "Build an intuitive, transferable understanding of Bayes rather than memorizing the formula.",
@@ -568,8 +570,9 @@ function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
 
 export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const repoRoot = findRepoRoot();
+  const agent = getAgentProviderStatus();
   const context = resolveProjectReadContext(repoRoot);
-  if (!context) return DEMO;
+  if (!context) return { ...DEMO, agent };
   const projects = context.layout === "workspace-v0.2"
     ? listProjectSummaries(repoRoot)
     : [];
@@ -587,11 +590,11 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const latestStateDecision = runtimeStateDecision(runtimeRoot);
   const structuredTimeline = runtimeTimeline(runtimeRoot);
 
-  if (!state && !roadmap && !mission && !learner && !structuredState) return DEMO;
+  if (!state && !roadmap && !mission && !learner && !structuredState) return { ...DEMO, agent };
 
   const missionGoal = field(mission, "Goal");
   const hasMission = Boolean(missionGoal);
-  if (!hasMission && !decision && Object.keys(structuredState?.concepts || {}).length === 0) return DEMO;
+  if (!hasMission && !decision && Object.keys(structuredState?.concepts || {}).length === 0) return { ...DEMO, agent };
 
   const recordedFrontier = field(state, "Concept / capability");
   const awaitingFirstDecision = hasMission && !recordedFrontier && !decision;
@@ -639,6 +642,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
             };
 
   return {
+    agent,
     source: "local",
     hasMission,
     mission: missionGoal || firstMeaningfulLine(mission, "Learning mission is being established."),

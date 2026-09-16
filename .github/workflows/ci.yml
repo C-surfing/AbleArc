@@ -31,6 +31,8 @@ jobs:
           node-version: "22"
       - name: Install workspace dependencies
         run: npm install --no-audit --no-fund
+      - name: Test workspace adapter
+        run: npm test
       - name: Typecheck workspace
         run: npm run typecheck
       - name: Build workspace

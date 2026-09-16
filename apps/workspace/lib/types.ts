@@ -150,7 +150,15 @@ export interface LearningBrief {
   detail: string;
 }
 
+export interface AgentProviderStatus {
+  configured: boolean;
+  adapter: "openai-compatible";
+  model?: string;
+  error?: string;
+}
+
 export interface WorkspaceSnapshot {
+  agent: AgentProviderStatus;
   source: "local" | "demo";
   hasMission: boolean;
   mission: string;
