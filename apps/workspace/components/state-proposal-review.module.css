@@ -1,0 +1,116 @@
+.card {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.transition,
+.meta,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.transition strong {
+  font-size: 9px;
+}
+
+.transition span,
+.meta,
+.status,
+.warning,
+.issues,
+.reason span,
+.override {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.meta,
+.status,
+.reason span,
+.override {
+  color: var(--faint);
+}
+
+.card > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.warning {
+  color: var(--warning) !important;
+}
+
+.issues {
+  margin: 0;
+  padding-left: 15px;
+  color: var(--warning);
+}
+
+.reason {
+  display: grid;
+  gap: 4px;
+}
+
+.reason textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 58px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  padding: 7px;
+  color: inherit;
+  font: inherit;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.reason textarea:focus-visible {
+  outline: 1px solid var(--muted);
+  outline-offset: 1px;
+}
+
+.override {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+}
+
+.override input {
+  margin-top: 2px;
+}
+
+.actions button {
+  flex: 1 1 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  padding: 6px 8px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 8px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.actions button:last-child {
+  border-color: currentColor;
+  color: var(--stable);
+}
+
+.actions button:disabled,
+.reason textarea:disabled,
+.override input:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

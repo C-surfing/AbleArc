@@ -253,6 +253,8 @@ The runtime write bridge distinguishes:
 - evidence-backed accepted updates;
 - evaluation records.
 
+Pending evidence-grounded state proposals may now be reviewed in the Workspace. The learner supplies an explicit rationale and chooses accept or reject. The client never applies the transition itself: the server delegates to the Runtime, which re-checks lifecycle state, stale projections, and transition policy before writing an immutable `state-decision` receipt. Policy issues require a separate explicit learner override acknowledgement. See [`STATE-PROPOSAL-REVIEW.md`](STATE-PROPOSAL-REVIEW.md).
+
 ## MVP implementation
 
 Location:
@@ -284,6 +286,7 @@ The first app provides:
 - Project creation, switching, pause/resume, retained Archive, and maintenance entry;
 - a Runtime-backed Mission Gate card that distinguishes collecting Evidence,
   ready, verified completion, and unverified administrative Archive;
+- learner-facing review of pending evidence-grounded state proposals with explicit accept/reject rationale and guarded policy override;
 - lifecycle-aware read-only interaction states;
 - a short session brief instead of a repeated product introduction;
 - optional Provider-backed response assessment with retryable local pending state;
@@ -310,10 +313,11 @@ After the shell is validated visually and through actual use:
 
 1. validate the Provider-backed turn loop and `frequency_tree_v1` artifact in a real Bayes learning arc;
 2. add another renderer only when the target relation requires it;
-3. add a learner-facing proposal review interaction for explicit edits and policy overrides;
-4. add full-screen Map mode with node inspection and roadmap revision proposals;
-5. add session diff/replay around learner-model changes, not raw chat;
-6. add Review queue only after longitudinal evidence defines useful trigger semantics.
+3. add full-screen Map mode with node inspection and roadmap revision proposals;
+4. add session diff/replay around learner-model changes, not raw chat;
+5. add Review queue only after longitudinal evidence defines useful trigger semantics.
+
+The learner-facing state-proposal review interaction is implemented. Do not broaden it into arbitrary self-declared mastery: all accepted transitions still pass through the Runtime authority path described above.
 
 ## Product acceptance criteria
 
