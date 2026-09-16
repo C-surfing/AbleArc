@@ -47,6 +47,10 @@ class LearningToolTests(unittest.TestCase):
             "# project lifecycle\n",
             encoding="utf-8",
         )
+        (self.root / "tools" / "completion_gate.py").write_text(
+            "# completion gate\n",
+            encoding="utf-8",
+        )
         (self.root / "tools" / "learning_map.py").write_text("# learning map\n", encoding="utf-8")
         (self.root / "tools" / "runtime.py").write_text("# runtime\n", encoding="utf-8")
         (self.root / "schemas").mkdir()
@@ -58,10 +62,18 @@ class LearningToolTests(unittest.TestCase):
         (self.root / "schemas" / "learning-artifact-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.2.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-map-v0.1.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "mission-completion-v0.1.json").write_text(
+            "{}\n",
+            encoding="utf-8",
+        )
         (self.root / "docs").mkdir()
         (self.root / "docs" / "RUNTIME-CONTRACT.md").write_text("# Runtime\n", encoding="utf-8")
         (self.root / "docs" / "LEARNING-ARTIFACTS.md").write_text("# Artifacts\n", encoding="utf-8")
         (self.root / "docs" / "LEARNING-MAP.md").write_text("# LearningMap\n", encoding="utf-8")
+        (self.root / "docs" / "MISSION-COMPLETION.md").write_text(
+            "# Mission Completion\n",
+            encoding="utf-8",
+        )
         (self.root / "examples" / "learning-artifacts").mkdir(parents=True)
         (self.root / "examples" / "learning-artifacts" / "bayes-frequency-tree.json").write_text(
             "{}\n", encoding="utf-8"

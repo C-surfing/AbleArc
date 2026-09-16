@@ -53,6 +53,13 @@ The protocol therefore separates **authority** from **projection**:
 
 It prevents the tutor from optimizing generic subject coverage when the learner actually needs a narrower or different capability.
 
+Mission completion has its own authority boundary. Structured criteria cite
+Mission-local Runtime Evidence; a deterministic gate requires both Feynman
+reconstruction and independent performance from distinct receipts before it
+can write an immutable completion record. Manual Archive remains a storage
+transition, not a mastery claim. See
+[`MISSION-COMPLETION.md`](MISSION-COMPLETION.md).
+
 ### Durable learner layer
 
 `LEARNER.md` captures stable learner-specific information. This lets one teaching interface adapt across subjects without mixing temporary errors into identity-like preferences.

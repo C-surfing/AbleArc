@@ -40,12 +40,46 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["id", "capability", "required", "evidence_ids"],
+      "oneOf": [
+        {
+          "required": [
+            "kind",
+            "minimum_level",
+            "max_scaffolding",
+            "minimum_context",
+            "minimum_delay",
+            "minimum_independence",
+            "minimum_evidence"
+          ]
+        },
+        {
+          "not": {
+            "anyOf": [
+              { "required": ["kind"] },
+              { "required": ["minimum_level"] },
+              { "required": ["max_scaffolding"] },
+              { "required": ["minimum_context"] },
+              { "required": ["minimum_delay"] },
+              { "required": ["minimum_independence"] },
+              { "required": ["minimum_evidence"] }
+            ]
+          }
+        }
+      ],
       "properties": {
         "id": { "$ref": "#/$defs/localId" },
         "capability": { "type": "string", "minLength": 1, "maxLength": 500 },
         "required": { "type": "boolean" },
+        "kind": { "enum": ["feynman", "performance", "application", "transfer", "retrieval"] },
+        "minimum_level": { "enum": ["recognition", "recall", "explanation", "application", "transfer"] },
+        "max_scaffolding": { "enum": ["none", "light", "heavy"] },
+        "minimum_context": { "enum": ["same", "varied", "novel"] },
+        "minimum_delay": { "enum": ["immediate", "delayed"] },
+        "minimum_independence": { "enum": ["same_form", "new_form", "independent"] },
+        "minimum_evidence": { "type": "integer", "minimum": 1, "maximum": 5 },
         "evidence_ids": {
           "type": "array",
+          "maxItems": 30,
           "items": { "type": "string", "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
           "uniqueItems": true
         }
