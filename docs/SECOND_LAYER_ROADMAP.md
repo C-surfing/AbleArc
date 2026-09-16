@@ -39,13 +39,19 @@ See [`VISUAL-WORKSPACE.md`](VISUAL-WORKSPACE.md).
 
 The authority-aware learner-response / agent bridge, headless Mission
 Completion Gate, and its non-authoritative Workspace projection are
-implemented. The typed Learning Library foundation is also implemented: saved
-materials are Project-local, provenance-aware, immutable, and safely projected
-without moving evidence interpretation into the client.
+implemented. The typed Learning Library is also end-to-end usable: saved
+materials are Project-local, provenance-aware, immutable, readable through a
+validated detail boundary, explicitly curatable, and browsable through
+deterministic summary filters without moving evidence interpretation into the
+client.
 
-The next library step is selective material reading and curation. Final
-Learning Pack generation remains deferred until real Projects show which typed
-materials deserve promotion at Archive.
+The next library step is operational validation through real Projects: observe
+which saved and curated materials are actually revisited, which provenance is
+useful when returning, and what deserves promotion at Archive. Final Learning
+Pack generation remains deferred until that use establishes stable composition
+semantics. Search/filter interaction itself must not become learner-state
+Evidence, and the project should not add embedding/RAG infrastructure merely to
+browse the local typed library.
 
 ## Core now: Mission completion verification
 

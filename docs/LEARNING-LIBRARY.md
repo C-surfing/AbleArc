@@ -122,11 +122,11 @@ material detail before changing the Project-local selection manifest.
 
 ## Workspace reader
 
-The initial Workspace projection still shows validated titles, summaries,
-return reasons, and provenance counts without including the full Markdown body.
-Opening one material performs an on-demand read through the validated material
-reader, which re-checks Project scope, Mission scope, and referenced Runtime
-Evidence before returning the body.
+The initial Workspace projection shows validated titles, summaries, return
+reasons, concept IDs, material types, and provenance counts without including
+the full Markdown body. Opening one material performs an on-demand read through
+the validated material reader, which re-checks Project scope, Mission scope,
+and referenced Runtime Evidence before returning the body.
 
 Stored Markdown is shown as inert plain text. It is not executed or injected as
 HTML.
@@ -135,6 +135,28 @@ The reader also exposes an explicit `Select` / `Selected` curation control.
 That action updates only the Project-local preference manifest. It never writes
 to the material record or Runtime learner-state receipts.
 
+## Browse and filtering
+
+The State panel stays action-first by showing only the five most recent
+materials by default. `Browse all` is an explicit expansion into the Project's
+validated material summaries. The browser supports deterministic local filters
+for:
+
+- free-text matches over title, summary, `why_return`, concept IDs, Mission ID,
+  and readable material type;
+- one material type;
+- the explicit curated set.
+
+Filtering preserves the library's existing order and does not mutate material
+records. Search terms, filter choices, opens, and clicks are view state only:
+they are not Runtime observations, Evidence, mastery signals, review triggers,
+or Completion inputs.
+
+The browser deliberately does not add embeddings, vector search, RAG, or an
+indexing service. The Project library is capped and already has typed metadata;
+operational use should demonstrate a real retrieval failure before adding that
+complexity.
+
 ## Final Learning Pack remains deferred
 
 Final Learning Pack generation is intentionally deferred. A future pack should
@@ -142,3 +164,7 @@ compose deliberately selected typed materials together with verified completion
 provenance. It should not synthesize a large end-of-project note from the
 transcript, and curation alone must never be treated as evidence that a concept
 was mastered.
+
+Before implementing a pack generator, real Project use should establish which
+materials are actually revisited, which selections remain useful at Archive,
+and whether deterministic typed retrieval is insufficient.

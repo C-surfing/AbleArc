@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import type { LearningMaterialDetail } from "@/lib/learning-material-data";
-import type { LearningMaterialSummary } from "@/lib/types";
+import {
+  filterLearningMaterials,
+  LEARNING_MATERIAL_TYPES,
+} from "@/lib/learning-material-browser";
+import type { LearningMaterialSummary, LearningMaterialType } from "@/lib/types";
 import styles from "./material-reader.module.css";
 
 interface MaterialCurationView {
@@ -20,6 +24,10 @@ export function MaterialReader({ materials }: { materials: LearningMaterialSumma
   const [curation, setCuration] = useState<MaterialCurationView>();
   const [curationError, setCurationError] = useState<string>();
   const [savingId, setSavingId] = useState<string>();
+  const [browseAll, setBrowseAll] = useState(false);
+  const [query, setQuery] = useState("");
+  const [materialType, setMaterialType] = useState<"all" | LearningMaterialType>("all");
+  const [curatedOnly, setCuratedOnly] = useState(false);
 
   useEffect(() => {
     if (materials.length === 0) return undefined;
@@ -95,7 +103,26 @@ export function MaterialReader({ materials }: { materials: LearningMaterialSumma
     }
   }
 
+  function closeBrowser() {
+    setBrowseAll(false);
+    setQuery("");
+    setMaterialType("all");
+    setCuratedOnly(false);
+    if (selectedId && !materials.slice(0, 5).some((item) => item.id === selectedId)) {
+      setSelectedId(undefined);
+      setDetail(undefined);
+      setError(undefined);
+    }
+  }
+
   const curatedCount = curation?.selectedMaterialIds.length ?? 0;
+  const filteredMaterials = filterLearningMaterials(materials, {
+    query,
+    materialType: materialType === "all" ? undefined : materialType,
+    curatedOnly,
+    selectedMaterialIds: curation?.selectedMaterialIds ?? [],
+  });
+  const visibleMaterials = browseAll ? filteredMaterials : materials.slice(0, 5);
 
   return (
     <section className="state-section">
@@ -104,62 +131,120 @@ export function MaterialReader({ materials }: { materials: LearningMaterialSumma
         <small>{curation ? `${curatedCount} selected · ${materials.length} total` : materials.length}</small>
       </div>
       {curationError ? <p className="empty-copy">{curationError}</p> : null}
-      {materials.slice(0, 5).map((item) => {
-        const curated = curation?.selectedMaterialIds.includes(item.id) ?? false;
-        return (
-          <div className="material-card" key={item.id}>
-            <div className="material-card__meta">
-              <span>{item.materialType.replaceAll("_", " ")}</span>
-              <span>{item.evidenceCount} evidence · {item.sourceCount} source</span>
-            </div>
-            <div className={styles.titleRow}>
-              <button
-                type="button"
-                className={styles.openButton}
-                aria-expanded={selectedId === item.id}
-                onClick={() => void openMaterial(item.id)}
-              >
-                {item.title}
-              </button>
-              <button
-                type="button"
-                className={`${styles.curateButton} ${curated ? styles.curateButtonSelected : ""}`}
-                aria-pressed={curated}
-                disabled={!curation || Boolean(savingId)}
-                onClick={() => void toggleCuration(item.id)}
-                title="Explicit learner preference only; does not affect mastery or completion"
-              >
-                {savingId === item.id ? "Saving…" : curated ? "Selected" : "Select"}
-              </button>
-            </div>
-            <p>{item.summary}</p>
-            <small>Return when: {item.whyReturn}</small>
-            {selectedId === item.id ? (
-              <div className={styles.reader} aria-live="polite">
-                {loading ? <p>Loading validated material…</p> : null}
-                {error ? <p className="empty-copy">{error}</p> : null}
-                {detail ? (
-                  <>
-                    <div className={styles.provenance}>
-                      <span>Mission {detail.missionId}</span>
-                      {detail.conceptIds.length ? <span>Concepts {detail.conceptIds.join(", ")}</span> : null}
-                      {detail.tags.length ? <span>Tags {detail.tags.join(", ")}</span> : null}
-                      {detail.evidenceIds.length ? <span>Evidence {detail.evidenceIds.join(", ")}</span> : null}
-                    </div>
-                    <pre className={styles.body}>{detail.bodyMarkdown}</pre>
-                    {detail.sourceRefs.length ? (
-                      <div className={styles.sources}>
-                        <strong>Sources</strong>
-                        {detail.sourceRefs.map((source) => <span key={source}>{source}</span>)}
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
+      {materials.length > 0 ? (
+        <div className={styles.browserToolbar}>
+          <button
+            type="button"
+            className={styles.browserToggle}
+            aria-expanded={browseAll}
+            onClick={() => browseAll ? closeBrowser() : setBrowseAll(true)}
+          >
+            {browseAll ? "Recent only" : "Browse all"}
+          </button>
+          {!browseAll && materials.length > 5 ? <small>Showing 5 most recent</small> : null}
+        </div>
+      ) : null}
+
+      {browseAll ? (
+        <div className={styles.filters} aria-label="Learning material filters">
+          <label className={styles.filterField}>
+            <span>Search</span>
+            <input
+              type="search"
+              value={query}
+              maxLength={160}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Title, concept, return reason…"
+            />
+          </label>
+          <label className={styles.filterField}>
+            <span>Type</span>
+            <select
+              value={materialType}
+              onChange={(event) => setMaterialType(event.target.value as "all" | LearningMaterialType)}
+            >
+              <option value="all">All types</option>
+              {LEARNING_MATERIAL_TYPES.map((type) => (
+                <option value={type} key={type}>{type.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className={`${styles.curatedFilter} ${curatedOnly ? styles.curatedFilterActive : ""}`}
+            aria-pressed={curatedOnly}
+            disabled={!curation}
+            onClick={() => setCuratedOnly((value) => !value)}
+            title="Filter by explicit learner selection only"
+          >
+            Curated only
+          </button>
+          <small className={styles.matchCount}>{filteredMaterials.length} matching</small>
+        </div>
+      ) : null}
+
+      <div className={browseAll ? styles.browserList : undefined}>
+        {visibleMaterials.map((item) => {
+          const curated = curation?.selectedMaterialIds.includes(item.id) ?? false;
+          return (
+            <div className="material-card" key={item.id}>
+              <div className="material-card__meta">
+                <span>{item.materialType.replaceAll("_", " ")}</span>
+                <span>{item.evidenceCount} evidence · {item.sourceCount} source</span>
               </div>
-            ) : null}
-          </div>
-        );
-      })}
+              <div className={styles.titleRow}>
+                <button
+                  type="button"
+                  className={styles.openButton}
+                  aria-expanded={selectedId === item.id}
+                  onClick={() => void openMaterial(item.id)}
+                >
+                  {item.title}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.curateButton} ${curated ? styles.curateButtonSelected : ""}`}
+                  aria-pressed={curated}
+                  disabled={!curation || Boolean(savingId)}
+                  onClick={() => void toggleCuration(item.id)}
+                  title="Explicit learner preference only; does not affect mastery or completion"
+                >
+                  {savingId === item.id ? "Saving…" : curated ? "Selected" : "Select"}
+                </button>
+              </div>
+              <p>{item.summary}</p>
+              <small>Return when: {item.whyReturn}</small>
+              {selectedId === item.id ? (
+                <div className={styles.reader} aria-live="polite">
+                  {loading ? <p>Loading validated material…</p> : null}
+                  {error ? <p className="empty-copy">{error}</p> : null}
+                  {detail ? (
+                    <>
+                      <div className={styles.provenance}>
+                        <span>Mission {detail.missionId}</span>
+                        {detail.conceptIds.length ? <span>Concepts {detail.conceptIds.join(", ")}</span> : null}
+                        {detail.tags.length ? <span>Tags {detail.tags.join(", ")}</span> : null}
+                        {detail.evidenceIds.length ? <span>Evidence {detail.evidenceIds.join(", ")}</span> : null}
+                      </div>
+                      <pre className={styles.body}>{detail.bodyMarkdown}</pre>
+                      {detail.sourceRefs.length ? (
+                        <div className={styles.sources}>
+                          <strong>Sources</strong>
+                          {detail.sourceRefs.map((source) => <span key={source}>{source}</span>)}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      {browseAll && visibleMaterials.length === 0 ? (
+        <p className="empty-copy">No saved material matches these filters.</p>
+      ) : null}
       {materials.length === 0 ? (
         <p className="empty-copy">No reusable material has been deliberately saved.</p>
       ) : null}
