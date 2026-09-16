@@ -1,5 +1,6 @@
 import type { EvidenceLevel, MasteryState, WorkspaceSnapshot } from "@/lib/types";
 import { MaterialReader } from "./material-reader";
+import { StateProposalReview } from "./state-proposal-review";
 
 const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
   unknown: { glyph: "○", label: "Unknown" },
@@ -63,6 +64,14 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         ))}
         {snapshot.evidence.length === 0 ? <p className="empty-copy">No decisive evidence yet.</p> : null}
       </section>
+
+      {snapshot.source === "local" && snapshot.projectId ? (
+        <StateProposalReview
+          projectId={snapshot.projectId}
+          projectStatus={snapshot.projectStatus}
+          maintenanceStatus={snapshot.maintenanceStatus}
+        />
+      ) : null}
 
       {snapshot.latestStateDecision ? (
         <section className="state-section">
