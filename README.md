@@ -187,6 +187,7 @@ python tools/learning.py projects
 python tools/learning.py brief
 python tools/learning.py map
 python tools/learning.py completion-status
+python tools/learning.py materials
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
 python tools/learning.py status
@@ -226,6 +227,13 @@ completion record and archive the retained Project. Manual Archive does not
 claim mastery. See
 [`docs/MISSION-COMPLETION.md`](docs/MISSION-COMPLETION.md).
 
+The selected Project also has a typed Learning Library. Reusable derivations,
+worked examples, source notes, code, diagrams, misconception repairs, and final
+Feynman explanations are saved deliberately with a `why_return` and Evidence or
+source provenance. They remain non-authoritative for mastery and are not
+automatic chat summaries. See
+[`docs/LEARNING-LIBRARY.md`](docs/LEARNING-LIBRARY.md).
+
 The repository now has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
 
 ## Design and evaluation documents
@@ -235,6 +243,7 @@ The repository now has automated CI for the runner and repository invariants. Se
 - [`docs/PROJECT-STORAGE.md`](docs/PROJECT-STORAGE.md) — v0.2 Workspace/Project/Mission manifests and legacy read compatibility.
 - [`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md) — canonical topology, evidence-grounded revisions, Runtime overlay, and deterministic rendering.
 - [`docs/MISSION-COMPLETION.md`](docs/MISSION-COMPLETION.md) — evidence criteria, Feynman/performance gate, immutable completion, and retained Archive semantics.
+- [`docs/LEARNING-LIBRARY.md`](docs/LEARNING-LIBRARY.md) — typed reusable materials, provenance, lifecycle, and safe Workspace projection.
 - [`docs/AGENT-ADAPTER.md`](docs/AGENT-ADAPTER.md) — Provider configuration, strict turn contract, failure handling, and authority boundary.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.

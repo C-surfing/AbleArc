@@ -19,6 +19,7 @@ export interface ProjectReadContext {
   statePath: string;
   runtimeRoot: string;
   artifactsRoot: string;
+  materialsRoot: string;
 }
 
 const LOCAL_ID = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
@@ -157,6 +158,7 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
       statePath: path.join(learningRoot, "STATE.md"),
       runtimeRoot: path.join(learningRoot, "runtime"),
       artifactsRoot: path.join(learningRoot, "artifacts"),
+      materialsRoot: path.join(learningRoot, "references"),
     };
   }
 
@@ -192,5 +194,6 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
     statePath: path.join(projectRoot, "STATE.md"),
     runtimeRoot: path.join(projectRoot, "runtime"),
     artifactsRoot: path.join(projectRoot, "artifacts"),
+    materialsRoot: path.join(projectRoot, "materials"),
   };
 }

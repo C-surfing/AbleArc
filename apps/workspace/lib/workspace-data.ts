@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getAgentProviderStatus } from "./agent-adapter";
 import { parseCanonicalLearningMap } from "./learning-map-data";
+import { parseLearningMaterialSummary } from "./learning-material-data";
 import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
 import type {
   DecisionTrace,
@@ -9,6 +10,7 @@ import type {
   LearningArtifact,
   LearnerExchange,
   LearningMapView,
+  LearningMaterialSummary,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
@@ -98,6 +100,7 @@ const DEMO: WorkspaceSnapshot = {
     },
   ],
   projects: [],
+  materials: [],
   sessions: [
     { id: "s1", label: "S1 · Frontier", detail: "Inverse-condition confusion located", kind: "frontier" },
     { id: "s2", label: "S2 · Representation", detail: "Frequency tree supported correct inference", kind: "representation" },
@@ -175,6 +178,48 @@ function readReceiptDirectory(runtimeRoot: string, directory: string): RuntimeRe
     .map((name) => readJsonOptional<RuntimeReceipt>(path.join(root, name)))
     .filter((item): item is RuntimeReceipt => Boolean(item?.id && item?.created_at))
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
+}
+
+function readLearningMaterials(
+  materialsRoot: string,
+  workspaceId: string | undefined,
+  projectId: string,
+): LearningMaterialSummary[] {
+  if (!workspaceId || !fs.existsSync(materialsRoot)) return [];
+  try {
+    if (fs.lstatSync(materialsRoot).isSymbolicLink()) return [];
+    const entries = fs.readdirSync(materialsRoot, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && /^mat_[A-Za-z0-9][A-Za-z0-9_-]{2,127}\.json$/.test(entry.name));
+    if (entries.length > 500) return [];
+    return entries
+      .flatMap((entry) => {
+        const filePath = path.join(materialsRoot, entry.name);
+        try {
+          const value = JSON.parse(fs.readFileSync(filePath, "utf8")) as unknown;
+          const material = parseLearningMaterialSummary(value, workspaceId, projectId);
+          const missionRoot = path.join(path.dirname(materialsRoot), "missions", material.missionId);
+          const missionPath = path.join(missionRoot, "mission.json");
+          if (
+            entry.name !== `${material.id}.json`
+            || fs.lstatSync(missionRoot).isSymbolicLink()
+            || fs.lstatSync(missionPath).isSymbolicLink()
+          ) return [];
+          const mission = JSON.parse(fs.readFileSync(missionPath, "utf8")) as Record<string, unknown>;
+          return mission.schema_version === "0.2"
+            && mission.id === material.missionId
+            && mission.project_id === projectId
+            ? [material]
+            : [];
+        } catch {
+          return [];
+        }
+      })
+      .sort((left, right) => (
+        right.createdAt.localeCompare(left.createdAt) || right.id.localeCompare(left.id)
+      ));
+  } catch {
+    return [];
+  }
 }
 
 function runtimeEvidence(runtimeRoot: string): EvidenceItem[] {
@@ -639,6 +684,9 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const latestExchange = runtimeLearnerExchange(runtimeRoot);
   const latestStateDecision = runtimeStateDecision(runtimeRoot);
   const structuredTimeline = runtimeTimeline(runtimeRoot);
+  const materials = context.layout === "workspace-v0.2"
+    ? readLearningMaterials(context.materialsRoot, context.workspaceId, context.projectId)
+    : [];
 
   if (!state && !roadmap && !mission && !learner && !structuredState) return { ...DEMO, agent };
 
@@ -727,6 +775,7 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     projectStatus: context.projectStatus,
     maintenanceStatus: context.maintenanceStatus,
     projects,
+    materials,
     sessionBrief,
   };
 }
