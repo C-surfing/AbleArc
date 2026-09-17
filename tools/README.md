@@ -1,6 +1,6 @@
 # Local runner
 
-`tools/learning.py` is a small standard-library helper for ai4learning's local workspace and longitudinal evaluation. `tools/runtime.py` records the structured learning transaction selected by Teach/Study agents. Neither tool teaches, scores learners, or selects cognitive moves.
+`tools/learning.py` is a small standard-library helper for AbleArc's local workspace and longitudinal evaluation. `tools/runtime.py` records the structured learning transaction selected by Teach/Study agents. Neither tool teaches, scores learners, or selects cognitive moves.
 
 Its job is to remove bookkeeping friction while preserving the project's privacy and evidence boundaries.
 
@@ -227,6 +227,25 @@ python tools/learning.py new-session 20260905-probability-bayes-base-rate
 ```
 
 This creates the next numbered record (`002.md`, `003.md`, ...). Existing evidence is never replaced.
+
+## Record vNext product dogfooding
+
+After completing the corresponding `sessions/NNN.md` from a real learner session, create a product-surface checkpoint for the same numbered session:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . start <arc-name>
+```
+
+Then edit only fields that were actually observed and validate the local records:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . validate <arc-name>
+python tools/vnext_product_dogfood.py --repo . summary <arc-name>
+```
+
+The records live under `.dogfooding/<arc-name>/product-observations/NNN.json`. They describe Entry, Today, DailyContext, Focus Session, the evidence-bearing turn, lifecycle behavior, and narrow/mobile behavior. Missing observations remain `not_observed` / `null` rather than becoming implicit passes.
+
+This tool is evaluation-only: it never writes `.learning/`, cannot create Evidence or learner-state changes, and cannot emit a Phase-4 promotion verdict. Use repeated real checkpoints plus [`../evaluation/PROMOTION.md`](../evaluation/PROMOTION.md) before promoting Capture Inbox or another product-level change. See [`../evaluation/VNEXT-PRODUCT-DOGFOOD.md`](../evaluation/VNEXT-PRODUCT-DOGFOOD.md).
 
 ## Inspect local status
 
