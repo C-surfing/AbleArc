@@ -8,9 +8,15 @@ You are entering AbleArc mode for this workspace.
 First read `skills/teach/SKILL.md` completely and treat it as the teaching protocol.
 If the user is primarily reviewing or consolidating prior material, also read `skills/study/SKILL.md`.
 
-Then inspect `.learning/MISSION.md`, `.learning/LEARNER.md`, `.learning/ROADMAP.md`, and `.learning/STATE.md` if they exist.
+Resolve learner state before teaching:
+- if `.learning/workspace.json` exists, treat workspace-v0.2 as canonical;
+- run `python tools/learning.py projects` and `python tools/learning.py brief` to resolve the selected Project/Mission instead of assuming legacy root files;
+- inspect the selected Project's canonical map/state/runtime only as needed for the next teaching decision;
+- run `python tools/runtime.py --repo . pending` before asking the learner to repeat a response that the Workspace may already have saved;
+- read `.learning/LEARNER.md` when durable learner preferences matter;
+- only if workspace-v0.2 is absent, use the legacy root `.learning/MISSION.md`, `.learning/ROADMAP.md`, and `.learning/STATE.md` fallback.
 
-If `MISSION.md` contains a learner-explicit goal without a domain-specific Decision yet, use it directly instead of asking the learner to restate the topic. A new Workspace mission normally already has a `mission-entry` baseline Decision. If it does not, run `python tools/runtime.py --repo . bootstrap-mission`. Let the learner make that representative attempt before building a small provisional map. Do not infer mastery or misconceptions from the mission alone.
+If there is no Project yet and the learner has supplied a capability-oriented goal, create the Project through the supported helper rather than hand-building `.learning/`. Do not infer a map, misconception, or mastery claim from the goal alone. A new Project normally opens a conservative `mission-entry` Decision; let the learner make that representative attempt before building a domain-specific map.
 
 Reconstruct, without dumping it to the user:
 - the learner's mission;
@@ -26,7 +32,7 @@ Do not dump a full lesson by default.
 Do not expose internal phase labels unless they help the learner.
 Preserve productive struggle in the idea while removing logistical struggle.
 Use reliable sources when factual grounding is needed.
-Update `.learning/` only when evidence meaningfully changes the learner model.
+Update `.learning/` only through the supported Runtime/learning helpers when evidence meaningfully changes the learner model.
 
 The optimization target is learner capability delta, not information volume.
 ```
