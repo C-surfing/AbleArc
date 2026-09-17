@@ -24,6 +24,40 @@ python tools/review_observations.py --repo .
 The report is derived from existing immutable Runtime receipts. It does not
 create new learner state or evaluation receipts.
 
+## Session-bound checkpoints
+
+A live export changes as later Evidence and accepted state transitions appear.
+For longitudinal comparison, capture the current descriptive report at the end
+of a meaningful dogfooding session:
+
+```bash
+python tools/review_checkpoints.py --repo . <arc-name>
+```
+
+The tool resolves `<arc-name>` under `.dogfooding/`, finds the latest numbered
+session record, and writes exactly one local checkpoint:
+
+```text
+.dogfooding/<arc-name>/
+├── sessions/
+│   ├── 001.md
+│   └── 002.md
+└── review-observations/
+    ├── 001.json
+    └── 002.json
+```
+
+A checkpoint is a **non-authoritative evaluation snapshot**. It stores the
+current descriptive report together with the arc id, session id, selected
+Project id, Runtime revision, and capture time. It never writes `.learning/`,
+creates Runtime receipts, or becomes a learner-state source of truth.
+
+The same session checkpoint cannot be overwritten. If a later session changes
+the evidence picture, create the next `sessions/NNN.md` first and capture a new
+`review-observations/NNN.json`. This preserves what the evaluator could actually
+observe at each point in the longitudinal arc instead of rewriting history from
+the final state.
+
 ## What the export records
 
 For each delayed Evidence observation, the export may include:
@@ -45,7 +79,7 @@ to study.
 
 ## What the export does not produce
 
-The report MUST NOT contain or infer:
+The report and its checkpoints MUST NOT contain or infer:
 
 - review priority;
 - a scalar retention score;
@@ -55,7 +89,8 @@ The report MUST NOT contain or infer:
 - a cross-Project learner score.
 
 The marker `descriptive_only_no_review_priority` exists to make that boundary
-machine-visible as well as documented.
+machine-visible as well as documented. Checkpoint capture fails closed if that
+marker is absent or changed.
 
 ## How to use it
 
@@ -66,9 +101,10 @@ During a real longitudinal arc:
 3. Revisit the concept later with a retrieval, explanation, application, or
    transfer task that is actually delayed.
 4. Record that attempt as Evidence with `delay: delayed`.
-5. Export observations locally.
-6. Compare patterns across repeated sessions and, preferably, multiple arcs.
-7. Only after repeated evidence exists, propose a review-trigger hypothesis in
+5. Complete the current `sessions/NNN.md` from decisive evidence.
+6. Capture `review-observations/NNN.json` for that session.
+7. Compare checkpoints across repeated sessions and, preferably, multiple arcs.
+8. Only after repeated evidence exists, propose a review-trigger hypothesis in
    evaluation notes and test whether it predicts useful retrieval needs.
 
 Do not fit a scheduler to one Bayes example or one learner. The dogfooding
@@ -91,7 +127,7 @@ winner in advance.
 
 ## Privacy and storage
 
-The export is intended for local dogfooding. It contains local receipt ids and
-concise result summaries, so do not commit real learner exports to the
-repository. `.learning/` remains the source of learning truth and
+The export and checkpoints are intended for local dogfooding. They contain
+local receipt ids and concise result summaries, so do not commit real learner
+exports to the repository. `.learning/` remains the source of learning truth and
 `.dogfooding/` remains local evaluation state by default.

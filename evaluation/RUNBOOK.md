@@ -46,6 +46,14 @@ Capture:
 
 Do not copy the full transcript into the record unless there is a specific local research reason. Usually a minimized evidence excerpt or structured observation is stronger and safer.
 
+When the session contains a genuinely delayed revisit, mark the resulting Runtime Evidence with `delay: delayed`. After completing the local `sessions/NNN.md`, capture the descriptive Review-observation snapshot for that same session:
+
+```bash
+python tools/review_checkpoints.py --repo . <arc-name>
+```
+
+This writes `.dogfooding/<arc-name>/review-observations/NNN.json`. The checkpoint is local evaluation evidence only. It is not learner state, does not assign Review priority, and cannot be overwritten for the same session.
+
 ## 2. Preserve longitudinal dependence
 
 Before the next session:
@@ -69,7 +77,7 @@ Record whether the learner:
 - reconstructs but cannot apply;
 - applies in the original form but fails after a representation/context change.
 
-Use this evidence to confirm, preserve, or downgrade state.
+Use this evidence to confirm, preserve, or downgrade state. Use the session-bound Review checkpoint to preserve what the evaluator could observe at that point in the arc; do not reinterpret old sessions from the final Runtime state.
 
 ## 4. Perturbation / representation switch
 
@@ -98,9 +106,12 @@ After the final planned session:
 1. complete the outcome section in the local copy of `evaluation/ARC.md`;
 2. classify runtime failures using `FAILURE-TAXONOMY.md`;
 3. compare early and late learner-model hypotheses;
-4. identify whether scaffolding actually receded;
-5. identify whether apparent learning survived retrieval or transfer;
-6. decide whether the evidence supports a runtime change.
+4. compare the session-bound Review checkpoints when delayed revisits occurred;
+5. identify whether scaffolding actually receded;
+6. identify whether apparent learning survived retrieval or transfer;
+7. decide whether the evidence supports a runtime change.
+
+Checkpoint comparison is descriptive. Do not turn checkpoint counts into a retention score, Review priority, or scheduler rule without passing the promotion gate.
 
 ## 7. Public evidence reduction
 
@@ -118,6 +129,8 @@ Only if evidence justifies a repository change, prepare a minimized public case:
 Do not edit `skills/teach/SKILL.md` or `skills/study/SKILL.md` merely because an arc felt awkward.
 
 Use `evaluation/PROMOTION.md` first. A general protocol change should normally require repeated evidence across independent sessions/arcs or a clearly structural high-consequence failure.
+
+For Review automation specifically, first collect delayed-Evidence checkpoints from repeated real sessions. A scheduler trigger must be justified by observed retrieval/transfer patterns, not by the existence of the checkpoint tool itself.
 
 ## 9. What counts as a completed dogfood arc
 
