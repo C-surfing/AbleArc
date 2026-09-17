@@ -165,6 +165,9 @@ function Today({
     () => deriveDailyRecommendation(snapshot, context),
     [snapshot, context],
   );
+  const primaryHref = recommendation.primary.kind === "read-only" || !snapshot.decision
+    ? "/workspace"
+    : "/focus";
   const evidenceLabel = snapshot.evidence.length === 1
     ? "1 accepted evidence item"
     : `${snapshot.evidence.length} accepted evidence items`;
@@ -317,7 +320,7 @@ function Today({
             ) : null}
           </div>
           <div className={styles.moveActions}>
-            <Link className={styles.primaryButton} href="/workspace">{recommendation.primary.cta}</Link>
+            <Link className={styles.primaryButton} href={primaryHref}>{recommendation.primary.cta}</Link>
             <Link className={styles.secondaryButton} href="/workspace">Inspect map and evidence</Link>
           </div>
         </section>
