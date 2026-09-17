@@ -1,6 +1,6 @@
 # Learner Evidence Privacy
 
-ai4learning depends on persistent learner modeling, which means real use can produce sensitive educational context even when no conventional secret is present. The repository is public; raw learner evidence is stored locally and Git-ignored by default. Configuring a remote Provider is an explicit choice to send the minimized pending-turn context needed for assessment to that Provider.
+AbleArc depends on persistent learner modeling, which means real use can produce sensitive educational context even when no conventional secret is present. The repository is public; raw learner evidence is stored locally and Git-ignored by default. Configuring a remote Provider is an explicit choice to send the minimized pending-turn context needed for assessment to that Provider.
 
 ## Three layers
 
@@ -128,4 +128,4 @@ It should not require publishing the private arc records that produced the concl
 
 ## Explicit opt-in
 
-A learner may intentionally choose to version their own `.learning/` or evaluation records. That is an explicit repository/user decision, not the default behavior of ai4learning.
+A learner may intentionally choose to version their own `.learning/` or evaluation records. That is an explicit repository/user decision, not the default behavior of AbleArc.
