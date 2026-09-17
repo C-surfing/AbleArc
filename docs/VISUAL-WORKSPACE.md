@@ -83,9 +83,10 @@ The map is not a progress-percentage dashboard. Nodes encode:
 
 Edges encode meaningful prerequisites or conceptual dependence. The focused
 Map surface lets a learner select a node and inspect its incoming dependencies,
-downstream unlocks, mission relevance, frontier status, and accepted learner
-overlay. This interaction is read-only: selection and navigation do not become
-Evidence and do not write topology or mastery.
+downstream unlocks, mission relevance, frontier status, accepted learner
+overlay, and node-level topology revision history. Evidence-grounded topology
+proposals are reviewed explicitly in Map mode before learner acceptance may
+produce a new canonical revision. Selection and navigation remain read-only.
 
 ### Review
 
@@ -172,7 +173,12 @@ roadmap detour
 transfer attempted
 ```
 
-It is not a message-by-message chat history.
+It is not a message-by-message chat history. The timeline may expand a validated
+**learner-state replay** derived from accepted `state-decision` receipts. Replay
+shows concept-level `before → after` changes, acceptance rationale, Evidence
+count, authority, and linked Turn context when available. Rejected proposals
+remain audit records but are not presented as learner-model changes. See
+[`LEARNER-STATE-REPLAY.md`](LEARNER-STATE-REPLAY.md).
 
 ## Visual language
 
@@ -248,7 +254,7 @@ explicit state authority
 Visual Learning Workspace
 ```
 
-The UI is **action-first and authority-conservative**. It may display accepted runtime state, decision/evidence provenance, local Markdown state, and arc metadata. It captures the learner's response as an observation and renders agent-authored feedback once evidence is recorded. It must not grade that response in React, promote mastery, or rewrite learner-model conclusions.
+The UI is **action-first and authority-conservative**. It may display accepted runtime state, decision/evidence provenance, local Markdown state, arc metadata, and a replay projection of accepted state transitions. It captures the learner's response as an observation and renders agent-authored feedback once evidence is recorded. It must not grade that response in React, promote mastery, rewrite learner-model conclusions, or infer history from UI interaction.
 
 The runtime write bridge distinguishes:
 
@@ -258,6 +264,8 @@ The runtime write bridge distinguishes:
 - evaluation records.
 
 Pending evidence-grounded state proposals may now be reviewed in the Workspace. The learner supplies an explicit rationale and chooses accept or reject. The client never applies the transition itself: the server delegates to the Runtime, which re-checks lifecycle state, stale projections, and transition policy before writing an immutable `state-decision` receipt. Policy issues require a separate explicit learner override acknowledgement. See [`STATE-PROPOSAL-REVIEW.md`](STATE-PROPOSAL-REVIEW.md).
+
+Learner-state replay is separately read-only. It reconstructs accepted transitions from immutable proposals/decisions, checks their continuity against `runtime.rebuild_state()`, and optionally joins Turn summaries. It creates no receipts and does not define review priority.
 
 ## MVP implementation
 
@@ -284,10 +292,11 @@ The first app provides:
 - polished three-column shell;
 - Teach / Study / Map / Review mode navigation;
 - local roadmap visualization plus focused full-screen Map inspection;
-- selected-node dependency, downstream-unlock, frontier, mission-relevance, and accepted-overlay inspection;
+- selected-node dependency, downstream-unlock, frontier, mission-relevance, accepted-overlay, and topology-history inspection;
+- learner-facing review of immutable evidence-grounded LearningMap proposals with stale-revision protection;
 - learner frontier/evidence/misconception panel;
 - representation-switching learning canvas;
-- session timeline;
+- session timeline plus on-demand accepted learner-state diff/replay;
 - Project creation, switching, pause/resume, retained Archive, and maintenance entry;
 - a Runtime-backed Mission Gate card that distinguishes collecting Evidence,
   ready, verified completion, and unverified administrative Archive;
@@ -306,25 +315,29 @@ It does **not** yet provide:
 
 - additional Provider adapters, streaming, or Provider tool calls;
 - client authority to interpret evidence or promote mastery;
-- in-product review/acceptance of LearningMap topology revision proposals;
-- node-level map revision diff/history UI;
 - automated visualizer subagent;
-- scheduler;
+- automated Review queue or scheduler;
+- richer whole-map structural comparison/animation beyond node history;
+- large-graph navigation/filtering justified by real Project scale;
+- direct graph editing or automatic topology-proposal acceptance;
 - Obsidian sync;
 - multiplayer/mentor mode;
 - cloud learner-data storage.
 
 ## Next implementation slice
 
-After the shell is validated visually and through actual use:
+The previously planned learner-facing state-proposal review, LearningMap
+proposal review, node-level topology history, and learner-state session replay
+are now implemented. Do not broaden them into arbitrary self-declared mastery,
+direct graph mutation, or transcript replay.
+
+The next product work should be earned through real Projects:
 
 1. validate the Provider-backed turn loop and `frequency_tree_v1` artifact in a real Bayes learning arc;
-2. add another renderer only when the target relation requires it;
-3. add guarded roadmap revision proposal review plus node-level before/delta/after inspection;
-4. add session diff/replay around learner-model changes, not raw chat;
-5. add Review queue only after longitudinal evidence defines useful trigger semantics.
-
-The learner-facing state-proposal review interaction is implemented. Do not broaden it into arbitrary self-declared mastery: all accepted transitions still pass through the Runtime authority path described above. Likewise, Map inspection is presentation-only; future topology changes must continue through the evidence-grounded LearningMap write path.
+2. use learner-state replay across multiple sessions to observe which state/evidence patterns actually predict useful retrieval needs;
+3. add a Review queue only after that longitudinal evidence defines useful trigger semantics;
+4. add another renderer only when a repeated target relation requires it;
+5. add richer whole-map comparison or large-graph navigation only when real map scale creates a demonstrated inspection problem.
 
 ## Product acceptance criteria
 
