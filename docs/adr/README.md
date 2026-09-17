@@ -13,6 +13,7 @@ implementation backlog; delivery sequencing remains in the project roadmap.
 | [0005](0005-evidence-gated-mission-completion.md) | Mission completion requires distinct Feynman and performance Evidence | Accepted |
 | [0006](0006-typed-learning-materials.md) | Saved LearningMaterials are typed, provenance-aware, and non-authoritative | Accepted |
 | [0007](0007-learning-map-proposal-review.md) | LearningMap topology proposals require explicit learner review before canonical revision | Accepted |
+| [0008](0008-learning-os-product-boundary.md) | Promote the first-party product to a Learning OS while preserving Runtime authority and separating learning truth, context, learner-owned records, and operational state | Accepted |
 
 ## Compatibility rule
 
@@ -20,3 +21,7 @@ Accepted ADRs may be superseded by a later numbered record, but their data
 compatibility consequences remain binding until an explicit, tested migration
 exists. In particular, the unscoped v0.1 `.learning/` layout and receipt ledger
 must remain readable while the project evolves toward workspace/project scope.
+
+ADR 0008 extends ADR 0001 rather than removing its provider/runtime boundary:
+the first-party Workspace may become the full reference Learning OS, but all
+learner-truth changes still pass through Runtime authority.
