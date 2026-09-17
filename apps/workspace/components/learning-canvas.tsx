@@ -380,9 +380,6 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
             ? modeCopy
             : "Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive."}</p>
         </div>
-        <button className="ghost-button" type="button" title="Source drawer is part of the next interaction slice">
-          Sources
-        </button>
       </header>
 
       {!snapshot.hasMission ? (
