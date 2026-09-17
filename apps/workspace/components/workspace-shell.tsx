@@ -8,6 +8,7 @@ import { StatePanel } from "./state-panel";
 import { SessionTimeline } from "./session-timeline";
 import { ProjectSwitcher } from "./project-switcher";
 import { CompletionGate } from "./completion-gate";
+import { MapProposalReview } from "./map-proposal-review";
 import mapStyles from "./map-inspection.module.css";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
@@ -65,10 +66,19 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
               <h1>{snapshot.activeArc || "Current learning route"}</h1>
               <p>{snapshot.mission}</p>
             </div>
-            <div className={mapStyles.mapModeHeaderMeta}>
-              <span>{snapshot.map.nodes.length} nodes</span>
-              <span>{snapshot.map.edges.length} semantic edges</span>
-              <span>{snapshot.map.frontier.length} frontier</span>
+            <div className={mapStyles.mapModeHeaderSide}>
+              <div className={mapStyles.mapModeHeaderMeta}>
+                <span>{snapshot.map.nodes.length} nodes</span>
+                <span>{snapshot.map.edges.length} semantic edges</span>
+                <span>{snapshot.map.frontier.length} frontier</span>
+              </div>
+              {snapshot.projectId ? (
+                <MapProposalReview
+                  projectId={snapshot.projectId}
+                  projectStatus={snapshot.projectStatus}
+                  maintenanceStatus={snapshot.maintenanceStatus}
+                />
+              ) : null}
             </div>
           </header>
           <LearningMap map={snapshot.map} expanded />

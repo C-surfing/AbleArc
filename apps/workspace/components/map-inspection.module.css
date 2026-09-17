@@ -32,6 +32,13 @@
   line-height: 1.5;
 }
 
+.mapModeHeaderSide {
+  min-width: 0;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
 .mapModeHeaderMeta {
   display: flex;
   flex-wrap: wrap;
@@ -189,11 +196,17 @@
 
 @media (max-width: 900px) {
   .mapModeHeader {
+    flex-direction: column;
     padding: 16px 18px 13px;
   }
 
+  .mapModeHeaderSide {
+    width: 100%;
+    justify-items: stretch;
+  }
+
   .mapModeHeaderMeta {
-    display: none;
+    justify-content: flex-start;
   }
 
   .expandedShell {

@@ -108,10 +108,11 @@ A Review view may exist before a scheduler. Scheduling automation remains deferr
 
 ## Layer 3: Advanced Roadmap Interaction
 
-The canonical roadmap and focused inspection surface are now usable in the
-Workspace. A learner can enter a full-screen Map mode, select a node, inspect
-its incoming dependencies and downstream unlocks, and see the accepted Runtime
-mastery overlay without editing either authority.
+The canonical roadmap, focused inspection surface, and explicit topology
+proposal review path are now usable in the Workspace. A learner can enter a
+full-screen Map mode, select a node, inspect its incoming dependencies and
+downstream unlocks, see the accepted Runtime mastery overlay, and review an
+evidence-grounded structural delta before it becomes the canonical route.
 
 Implemented foundations:
 
@@ -121,19 +122,28 @@ Implemented foundations:
 - generated `ROADMAP.md` projection;
 - deterministic, disposable ELK layout;
 - full-screen read-only Map mode;
-- node inspection over topology relations plus accepted learner overlay.
+- node inspection over topology relations plus accepted learner overlay;
+- immutable LearningMap proposals bound to one base revision;
+- learner accept/reject rationale in Map mode;
+- stale-revision rejection before an accepted proposal can overwrite a newer map;
+- accepted proposals passing through the same canonical map validators and revision writer;
+- explicit separation between topology proposal authority and mastery proposal authority.
 
-What remains deferred is product-level editing/automation such as:
+See ADR 0003 and ADR 0007 plus [`LEARNING-MAP.md`](LEARNING-MAP.md).
 
-- in-product review/acceptance of roadmap revision proposals;
-- node-level revision history and before/delta/after inspection;
+What remains deferred is product-level interaction/automation such as:
+
+- node-level revision history and richer before/delta/after inspection;
 - animated roadmap transitions when they clarify a meaningful structural change;
 - large-graph navigation and filtering when real Projects require it;
-- direct graph editing, which should not be promoted unless it solves a repeated learner-facing need.
+- direct graph editing, which should not be promoted unless it solves a repeated learner-facing need;
+- automatic proposal acceptance, which remains out of scope.
 
-Selecting, opening, panning, or zooming the graph is presentation-only and must
-not create Evidence, update mastery, or write topology. The roadmap remains a
-living dependency hypothesis, not a syllabus or completion chart.
+Selecting, opening, panning, zooming, or merely reviewing a proposal is
+presentation-only and must not create Evidence or update mastery. Only explicit
+proposal acceptance may write a new topology revision, and that write remains
+subject to lifecycle, Evidence, revision, and schema validation. The roadmap
+remains a living dependency hypothesis, not a syllabus or completion chart.
 
 ## Layer 4: Research Agent
 
