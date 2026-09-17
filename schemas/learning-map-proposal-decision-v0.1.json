@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai4learning.local/schemas/learning-map-proposal-decision-v0.1.json",
+  "title": "LearningMapProposalDecision v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "id",
+    "proposal_id",
+    "workspace_id",
+    "project_id",
+    "decision",
+    "decided_by",
+    "reason",
+    "created_at",
+    "accepted_revision"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1" },
+    "kind": { "const": "learning-map-proposal-decision" },
+    "id": { "type": "string", "pattern": "^mpd_[A-Za-z0-9_-]{4,123}$" },
+    "proposal_id": { "type": "string", "pattern": "^mp_[A-Za-z0-9_-]{4,124}$" },
+    "workspace_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["accepted", "rejected"] },
+    "decided_by": { "const": "workspace-learner" },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "created_at": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "accepted_revision": {
+      "oneOf": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "null" }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "decision": { "const": "accepted" } } },
+      "then": { "properties": { "accepted_revision": { "type": "integer", "minimum": 1 } } }
+    },
+    {
+      "if": { "properties": { "decision": { "const": "rejected" } } },
+      "then": { "properties": { "accepted_revision": { "type": "null" } } }
+    }
+  ]
+}
