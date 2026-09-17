@@ -31,16 +31,19 @@ test("AbleArc provider variables are preferred while legacy names remain compati
     model: "ablearc-model",
     baseUrl: "https://ablearc-provider.example/v1",
     timeoutMs: 45_000,
+    structuredOutput: "json_schema",
   });
 
   assert.deepEqual(readOpenAICompatibleConfig({
     AI4LEARNING_PROVIDER_API_KEY: "legacy-secret",
     AI4LEARNING_PROVIDER_MODEL: "legacy-model",
+    AI4LEARNING_PROVIDER_STRUCTURED_OUTPUT: "json_object",
   }), {
     apiKey: "legacy-secret",
     model: "legacy-model",
     baseUrl: "https://api.openai.com/v1",
     timeoutMs: 45_000,
+    structuredOutput: "json_object",
   });
 });
 
@@ -73,9 +76,19 @@ test("invalid provider config degrades to a safe Workspace status", () => {
     adapter: "openai-compatible",
     error: "Provider configuration is invalid. Check the server environment.",
   });
+
+  assert.deepEqual(getAgentProviderStatus({
+    ABLEARC_PROVIDER_API_KEY: "secret",
+    ABLEARC_PROVIDER_MODEL: "test-model",
+    ABLEARC_PROVIDER_STRUCTURED_OUTPUT: "yaml",
+  }), {
+    configured: false,
+    adapter: "openai-compatible",
+    error: "Provider configuration is invalid. Check the server environment.",
+  });
 });
 
-test("adapter sends strict structured output to the compatible chat endpoint", async () => {
+test("adapter sends strict JSON Schema output to compatible chat endpoints by default", async () => {
   let capturedUrl = "";
   let capturedInit: RequestInit | undefined;
   const adapter = new OpenAICompatibleAdapter(
@@ -97,7 +110,11 @@ test("adapter sends strict structured output to the compatible chat endpoint", a
   assert.deepEqual(await adapter.generateStructured(request), { ok: true });
   assert.equal(capturedUrl, "https://provider.example/v1/chat/completions");
   assert.equal((capturedInit?.headers as Record<string, string>).authorization, "Bearer server-only-secret");
-  const body = JSON.parse(String(capturedInit?.body)) as Record<string, unknown>;
+  const body = JSON.parse(String(capturedInit?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+    response_format: unknown;
+  };
+  assert.equal(body.messages[0]?.content, request.system);
   assert.deepEqual(body.response_format, {
     type: "json_schema",
     json_schema: {
@@ -106,6 +123,35 @@ test("adapter sends strict structured output to the compatible chat endpoint", a
       schema: request.schema,
     },
   });
+});
+
+test("adapter can request JSON Object output while retaining local schema validation", async () => {
+  let capturedInit: RequestInit | undefined;
+  const adapter = new OpenAICompatibleAdapter(
+    {
+      apiKey: "server-only-secret",
+      baseUrl: "https://api.deepseek.com",
+      model: "deepseek-flash",
+      timeoutMs: 2_000,
+      structuredOutput: "json_object",
+    },
+    async (_input, init) => {
+      capturedInit = init;
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify({ ok: true }) } }],
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    },
+  );
+
+  assert.deepEqual(await adapter.generateStructured(request), { ok: true });
+  const body = JSON.parse(String(capturedInit?.body)) as {
+    messages: Array<{ role: string; content: string }>;
+    response_format: unknown;
+  };
+  assert.deepEqual(body.response_format, { type: "json_object" });
+  assert.match(body.messages[0]?.content ?? "", /valid JSON/);
+  assert.match(body.messages[0]?.content ?? "", /JSON Schema/);
+  assert.match(body.messages[0]?.content ?? "", /additionalProperties/);
 });
 
 test("adapter converts refusal and malformed content into typed errors", async (t) => {
