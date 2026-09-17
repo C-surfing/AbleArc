@@ -55,6 +55,10 @@ export function FocusSession({
     return () => window.clearInterval(interval);
   }, [timerRunning]);
 
+  useEffect(() => {
+    setScaffoldLevel(0);
+  }, [snapshot.projectId, snapshot.decision?.id]);
+
   function resetTimer() {
     setTimerRunning(false);
     setRemainingSeconds(initialMinutes * 60);
