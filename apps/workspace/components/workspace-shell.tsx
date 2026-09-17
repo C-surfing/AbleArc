@@ -134,7 +134,7 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         </div>
       )}
 
-      <SessionTimeline sessions={snapshot.sessions} />
+      <SessionTimeline sessions={snapshot.sessions} projectId={snapshot.projectId} />
     </div>
   );
 }

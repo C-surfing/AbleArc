@@ -68,28 +68,31 @@ separate work.
 
 ## Layer 1: Learning Memory
 
+The learner model is now backed by immutable interaction/evidence/proposal/
+decision receipts plus a derived Runtime projection. The Workspace can also
+replay accepted learner-state transitions as a read-only diff without turning
+chat history or rejected proposals into learner memory.
+
 Current:
-
-```text
-MISSION
-LEARNER
-ROADMAP
-STATE
-```
-
-Future:
 
 ```text
 interaction evidence
         ↓
-learner model update
+state proposal
         ↓
-review priority
+explicit authority decision
         ↓
-next learning action
+accepted learner-model projection
+        ↓
+verified state replay / diff
 ```
 
-The workspace may visualize this state, but it must not infer durable learner conclusions merely from UI interaction.
+See [`LEARNER-STATE-REPLAY.md`](LEARNER-STATE-REPLAY.md).
+
+What remains future work is using longitudinal state history to derive a stable
+review priority policy and then a useful next learning action. The workspace
+may visualize accepted state history, but it must not infer durable learner
+conclusions merely from UI interaction.
 
 ## Layer 2: Spaced Review
 
@@ -104,7 +107,7 @@ Rules:
 - prioritize concepts with high dependency centrality;
 - prefer transfer tasks over recognition.
 
-A Review view may exist before a scheduler. Scheduling automation remains deferred until longitudinal evidence supports trigger semantics.
+A Review view may exist before a scheduler. Scheduling automation remains deferred until longitudinal evidence supports trigger semantics. Learner-state replay now provides the longitudinal change history needed to inspect those semantics, but it does not itself define or schedule reviews.
 
 ## Layer 3: Advanced Roadmap Interaction
 

@@ -1,11 +1,19 @@
 import type { SessionPoint } from "@/lib/types";
+import { SessionStateReplay } from "./session-state-replay";
 
-export function SessionTimeline({ sessions }: { sessions: SessionPoint[] }) {
+export function SessionTimeline({
+  sessions,
+  projectId,
+}: {
+  sessions: SessionPoint[];
+  projectId?: string;
+}) {
   if (sessions.length === 0) {
     return (
       <footer className="timeline timeline--empty">
         <span className="timeline__title">Session timeline</span>
         <span>No local longitudinal sessions yet.</span>
+        {projectId ? <SessionStateReplay projectId={projectId} /> : null}
       </footer>
     );
   }
@@ -25,6 +33,7 @@ export function SessionTimeline({ sessions }: { sessions: SessionPoint[] }) {
           </div>
         ))}
       </div>
+      {projectId ? <SessionStateReplay projectId={projectId} /> : null}
     </footer>
   );
 }
