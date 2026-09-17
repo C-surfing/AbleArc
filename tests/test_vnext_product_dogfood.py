@@ -24,10 +24,12 @@ class VNextProductDogfoodTests(unittest.TestCase):
         path, payload = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
 
         self.assertEqual(path, self.arc / "product-observations" / "001.json")
+        self.assertEqual(payload["schema_version"], "0.2")
         self.assertEqual(payload["kind"], "vnext-product-dogfood")
         self.assertEqual(payload["session_id"], "001")
         self.assertEqual(payload["interpretation"], vnext_product_dogfood.INTERPRETATION)
-        self.assertEqual(payload["observations"]["capture_need"], "not_observed")
+        self.assertEqual(payload["observations"]["continuity_friction"], "not_observed")
+        self.assertNotIn("capture_need", payload["observations"])
         self.assertNotIn("promotion_decision", payload)
         self.assertFalse((self.root / ".learning").exists())
 
@@ -92,8 +94,8 @@ class VNextProductDogfoodTests(unittest.TestCase):
 
     def test_validate_rejects_invalid_enum_and_scope_drift(self):
         _, payload = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
-        payload["observations"]["capture_need"] = "definitely-build-it"
-        with self.assertRaisesRegex(vnext_product_dogfood.ProductDogfoodError, "capture_need"):
+        payload["observations"]["continuity_friction"] = "definitely-build-it"
+        with self.assertRaisesRegex(vnext_product_dogfood.ProductDogfoodError, "continuity_friction"):
             vnext_product_dogfood.validate_checkpoint(payload)
 
         clean = json.loads(
@@ -101,6 +103,16 @@ class VNextProductDogfoodTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(vnext_product_dogfood.ProductDogfoodError, "arc scope"):
             vnext_product_dogfood.validate_checkpoint(clean, expected_arc_id="other-arc")
+
+    def test_validate_accepts_legacy_capture_need_checkpoint(self):
+        _, payload = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
+        payload["schema_version"] = vnext_product_dogfood.LEGACY_SCHEMA_VERSION
+        payload["interpretation"] = vnext_product_dogfood.LEGACY_INTERPRETATION
+        payload["observations"]["capture_need"] = payload["observations"].pop("continuity_friction")
+
+        validated = vnext_product_dogfood.validate_checkpoint(payload)
+        self.assertEqual(validated["schema_version"], "0.1")
+        self.assertEqual(validated["observations"]["capture_need"], "not_observed")
 
     def test_status_reports_missing_checkpoint_without_calling_it_a_failure(self):
         (self.arc / "sessions" / "002.md").write_text(
@@ -110,6 +122,7 @@ class VNextProductDogfoodTests(unittest.TestCase):
         vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
 
         status = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
+        self.assertEqual(status["schema_version"], "0.2")
         self.assertEqual(status["session_ids"], ["001", "002"])
         self.assertEqual(status["checkpoint_ids"], ["002"])
         self.assertEqual(status["missing_checkpoint_ids"], ["001"])
@@ -134,7 +147,7 @@ class VNextProductDogfoodTests(unittest.TestCase):
         ):
             vnext_product_dogfood.load_checkpoints(self.root, self.arc.name)
 
-    def test_summary_reports_observations_without_promotion_verdict(self):
+    def test_summary_normalizes_legacy_and_current_continuity_observations(self):
         first_path, first = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
         first["surface_checks"].update({
             "entry": "pass",
@@ -149,10 +162,13 @@ class VNextProductDogfoodTests(unittest.TestCase):
             "daily_context_usefulness": "useful",
             "focus_chrome": "reduced",
             "scaffold_effect": "helpful",
-            "capture_need": "single",
+            "continuity_friction": "single",
             "authority_confusion": "none",
             "turn_friction": "low",
         })
+        first["schema_version"] = vnext_product_dogfood.LEGACY_SCHEMA_VERSION
+        first["interpretation"] = vnext_product_dogfood.LEGACY_INTERPRETATION
+        first["observations"]["capture_need"] = first["observations"].pop("continuity_friction")
         first_path.write_text(json.dumps(first, indent=2) + "\n", encoding="utf-8")
 
         (self.arc / "sessions" / "002.md").write_text(
@@ -164,16 +180,18 @@ class VNextProductDogfoodTests(unittest.TestCase):
             "daily_context_usefulness": "mixed",
             "focus_chrome": "reduced",
             "scaffold_effect": "not_used",
-            "capture_need": "repeated",
+            "continuity_friction": "repeated",
             "authority_confusion": "observed",
             "turn_friction": "material",
         })
         second_path.write_text(json.dumps(second, indent=2) + "\n", encoding="utf-8")
 
         summary = vnext_product_dogfood.summarize(self.root, self.arc.name)
+        self.assertEqual(summary["schema_version"], "0.2")
         self.assertEqual(summary["session_count"], 2)
-        self.assertEqual(summary["capture_need"]["single"], 1)
-        self.assertEqual(summary["capture_need"]["repeated"], 1)
+        self.assertEqual(summary["continuity_friction"]["single"], 1)
+        self.assertEqual(summary["continuity_friction"]["repeated"], 1)
+        self.assertNotIn("capture_need", summary)
         self.assertEqual(summary["authority_confusion"]["observed"], 1)
         self.assertEqual(summary["interpretation"], vnext_product_dogfood.INTERPRETATION)
         self.assertNotIn("decision", summary)
