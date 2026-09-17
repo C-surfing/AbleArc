@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { isContextScale, normalizeDailyContextUpdate, type DailyContext } from "./daily-context";
-import { resolveProjectReadContext } from "./project-store";
+import { isContextScale, normalizeDailyContextUpdate, type DailyContext } from "./daily-context.ts";
+import { resolveProjectReadContext } from "./project-store.ts";
 
 const MANIFEST_FIELDS = new Set([
   "schema_version",
