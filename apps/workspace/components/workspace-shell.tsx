@@ -28,10 +28,10 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
     <div className="workspace-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <div className="brand-mark">a4</div>
+          <div className="brand-mark">AA</div>
           <div>
-            <strong>ai4learning</strong>
-            <span>Visual Learning Workspace</span>
+            <strong>AbleArc</strong>
+            <span>Learning Workspace</span>
           </div>
         </div>
 
