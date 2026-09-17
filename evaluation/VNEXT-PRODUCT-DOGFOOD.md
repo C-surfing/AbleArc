@@ -15,13 +15,39 @@ They are **not** learner state and must not:
 - revise the LearningMap;
 - change Project lifecycle state;
 - satisfy Completion;
-- decide that Phase 4 or any later feature should be promoted.
+- decide that any later feature should be promoted.
 
-The checkpoint interpretation marker is therefore fixed to:
+New checkpoints use the interpretation marker:
 
 ```text
-descriptive_only_no_phase4_promotion
+descriptive_only_no_feature_promotion
 ```
+
+Legacy v0.1 checkpoints with `descriptive_only_no_phase4_promotion` remain readable for compatibility.
+
+## Observation before solution
+
+Dogfooding should record learner-visible behavior before naming a feature that might solve it.
+
+Do not enter a session looking for evidence that a roadmap item such as Capture Inbox is needed. That primes the learner/evaluator and turns the pilot into confirmation of a preselected solution.
+
+Use this order instead:
+
+```text
+real use
+  ↓
+observable friction / interruption / confusion
+  ↓
+neutral description
+  ↓
+repetition or structural severity
+  ↓
+solution hypotheses
+  ↓
+promotion review
+```
+
+A feature idea can come from the learner, from later analysis, or from an existing roadmap hypothesis. None of those should change what is recorded during the session.
 
 ## What to observe
 
@@ -53,18 +79,22 @@ Each checkpoint records `pass | friction | not_observed` for:
 
 ### Product observations
 
-The typed observation fields are intentionally narrow:
+The current v0.2 typed observation fields are intentionally narrow and solution-neutral:
 
 - `entry_time_seconds` — observed time to understand what to do on Entry;
 - `today_primary_action_clear` — whether the primary action was immediately clear;
 - `daily_context_usefulness` — `useful | mixed | cosmetic | not_observed`;
 - `focus_chrome` — `reduced | distracting | missing_controls | not_observed`;
 - `scaffold_effect` — `helpful | too_revealing | insufficient | not_used | not_observed`;
-- `capture_need` — `none | single | repeated | not_observed`;
+- `continuity_friction` — `none | single | repeated | not_observed`;
 - `authority_confusion` — whether the learner treated non-authoritative interaction as mastery/evidence;
 - `turn_friction` — `none | low | material | blocked | not_observed`.
 
-`capture_need` is descriptive. A value of `repeated` means repeated need **inside that session**; it does not promote Capture Inbox by itself.
+`continuity_friction` means an observed break in the learner's flow or context continuity. It deliberately does **not** encode why the break happened or which feature should solve it. Put the smallest factual description in `notes` when needed.
+
+### Legacy checkpoint compatibility
+
+Schema v0.1 used the solution-shaped field `capture_need`. Existing local records are still accepted by `validate` and are normalized into `continuity_friction` in summaries so that old dogfooding data is not lost. New checkpoints are always created as v0.2 and never contain `capture_need`.
 
 ## Workflow
 
@@ -98,7 +128,7 @@ Inspect session/checkpoint coverage at any time:
 python tools/vnext_product_dogfood.py --repo . status <arc-name>
 ```
 
-`status` is diagnostic only. It reports the numbered session records, existing product checkpoints, sessions that still lack a checkpoint, and orphan checkpoints that no longer have a matching `sessions/NNN.md`. It emits no pass/fail or Phase-4 verdict.
+`status` is diagnostic only. It reports the numbered session records, existing product checkpoints, sessions that still lack a checkpoint, and orphan checkpoints that no longer have a matching `sessions/NNN.md`. It emits no pass/fail or feature-promotion verdict.
 
 Validate all product checkpoints in the arc:
 
@@ -114,21 +144,23 @@ Print descriptive counts across the arc:
 python tools/vnext_product_dogfood.py --repo . summary <arc-name>
 ```
 
-The summary intentionally has no promotion verdict.
+The summary intentionally has no promotion verdict. For mixed historical data, v0.1 `capture_need` values are reported only through the neutral `continuity_friction` aggregate.
 
-## Phase 4 gate
+## From observation to a feature hypothesis
 
-Before implementing Capture Inbox, inspect repeated real sessions and complete a promotion record using `evaluation/PROMOTION.md`.
+Only after real sessions reveal a problem should a feature hypothesis be evaluated.
 
-Evidence for promotion should answer:
+For any proposed feature, ask:
 
-1. Did learners repeatedly need to leave the learning flow to preserve unrelated thoughts/tasks?
-2. Did that task switching materially damage focus or continuity?
-3. Would fast local capture be the smallest sufficient fix?
-4. Can the feature remain non-authoritative by default?
-5. Is the need repeated across sessions rather than inferred from one anecdote?
+1. What learner-visible behavior actually occurred, stated without naming the solution?
+2. Is it repeated across independent sessions, or is it severe enough to be structural after one observation?
+3. What is the consequence for learning, continuity, evidence quality, or usability?
+4. What is the smallest sufficient fix?
+5. Does the proposed feature preserve Runtime authority and the local/private boundary?
 
-If the evidence is insufficient, choose `collect_more_evidence` rather than manufacturing a product requirement.
+For the existing Phase 4 Capture Inbox hypothesis specifically, first establish a recurring continuity problem from neutral observations. Only then ask whether fast local capture is the smallest sufficient fix. Do not collect observations by asking the learner to look for a need for Capture.
+
+If the evidence is insufficient, choose `collect_more_evidence` or `not_promoted_for_now` rather than manufacturing a product requirement.
 
 ## Privacy
 

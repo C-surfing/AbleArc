@@ -2,7 +2,7 @@
 
 Use this runbook for the first real learner-facing AbleArc product session after Phase 3. It is intentionally operational: the goal is to run the product as a learner, preserve real evidence, and collect enough product observations to decide what should happen next.
 
-This is **not** a synthetic acceptance test. Do not invent learner responses, successful assessments, capture needs, or capability change.
+This is **not** a synthetic acceptance test. Do not invent learner responses, successful assessments, feature needs, or capability change.
 
 ## What this pilot validates
 
@@ -120,11 +120,11 @@ During the session:
 - keep the current cognitive move central;
 - use a typed representation/artifact if one is naturally available;
 - optionally use the timer;
-- reveal at least one scaffold only when you actually need it;
+- reveal a scaffold only when you actually need it;
 - answer as the learner, not as an evaluator trying to satisfy a test;
 - submit one real learner response.
 
-Observe whether you feel a need to leave the session to preserve an unrelated thought, task, question, or reference. Do **not** manufacture this behavior to justify Capture Inbox.
+If anything unexpectedly interrupts the learning flow, forces context switching, creates uncertainty about what to do next, or makes you leave the current surface, note what happened in neutral behavioral terms. Do not decide during the session which feature should solve it.
 
 If you reveal scaffolds, judge whether they helped expose structure without giving away the learner's important inference.
 
@@ -189,6 +189,8 @@ python tools/vnext_product_dogfood.py --repo . status <arc>
 
 Edit `product-observations/NNN.json` and leave anything unobserved as `not_observed` / `null`.
 
+The current checkpoint records neutral product behavior such as `continuity_friction`; it does not ask whether a preselected feature is needed. Use freeform notes for the smallest factual description of what happened, without jumping to a solution.
+
 Then validate:
 
 ```bash
@@ -196,7 +198,7 @@ python tools/vnext_product_dogfood.py --repo . validate <arc>
 python tools/vnext_product_dogfood.py --repo . summary <arc>
 ```
 
-The summary is descriptive only. It cannot promote Phase 4.
+The summary is descriptive only. It cannot promote a feature.
 
 ## 8. Check lifecycle and narrow layout separately
 
@@ -226,7 +228,7 @@ One pilot session is complete when all of the following are true:
 - `status` shows no accidental orphan checkpoint;
 - `validate` passes.
 
-A single pilot does **not** justify Capture Inbox or a general Runtime rule by itself.
+A single pilot does **not** justify a general product or Runtime rule by itself.
 
 ## 10. What happens after the first pilot
 
@@ -234,6 +236,6 @@ Continue the same longitudinal arc rather than immediately redesigning the produ
 
 A later session should depend on earlier evidence and, when appropriate, include retrieval, reduced scaffolding, representation/context perturbation, or transfer.
 
-For Phase 4 specifically, only consider Capture Inbox when repeated real sessions show a recurring focus/continuity failure that fast capture is the smallest sufficient fix. Use `evaluation/PROMOTION.md` before implementation.
+Only after observing real friction should you formulate a feature hypothesis. First describe the learner-visible problem, then ask whether it repeats or is structurally severe, and finally use `evaluation/PROMOTION.md` to test whether a proposed feature is the smallest sufficient fix. A roadmap candidate such as Capture Inbox is one possible hypothesis, not something the pilot should try to prove.
 
 For Runtime protocol changes, follow the same principle: classify the failure first, collect enough independent evidence, and promote the smallest sufficient change rather than patching one awkward interaction.

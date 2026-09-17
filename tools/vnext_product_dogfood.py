@@ -3,7 +3,7 @@
 
 These checkpoints live under .dogfooding/ and are evaluation evidence only.
 They never write .learning/, Runtime receipts, mastery, LearningMap state,
-Completion state, or a Phase-4 promotion decision.
+Completion state, or a feature-promotion decision.
 """
 
 from __future__ import annotations
@@ -29,7 +29,10 @@ class ProductDogfoodError(RuntimeError):
 
 SESSION_FILE = re.compile(r"^[0-9]{3}\.md$")
 CHECKPOINT_FILE = re.compile(r"^[0-9]{3}\.json$")
-INTERPRETATION = "descriptive_only_no_phase4_promotion"
+CURRENT_SCHEMA_VERSION = "0.2"
+LEGACY_SCHEMA_VERSION = "0.1"
+INTERPRETATION = "descriptive_only_no_feature_promotion"
+LEGACY_INTERPRETATION = "descriptive_only_no_phase4_promotion"
 
 TOP_LEVEL_FIELDS = {
     "schema_version",
@@ -52,7 +55,7 @@ SURFACE_FIELDS = {
     "lifecycle",
     "mobile",
 }
-OBSERVATION_FIELDS = {
+OBSERVATION_FIELDS_V01 = {
     "entry_time_seconds",
     "today_primary_action_clear",
     "daily_context_usefulness",
@@ -62,15 +65,26 @@ OBSERVATION_FIELDS = {
     "authority_confusion",
     "turn_friction",
 }
+OBSERVATION_FIELDS_V02 = {
+    "entry_time_seconds",
+    "today_primary_action_clear",
+    "daily_context_usefulness",
+    "focus_chrome",
+    "scaffold_effect",
+    "continuity_friction",
+    "authority_confusion",
+    "turn_friction",
+}
 SURFACE_STATUS = {"pass", "friction", "not_observed"}
 DAILY_CONTEXT_USEFULNESS = {"useful", "mixed", "cosmetic", "not_observed"}
 FOCUS_CHROME = {"reduced", "distracting", "missing_controls", "not_observed"}
 SCAFFOLD_EFFECT = {"helpful", "too_revealing", "insufficient", "not_used", "not_observed"}
-CAPTURE_NEED = {"none", "single", "repeated", "not_observed"}
+CONTINUITY_FRICTION = {"none", "single", "repeated", "not_observed"}
 AUTHORITY_CONFUSION = {"none", "observed", "not_observed"}
 TURN_FRICTION = {"none", "low", "material", "blocked", "not_observed"}
 PROHIBITED_DECISION_FIELDS = {
     "promotion_decision",
+    "feature_promotion_decision",
     "phase4_decision",
     "promote_capture",
     "capture_promoted",
@@ -149,7 +163,7 @@ def _write_json_once(path: Path, payload: dict[str, Any]) -> None:
 
 def _new_payload(arc_id: str, session: Path) -> dict[str, Any]:
     return {
-        "schema_version": "0.1",
+        "schema_version": CURRENT_SCHEMA_VERSION,
         "kind": "vnext-product-dogfood",
         "recorded_at": _now(),
         "arc_id": arc_id,
@@ -170,7 +184,7 @@ def _new_payload(arc_id: str, session: Path) -> dict[str, Any]:
             "daily_context_usefulness": "not_observed",
             "focus_chrome": "not_observed",
             "scaffold_effect": "not_observed",
-            "capture_need": "not_observed",
+            "continuity_friction": "not_observed",
             "authority_confusion": "not_observed",
             "turn_friction": "not_observed",
         },
@@ -201,6 +215,15 @@ def _exact_fields(value: Any, expected: set[str], label: str) -> dict[str, Any]:
     return value
 
 
+def _schema_contract(root: dict[str, Any]) -> tuple[set[str], str, str]:
+    version = root.get("schema_version")
+    if version == CURRENT_SCHEMA_VERSION:
+        return OBSERVATION_FIELDS_V02, "continuity_friction", INTERPRETATION
+    if version == LEGACY_SCHEMA_VERSION:
+        return OBSERVATION_FIELDS_V01, "capture_need", LEGACY_INTERPRETATION
+    raise ProductDogfoodError("unsupported product checkpoint schema")
+
+
 def validate_checkpoint(
     value: Any,
     *,
@@ -211,7 +234,8 @@ def validate_checkpoint(
     root = _exact_fields(value, TOP_LEVEL_FIELDS, "product checkpoint")
     _reject_prohibited_keys(root)
 
-    if root["schema_version"] != "0.1" or root["kind"] != "vnext-product-dogfood":
+    observation_fields, continuity_field, expected_interpretation = _schema_contract(root)
+    if root["kind"] != "vnext-product-dogfood":
         raise ProductDogfoodError("unsupported product checkpoint schema")
     if not isinstance(root["recorded_at"], str):
         raise ProductDogfoodError("recorded_at must be an ISO timestamp")
@@ -230,7 +254,7 @@ def validate_checkpoint(
         raise ProductDogfoodError("product checkpoint session scope does not match")
     if root["session_record"] != f"sessions/{root['session_id']}.md":
         raise ProductDogfoodError("session_record does not match session_id")
-    if root["interpretation"] != INTERPRETATION:
+    if root["interpretation"] != expected_interpretation:
         raise ProductDogfoodError("product checkpoint lost its descriptive-only boundary")
 
     surfaces = _exact_fields(root["surface_checks"], SURFACE_FIELDS, "surface_checks")
@@ -238,7 +262,7 @@ def validate_checkpoint(
         if status not in SURFACE_STATUS:
             raise ProductDogfoodError(f"surface_checks.{field} is invalid")
 
-    observations = _exact_fields(root["observations"], OBSERVATION_FIELDS, "observations")
+    observations = _exact_fields(root["observations"], observation_fields, "observations")
     entry_time = observations["entry_time_seconds"]
     if entry_time is not None and (
         not isinstance(entry_time, int) or isinstance(entry_time, bool) or entry_time < 0 or entry_time > 3600
@@ -251,7 +275,7 @@ def validate_checkpoint(
         "daily_context_usefulness": DAILY_CONTEXT_USEFULNESS,
         "focus_chrome": FOCUS_CHROME,
         "scaffold_effect": SCAFFOLD_EFFECT,
-        "capture_need": CAPTURE_NEED,
+        continuity_field: CONTINUITY_FRICTION,
         "authority_confusion": AUTHORITY_CONFUSION,
         "turn_friction": TURN_FRICTION,
     }
@@ -318,7 +342,7 @@ def coverage_status(repo_root: Path, arc: str) -> dict[str, Any]:
     session_set = set(session_ids)
     checkpoint_set = set(checkpoint_ids)
     return {
-        "schema_version": "0.1",
+        "schema_version": CURRENT_SCHEMA_VERSION,
         "kind": "vnext-product-dogfood-coverage",
         "arc_id": arc_dir.name,
         "session_ids": session_ids,
@@ -347,6 +371,13 @@ def load_checkpoints(repo_root: Path, arc: str) -> tuple[Path, list[dict[str, An
     return arc_dir, [_read_checkpoint(path, arc_dir.name) for path in files]
 
 
+def _continuity_value(item: dict[str, Any]) -> str:
+    observations = item["observations"]
+    if item["schema_version"] == LEGACY_SCHEMA_VERSION:
+        return observations["capture_need"]
+    return observations["continuity_friction"]
+
+
 def summarize(repo_root: Path, arc: str) -> dict[str, Any]:
     """Return descriptive counts only; never emit a feature-promotion verdict."""
     arc_dir, checkpoints = load_checkpoints(repo_root, arc)
@@ -358,11 +389,14 @@ def summarize(repo_root: Path, arc: str) -> dict[str, Any]:
         }
 
     return {
-        "schema_version": "0.1",
+        "schema_version": CURRENT_SCHEMA_VERSION,
         "kind": "vnext-product-dogfood-summary",
         "arc_id": arc_dir.name,
         "session_count": len(checkpoints),
-        "capture_need": counts("capture_need", CAPTURE_NEED),
+        "continuity_friction": {
+            value: sum(1 for item in checkpoints if _continuity_value(item) == value)
+            for value in sorted(CONTINUITY_FRICTION)
+        },
         "daily_context_usefulness": counts("daily_context_usefulness", DAILY_CONTEXT_USEFULNESS),
         "focus_chrome": counts("focus_chrome", FOCUS_CHROME),
         "scaffold_effect": counts("scaffold_effect", SCAFFOLD_EFFECT),
