@@ -81,7 +81,11 @@ The map is not a progress-percentage dashboard. Nodes encode:
 ◆ transferable
 ```
 
-Edges encode meaningful prerequisites or conceptual dependence. The selected node should expose why the edge matters, evidence supporting its state, and what it unlocks.
+Edges encode meaningful prerequisites or conceptual dependence. The focused
+Map surface lets a learner select a node and inspect its incoming dependencies,
+downstream unlocks, mission relevance, frontier status, and accepted learner
+overlay. This interaction is read-only: selection and navigation do not become
+Evidence and do not write topology or mastery.
 
 ### Review
 
@@ -279,7 +283,8 @@ The first app provides:
 
 - polished three-column shell;
 - Teach / Study / Map / Review mode navigation;
-- local roadmap visualization;
+- local roadmap visualization plus focused full-screen Map inspection;
+- selected-node dependency, downstream-unlock, frontier, mission-relevance, and accepted-overlay inspection;
 - learner frontier/evidence/misconception panel;
 - representation-switching learning canvas;
 - session timeline;
@@ -301,6 +306,8 @@ It does **not** yet provide:
 
 - additional Provider adapters, streaming, or Provider tool calls;
 - client authority to interpret evidence or promote mastery;
+- in-product review/acceptance of LearningMap topology revision proposals;
+- node-level map revision diff/history UI;
 - automated visualizer subagent;
 - scheduler;
 - Obsidian sync;
@@ -313,11 +320,11 @@ After the shell is validated visually and through actual use:
 
 1. validate the Provider-backed turn loop and `frequency_tree_v1` artifact in a real Bayes learning arc;
 2. add another renderer only when the target relation requires it;
-3. add full-screen Map mode with node inspection and roadmap revision proposals;
+3. add guarded roadmap revision proposal review plus node-level before/delta/after inspection;
 4. add session diff/replay around learner-model changes, not raw chat;
 5. add Review queue only after longitudinal evidence defines useful trigger semantics.
 
-The learner-facing state-proposal review interaction is implemented. Do not broaden it into arbitrary self-declared mastery: all accepted transitions still pass through the Runtime authority path described above.
+The learner-facing state-proposal review interaction is implemented. Do not broaden it into arbitrary self-declared mastery: all accepted transitions still pass through the Runtime authority path described above. Likewise, Map inspection is presentation-only; future topology changes must continue through the evidence-grounded LearningMap write path.
 
 ## Product acceptance criteria
 

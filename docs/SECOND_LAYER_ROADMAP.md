@@ -38,12 +38,15 @@ topology authority outside React.
 See [`VISUAL-WORKSPACE.md`](VISUAL-WORKSPACE.md).
 
 The authority-aware learner-response / agent bridge, headless Mission
-Completion Gate, and its non-authoritative Workspace projection are
-implemented. The typed Learning Library is also end-to-end usable: saved
-materials are Project-local, provenance-aware, immutable, readable through a
-validated detail boundary, explicitly curatable, and browsable through
-deterministic summary filters without moving evidence interpretation into the
-client.
+Completion Gate, non-authoritative Workspace completion projection, and
+learner-facing review of evidence-grounded state proposals are implemented.
+State proposal accept/reject still delegates to Runtime authority and cannot be
+turned into arbitrary self-declared mastery.
+
+The typed Learning Library is also end-to-end usable: saved materials are
+Project-local, provenance-aware, immutable, readable through a validated detail
+boundary, explicitly curatable, and browsable through deterministic summary
+filters without moving evidence interpretation into the client.
 
 The next library step is operational validation through real Projects: observe
 which saved and curated materials are actually revisited, which provenance is
@@ -105,20 +108,32 @@ A Review view may exist before a scheduler. Scheduling automation remains deferr
 
 ## Layer 3: Advanced Roadmap Interaction
 
-The basic roadmap visualization is now part of the Workspace MVP. What remains deferred is product-level editing/automation such as:
+The canonical roadmap and focused inspection surface are now usable in the
+Workspace. A learner can enter a full-screen Map mode, select a node, inspect
+its incoming dependencies and downstream unlocks, and see the accepted Runtime
+mastery overlay without editing either authority.
 
-- full-screen graph editing;
-- animated roadmap transitions;
-- node-level history/diff;
+Implemented foundations:
+
+- canonical typed topology with explicit semantic edges;
+- project-local Evidence requirement for topology writes;
+- append-only revision and structural-delta history;
+- generated `ROADMAP.md` projection;
+- deterministic, disposable ELK layout;
+- full-screen read-only Map mode;
+- node inspection over topology relations plus accepted learner overlay.
+
+What remains deferred is product-level editing/automation such as:
+
 - in-product review/acceptance of roadmap revision proposals;
-- large-graph navigation and filtering.
+- node-level revision history and before/delta/after inspection;
+- animated roadmap transitions when they clarify a meaningful structural change;
+- large-graph navigation and filtering when real Projects require it;
+- direct graph editing, which should not be promoted unless it solves a repeated learner-facing need.
 
-The canonical typed topology, project-local Evidence requirement, append-only
-revision/delta history, generated Markdown projection, and deterministic ELK
-layout are implemented. Layout remains disposable and is intentionally not
-persisted in the LearningMap.
-
-The roadmap remains a living dependency hypothesis, not a syllabus or completion chart.
+Selecting, opening, panning, or zooming the graph is presentation-only and must
+not create Evidence, update mastery, or write topology. The roadmap remains a
+living dependency hypothesis, not a syllabus or completion chart.
 
 ## Layer 4: Research Agent
 

@@ -111,6 +111,12 @@ ID, and renders the explicit edges. ELK derives a deterministic layered layout
 at read time; React Flow owns interaction and display. Pixel positions are
 therefore disposable presentation data and never enter the map schema.
 
+The focused Map mode is also read-only. Selecting a node exposes its incoming
+semantic dependencies, downstream unlocks, mission relevance, frontier status,
+and the accepted Runtime mastery overlay. Selection, panning, zooming, and
+navigation between connected nodes remain presentation state only; none of
+those interactions create Evidence or write either authority.
+
 An existing but invalid canonical map fails closed rather than silently
 falling back to Markdown. Markdown fallback applies only when no canonical map
 exists.
@@ -118,6 +124,11 @@ exists.
 ## Current boundary
 
 This slice implements canonical storage, revision history, generated Markdown,
-CLI reads/writes, Runtime overlay, explicit-edge rendering, and deterministic
-layout. Full-screen editing, proposal review UI, semantic lenses, and visual
-before/delta/after history remain future product work.
+CLI reads/writes, Runtime overlay, explicit-edge rendering, deterministic
+layout, full-screen read-only Map mode, and node inspection.
+
+Still deferred are in-product topology revision proposal review, semantic
+lenses beyond the current dependency/overlay inspection, node-level revision
+history, visual before/delta/after comparison, and direct graph editing. Any
+future editing surface must preserve the topology/mastery split defined here
+and in ADR 0003.
