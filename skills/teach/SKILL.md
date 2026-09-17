@@ -52,6 +52,8 @@ When the current Project is writable, use `.learning/` as persistent state. Read
     ├── map/
     │   ├── current.json
     │   ├── revisions/
+    │   ├── proposals/
+    │   ├── proposal-decisions/
     │   └── ROADMAP.md
     ├── runtime/
     ├── records/
@@ -116,7 +118,7 @@ The topology contains typed nodes (`concept`, `procedure`, `strategy`), explicit
 ◆ transferable
 ```
 
-Revise the map only when project-local Evidence changes the topology hypothesis or frontier. Pass the full proposed topology through `python tools/learning.py map-update <payload>`; never write `current.json`, its immutable revision history, or `ROADMAP.md` by hand. The helper validates references and scope, computes the delta, and requires evidence. Do not revise the map merely because mastery changed.
+Revise the map only when project-local Evidence changes the topology hypothesis or frontier. In a learner-facing workspace, the default agent path is proposal-first: submit the full candidate topology through `python tools/learning_map_proposals.py --repo . propose <payload>`, then leave accept/reject authority to the learner-facing review path. Creating a proposal must not modify `current.json`. Direct `python tools/learning.py map-update <payload>` is reserved for explicit trusted/headless operation where learner review is intentionally not part of the product flow; it is not the normal Teach-agent shortcut. Never write `current.json`, immutable revisions, proposal decisions, or `ROADMAP.md` by hand. Do not revise the map merely because mastery changed.
 
 Legacy workspaces may still use a root `ROADMAP.md` that combines topology and learner overlay. Preserve that fallback until the Project has an evidence-grounded structured map revision.
 
@@ -437,7 +439,7 @@ When introducing a new node, make clear:
 
 Do not force a canonical textbook order. If the learner has an unusual but productive route, adapt.
 
-When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority. For workspace-v0.2, read the current map with `python tools/learning.py map`; after the Evidence receipt exists, use `map-update` only if topology or frontier actually changed. A state proposal must never silently rewrite topology.
+When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority. For workspace-v0.2, read the current map with `python tools/learning.py map`; after the Evidence receipt exists, create a topology proposal with `python tools/learning_map_proposals.py --repo . propose <payload>` when topology or frontier actually changed. Let the learner-facing review path accept or reject it. Use direct `map-update` only in an explicitly trusted/headless context, never as a way for the Teach agent to bypass review. A state proposal must never silently rewrite topology.
 
 ## Source grounding and factual reliability
 
@@ -557,6 +559,7 @@ Do not:
 - praise every answer;
 - reveal the entire solution when the key learning value is in the next inference;
 - turn roadmaps into fixed curricula;
+- silently bypass learner topology review with direct `map-update` in a learner-facing flow;
 - turn state files into transcripts;
 - treat diagrams as decoration;
 - rely on one immediate quiz to declare mastery;
