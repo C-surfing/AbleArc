@@ -32,6 +32,6 @@ Therefore:
 
 ## Repository slug
 
-The GitHub repository should be renamed from `C-surfing/ai4learning` to `C-surfing/AbleArc` (or the lowercase slug selected by GitHub conventions) when repository administration is available. Code-level branding does not depend on that administrative rename.
+The repository rename is complete: the canonical GitHub repository is `C-surfing/AbleArc`.
 
-After the repository rename, update clone examples and any external links that do not follow GitHub redirects.
+The historical `C-surfing/ai4learning` URL may continue to resolve through GitHub redirects, but new clone examples, links, documentation, and integrations should use the canonical AbleArc repository name. The administrative rename does not require renaming persisted `.learning/` data, schema identifiers, compatibility environment variables, or internal package identifiers.
