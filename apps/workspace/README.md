@@ -13,6 +13,8 @@ npm run dev
 
 Open the local Next.js URL printed by the dev server.
 
+For the first real learner-facing vNext trial, use [`../../evaluation/FIRST-PILOT.md`](../../evaluation/FIRST-PILOT.md). It connects Web startup, Project/arc creation, Today + DailyContext, Focus Session, one assessed Runtime turn, and the private product-dogfood checkpoint workflow without fabricating evidence.
+
 To let the official Workspace assess a saved response and generate the next
 move, copy `.env.example` to `.env.local`, set the server-only API key and
 model, then restart the dev server. The configured endpoint must support the
