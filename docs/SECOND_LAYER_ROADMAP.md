@@ -115,6 +115,12 @@ unlocks, see the accepted Runtime mastery overlay, review an evidence-grounded
 structural proposal before it becomes canonical, and inspect how one selected
 node actually changed across immutable topology revisions.
 
+The Teach protocol now uses the same authority model operationally. In a
+learner-facing workspace, an agent that believes Evidence changes topology or
+the frontier must create a LearningMap proposal first. Direct `map-update`
+remains available only for an explicitly trusted/headless operation; it is not
+the normal Teach-agent path and must not be used to bypass learner review.
+
 Implemented foundations:
 
 - canonical typed topology with explicit semantic edges;
@@ -131,7 +137,8 @@ Implemented foundations:
 - explicit separation between topology proposal authority and mastery proposal authority;
 - validated node-level revision history derived from immutable revisions;
 - before/after snapshots for meaningful node, frontier, and semantic-relation changes;
-- integrity checking that current map state still matches the append-only revision chain.
+- integrity checking that current map state still matches the append-only revision chain;
+- proposal-first topology updates in the learner-facing Teach protocol, with direct writes reserved for trusted/headless operation.
 
 See ADR 0003 and ADR 0007 plus [`LEARNING-MAP.md`](LEARNING-MAP.md).
 
