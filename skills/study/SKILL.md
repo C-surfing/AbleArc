@@ -1,9 +1,9 @@
 ---
 name: study
-description: Stateful study and review protocol built on ai4learning. Use for review, practice, consolidation, retrieval, exam preparation, and transfer.
+description: Stateful study and review protocol built on AbleArc. Use for review, practice, consolidation, retrieval, exam preparation, and transfer.
 ---
 
-# ai4learning — Study Protocol
+# AbleArc — Study Protocol
 
 Use the same learner model and teaching philosophy as `../teach/SKILL.md`, but begin from a **strengthening-first** posture rather than an acquisition-first posture.
 
