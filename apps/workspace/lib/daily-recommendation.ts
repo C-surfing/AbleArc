@@ -1,6 +1,6 @@
-import type { DailyContext } from "./daily-context";
-import { deriveTodayRecommendation, type TodayRecommendation } from "./today";
-import type { WorkspaceSnapshot } from "./types";
+import type { DailyContext } from "./daily-context.ts";
+import { deriveTodayRecommendation, type TodayRecommendation } from "./today.ts";
+import type { WorkspaceSnapshot } from "./types.ts";
 
 export type RecommendationMoveType =
   | "current-runtime-move"
