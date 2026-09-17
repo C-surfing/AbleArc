@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { focusScaffolds, isFocusSessionWritable } from "./focus-session.ts";
+import { focusScaffolds, focusSessionMode, isFocusSessionWritable } from "./focus-session.ts";
 import type { WorkspaceSnapshot } from "./types.ts";
 
 function snapshot(overrides: Partial<WorkspaceSnapshot> = {}): WorkspaceSnapshot {
@@ -40,6 +40,15 @@ test("Focus Session respects Project lifecycle writeability", () => {
   assert.equal(
     isFocusSessionWritable(snapshot({ projectStatus: "archived", maintenanceStatus: "study_active" })),
     true,
+  );
+});
+
+test("Focus Session labels archived maintenance as Study rather than Teach", () => {
+  assert.equal(focusSessionMode(snapshot({ projectStatus: "active" })), "Teach");
+  assert.equal(focusSessionMode(snapshot({ projectStatus: "paused" })), "Teach");
+  assert.equal(
+    focusSessionMode(snapshot({ projectStatus: "archived", maintenanceStatus: "study_active" })),
+    "Study",
   );
 });
 
