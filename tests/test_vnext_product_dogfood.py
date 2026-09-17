@@ -34,6 +34,49 @@ class VNextProductDogfoodTests(unittest.TestCase):
         with self.assertRaisesRegex(vnext_product_dogfood.ProductDogfoodError, "already exists"):
             vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
 
+    def test_start_can_backfill_an_existing_older_session_explicitly(self):
+        (self.arc / "sessions" / "002.md").write_text(
+            "# Session 2\n\nSecond real learner session.\n",
+            encoding="utf-8",
+        )
+        latest_path, latest = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
+        self.assertEqual(latest["session_id"], "002")
+        self.assertEqual(latest_path.name, "002.json")
+
+        before = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
+        self.assertEqual(before["missing_checkpoint_ids"], ["001"])
+
+        backfill_path, backfill = vnext_product_dogfood.start_checkpoint(
+            self.root,
+            self.arc.name,
+            session_id="001",
+        )
+        self.assertEqual(backfill["session_id"], "001")
+        self.assertEqual(backfill_path.name, "001.json")
+        after = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
+        self.assertEqual(after["missing_checkpoint_ids"], [])
+
+    def test_start_rejects_backfill_without_a_real_session_record(self):
+        with self.assertRaisesRegex(
+            vnext_product_dogfood.ProductDogfoodError,
+            "session record not found: sessions/002.md",
+        ):
+            vnext_product_dogfood.start_checkpoint(
+                self.root,
+                self.arc.name,
+                session_id="002",
+            )
+        with self.assertRaisesRegex(
+            vnext_product_dogfood.ProductDogfoodError,
+            "three-digit session number",
+        ):
+            vnext_product_dogfood.start_checkpoint(
+                self.root,
+                self.arc.name,
+                session_id="2",
+            )
+        self.assertFalse((self.arc / "product-observations").exists())
+
     def test_validate_rejects_promotion_and_authority_write_fields(self):
         _, payload = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
         payload["promotion_decision"] = "promote"
