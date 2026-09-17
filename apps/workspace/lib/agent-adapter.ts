@@ -16,11 +16,14 @@ export interface AgentAdapter {
   generateStructured(request: StructuredGenerationRequest): Promise<unknown>;
 }
 
+export type StructuredOutputMode = "json_schema" | "json_object";
+
 export interface OpenAICompatibleConfig {
   apiKey: string;
   baseUrl: string;
   model: string;
   timeoutMs: number;
+  structuredOutput?: StructuredOutputMode;
 }
 
 export class AgentAdapterError extends Error {
@@ -62,6 +65,21 @@ function normalizedBaseUrl(value: string): string {
   return url.toString().replace(/\/$/, "");
 }
 
+function structuredOutputMode(env: Environment): StructuredOutputMode {
+  const value = (
+    env.ABLEARC_PROVIDER_STRUCTURED_OUTPUT
+    ?? env.AI4LEARNING_PROVIDER_STRUCTURED_OUTPUT
+    ?? "json_schema"
+  ).trim();
+  if (value !== "json_schema" && value !== "json_object") {
+    throw new AgentAdapterError(
+      "ABLEARC_PROVIDER_STRUCTURED_OUTPUT must be json_schema or json_object.",
+      "configuration",
+    );
+  }
+  return value;
+}
+
 export function readOpenAICompatibleConfig(
   env: Environment = process.env,
 ): OpenAICompatibleConfig | undefined {
@@ -85,6 +103,7 @@ export function readOpenAICompatibleConfig(
         || "https://api.openai.com/v1",
     ),
     timeoutMs: parsedTimeout,
+    structuredOutput: structuredOutputMode(env),
   };
 }
 
@@ -125,6 +144,24 @@ export class OpenAICompatibleAdapter implements AgentAdapter {
     request.signal?.addEventListener("abort", onAbort, { once: true });
     const timeout = setTimeout(() => controller.abort("provider timeout"), this.config.timeoutMs);
     try {
+      const mode = this.config.structuredOutput ?? "json_schema";
+      const system = mode === "json_object"
+        ? [
+            request.system,
+            "Return only valid JSON. The JSON object must match this JSON Schema exactly:",
+            JSON.stringify(request.schema),
+          ].join("\n\n")
+        : request.system;
+      const responseFormat = mode === "json_object"
+        ? { type: "json_object" }
+        : {
+            type: "json_schema",
+            json_schema: {
+              name: request.name,
+              strict: true,
+              schema: request.schema,
+            },
+          };
       const response = await this.fetchImplementation(
         `${this.config.baseUrl}/chat/completions`,
         {
@@ -136,17 +173,10 @@ export class OpenAICompatibleAdapter implements AgentAdapter {
           body: JSON.stringify({
             model: this.config.model,
             messages: [
-              { role: "system", content: request.system },
+              { role: "system", content: system },
               { role: "user", content: request.prompt },
             ],
-            response_format: {
-              type: "json_schema",
-              json_schema: {
-                name: request.name,
-                strict: true,
-                schema: request.schema,
-              },
-            },
+            response_format: responseFormat,
           }),
           signal: controller.signal,
         },
