@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { DailyContext } from "@/lib/daily-context";
 import { deriveDailyRecommendation } from "@/lib/daily-recommendation";
-import { focusScaffolds, isFocusSessionWritable } from "@/lib/focus-session";
+import { focusScaffolds, focusSessionMode, isFocusSessionWritable } from "@/lib/focus-session";
 import type { WorkspaceSnapshot } from "@/lib/types";
 import { LearningCanvas } from "./learning-canvas";
 import styles from "./focus-session.module.css";
@@ -38,6 +38,7 @@ export function FocusSession({
   );
   const scaffolds = useMemo(() => focusScaffolds(snapshot), [snapshot]);
   const writable = isFocusSessionWritable(snapshot);
+  const mode = focusSessionMode(snapshot);
 
   useEffect(() => {
     if (!timerRunning) return undefined;
@@ -53,6 +54,10 @@ export function FocusSession({
     }, 1000);
     return () => window.clearInterval(interval);
   }, [timerRunning]);
+
+  useEffect(() => {
+    setScaffoldLevel(0);
+  }, [snapshot.projectId, snapshot.decision?.id]);
 
   function resetTimer() {
     setTimerRunning(false);
@@ -120,7 +125,7 @@ export function FocusSession({
 
       <div className={styles.focusBody}>
         <div className={styles.canvasColumn}>
-          <LearningCanvas snapshot={snapshot} mode="Teach" />
+          <LearningCanvas snapshot={snapshot} mode={mode} />
         </div>
 
         <aside className={styles.supportRail} aria-label="Focus Session support">

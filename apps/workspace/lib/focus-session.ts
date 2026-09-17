@@ -1,5 +1,13 @@
 import type { WorkspaceSnapshot } from "./types.ts";
 
+export type FocusSessionMode = "Teach" | "Study";
+
+export function focusSessionMode(snapshot: WorkspaceSnapshot): FocusSessionMode {
+  return snapshot.projectStatus === "archived" && snapshot.maintenanceStatus === "study_active"
+    ? "Study"
+    : "Teach";
+}
+
 export function isFocusSessionWritable(snapshot: WorkspaceSnapshot): boolean {
   return snapshot.projectStatus === undefined
     || snapshot.projectStatus === "active"
