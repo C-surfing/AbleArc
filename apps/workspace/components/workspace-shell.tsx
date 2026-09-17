@@ -8,6 +8,7 @@ import { StatePanel } from "./state-panel";
 import { SessionTimeline } from "./session-timeline";
 import { ProjectSwitcher } from "./project-switcher";
 import { CompletionGate } from "./completion-gate";
+import mapStyles from "./map-inspection.module.css";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 
@@ -20,6 +21,7 @@ const modes: { mode: Mode; hint: string }[] = [
 
 export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
   const [mode, setMode] = useState<Mode>("Teach");
+  const mapMode = mode === "Map";
 
   return (
     <div className="workspace-shell">
@@ -55,38 +57,72 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         </div>
       </header>
 
-      <div className="workspace-grid">
-        <aside className="map-panel">
-          <div className="panel-header">
+      {mapMode ? (
+        <main className={mapStyles.mapModePanel}>
+          <header className={mapStyles.mapModeHeader}>
             <div>
-              <span className="section-kicker">Learning map</span>
-              <strong>{snapshot.activeArc || "Current route"}</strong>
+              <span className="section-kicker">Map mode</span>
+              <h1>{snapshot.activeArc || "Current learning route"}</h1>
+              <p>{snapshot.mission}</p>
             </div>
-            <button className="icon-button" type="button" title="Full-screen map mode is planned">↗</button>
-          </div>
-          <div className="mission-card">
-            <span>Mission</span>
-            <p>{snapshot.mission}</p>
-          </div>
-          {snapshot.projectId ? (
-            <CompletionGate
-              projectId={snapshot.projectId}
-              projectStatus={snapshot.projectStatus}
-            />
-          ) : null}
-          <LearningMap map={snapshot.map} />
-          <div className="map-legend" aria-label="Mastery legend">
+            <div className={mapStyles.mapModeHeaderMeta}>
+              <span>{snapshot.map.nodes.length} nodes</span>
+              <span>{snapshot.map.edges.length} semantic edges</span>
+              <span>{snapshot.map.frontier.length} frontier</span>
+            </div>
+          </header>
+          <LearningMap map={snapshot.map} expanded />
+          <div className={`map-legend ${mapStyles.fullLegend}`} aria-label="Mastery legend">
             <span>○ unknown</span>
             <span>◔ exposed</span>
             <span>◐ developing</span>
             <span>● stable</span>
             <span>◆ transferable</span>
+            <small>Topology and accepted learner state remain separate authorities.</small>
           </div>
-        </aside>
+        </main>
+      ) : (
+        <div className="workspace-grid">
+          <aside className="map-panel">
+            <div className="panel-header">
+              <div>
+                <span className="section-kicker">Learning map</span>
+                <strong>{snapshot.activeArc || "Current route"}</strong>
+              </div>
+              <button
+                className="icon-button"
+                type="button"
+                title="Open full-screen map inspection"
+                aria-label="Open full-screen map inspection"
+                onClick={() => setMode("Map")}
+              >
+                ↗
+              </button>
+            </div>
+            <div className="mission-card">
+              <span>Mission</span>
+              <p>{snapshot.mission}</p>
+            </div>
+            {snapshot.projectId ? (
+              <CompletionGate
+                projectId={snapshot.projectId}
+                projectStatus={snapshot.projectStatus}
+              />
+            ) : null}
+            <LearningMap map={snapshot.map} />
+            <div className="map-legend" aria-label="Mastery legend">
+              <span>○ unknown</span>
+              <span>◔ exposed</span>
+              <span>◐ developing</span>
+              <span>● stable</span>
+              <span>◆ transferable</span>
+            </div>
+          </aside>
 
-        <LearningCanvas snapshot={snapshot} mode={mode} />
-        <StatePanel snapshot={snapshot} />
-      </div>
+          <LearningCanvas snapshot={snapshot} mode={mode} />
+          <StatePanel snapshot={snapshot} />
+        </div>
+      )}
 
       <SessionTimeline sessions={snapshot.sessions} />
     </div>
