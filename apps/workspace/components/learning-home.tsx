@@ -8,6 +8,7 @@ import { deriveDailyRecommendation } from "@/lib/daily-recommendation";
 import type { WorkspaceSnapshot } from "@/lib/types";
 import { entryProjectTitle } from "@/lib/today";
 import { ProjectSwitcher } from "./project-switcher";
+import contextStyles from "./daily-context.module.css";
 import styles from "./learning-home.module.css";
 
 function Brand() {
@@ -218,8 +219,8 @@ function Today({
             <p>{snapshot.mission}</p>
           </div>
 
-          <aside className={styles.dailyContext} aria-label="Daily learning context">
-            <div className={styles.contextHeader}>
+          <aside className={contextStyles.dailyContext} aria-label="Daily learning context">
+            <div className={contextStyles.contextHeader}>
               <div>
                 <span>Daily context</span>
                 <strong>Shape the session</strong>
@@ -227,15 +228,15 @@ function Today({
               {context ? <small>rev {context.revision}</small> : <small>optional</small>}
             </div>
 
-            <fieldset className={styles.scaleField}>
+            <fieldset className={contextStyles.scaleField}>
               <legend>Energy</legend>
-              <div className={styles.scaleButtons}>
+              <div className={contextStyles.scaleButtons}>
                 {([1, 2, 3, 4, 5] as ContextScale[]).map((value) => (
                   <button
                     key={value}
                     type="button"
                     aria-pressed={energy === value}
-                    className={energy === value ? styles.isSelected : ""}
+                    className={energy === value ? contextStyles.isSelected : ""}
                     onClick={() => setEnergy(value)}
                   >
                     {value}
@@ -244,7 +245,7 @@ function Today({
               </div>
             </fieldset>
 
-            <div className={styles.contextFields}>
+            <div className={contextStyles.contextFields}>
               <label>
                 <span>Minutes <small>optional</small></span>
                 <input
@@ -275,7 +276,7 @@ function Today({
               </label>
             </div>
 
-            <details className={styles.contextNote}>
+            <details className={contextStyles.contextNote}>
               <summary>Optional note</summary>
               <textarea
                 value={note}
@@ -287,14 +288,14 @@ function Today({
             </details>
 
             <button
-              className={styles.contextSave}
+              className={contextStyles.contextSave}
               type="button"
               disabled={!energy || savingContext}
               onClick={saveContext}
             >
               {savingContext ? "Saving…" : context ? "Update context" : "Use this context"}
             </button>
-            <small className={styles.contextBoundary}>
+            <small className={contextStyles.contextBoundary}>
               Context can alter recommendation strategy. It cannot change mastery.
             </small>
             {contextError ? <p className={styles.error} role="alert">{contextError}</p> : null}
@@ -305,7 +306,7 @@ function Today({
           <span className={styles.moveEyebrow}>{recommendation.primary.eyebrow}</span>
           <h2>{recommendation.primary.action}</h2>
           <p>{recommendation.primary.rationale}</p>
-          <div className={styles.sessionShape}>
+          <div className={contextStyles.sessionShape}>
             <span>Session shape · {recommendation.moveType.replaceAll("-", " ")}</span>
             <p>{recommendation.sessionShape}</p>
             {recommendation.contextRationale ? (
