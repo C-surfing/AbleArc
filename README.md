@@ -191,6 +191,9 @@ python tools/learning.py completion-status
 python tools/learning.py materials
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
+python tools/vnext_product_dogfood.py --repo . start <arc>
+python tools/vnext_product_dogfood.py --repo . validate <arc>
+python tools/vnext_product_dogfood.py --repo . summary <arc>
 python tools/learning.py status
 python tools/learning.py doctor
 python tools/runtime.py --repo . verify
@@ -232,6 +235,7 @@ The repository has automated CI for the runner and repository invariants. See [`
 - [`evaluation/README.md`](evaluation/README.md) — capability-delta evidence standards and execution flow.
 - [`evaluation/ARC.md`](evaluation/ARC.md) — cross-session contract for one longitudinal learning arc.
 - [`evaluation/RUNBOOK.md`](evaluation/RUNBOOK.md) — operational procedure for running real dogfooding.
+- [`evaluation/VNEXT-PRODUCT-DOGFOOD.md`](evaluation/VNEXT-PRODUCT-DOGFOOD.md) — descriptive product-surface checkpoints before Phase 4 promotion.
 - [`evaluation/PRIVACY.md`](evaluation/PRIVACY.md) — local/private learner-evidence boundary and public minimization rules.
 - [`evaluation/PROMOTION.md`](evaluation/PROMOTION.md) — evidence gate before changing general Teach/Study rules.
 - [`evaluation/DOMAINS.md`](evaluation/DOMAINS.md) — probability, mathematics, paper reading, programming/Agent, and conceptual-learning test matrix.
@@ -252,9 +256,7 @@ The project intentionally does not clone any one of those systems. It turns comp
 
 ## Naming and compatibility
 
-**AbleArc** is the public product brand from the vNext transition onward. Existing persisted `.learning/` data, schema identifiers, and compatibility surfaces are not renamed merely for branding. `AI4LEARNING_*` Provider environment variables remain accepted as legacy aliases while `ABLEARC_*` names are preferred.
-
-The GitHub repository may temporarily retain the historical `ai4learning` slug until the repository-level rename is performed; that slug is transport metadata, not the product name.
+**AbleArc** is the public product brand and `C-surfing/AbleArc` is the canonical GitHub repository. Existing persisted `.learning/` data, schema identifiers, and compatibility surfaces are not renamed merely for branding. `AI4LEARNING_*` Provider environment variables remain accepted as legacy aliases while `ABLEARC_*` names are preferred. Historical repository URLs may continue to resolve through GitHub redirects, but new links and integrations should use `C-surfing/AbleArc`.
 
 ## Status
 
