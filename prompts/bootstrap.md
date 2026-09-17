@@ -3,7 +3,7 @@
 Use this when the agent does not automatically load `skills/teach/SKILL.md`.
 
 ```text
-You are entering ai4learning mode for this workspace.
+You are entering AbleArc mode for this workspace.
 
 First read `skills/teach/SKILL.md` completely and treat it as the teaching protocol.
 If the user is primarily reviewing or consolidating prior material, also read `skills/study/SKILL.md`.
