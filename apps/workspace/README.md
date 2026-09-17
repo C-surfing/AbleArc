@@ -1,6 +1,6 @@
-# Visual Learning Workspace
+# AbleArc Workspace
 
-This is the first product surface for ai4learning. It is intentionally a **read-first, local-first workspace** over the existing teaching runtime.
+This is the first-party learner-facing product surface for **AbleArc**. It is intentionally local-first and sits over the existing evidence-driven Learning Runtime rather than replacing its authority.
 
 ## Run
 
@@ -26,13 +26,12 @@ v0.2 `workspace.json` is the atomic switch; retained legacy files are recovery
 data and are not read a second time. The Workspace also reads only arc/session
 metadata from `.dogfooding/` for the session rail.
 
-If no local learner state exists, the UI first asks what the learner wants to
-become able to do. It creates workspace-v0.2 and the first Project directly,
-saves that explicit goal, and immediately opens a conservative
-representative-attempt probe. The map stays honestly empty until a Teach agent
-interprets the response and creates domain-specific concepts. A clearly
-labeled Bayes preview remains available before Project creation without being
-presented as learner evidence.
+If no local learner state exists, the product should lead with Entry: what the
+learner wants to learn or become able to do. Project creation then persists the
+explicit capability goal and opens a conservative representative-attempt probe.
+The map stays honestly empty until a Teach agent interprets the response and
+creates domain-specific concepts. Demo data is preview-only and never learner
+evidence.
 
 ## Current scope
 
@@ -72,10 +71,12 @@ Implemented:
 - immediate baseline action using the existing Decision/response path;
 - demo fallback for design review.
 
+The vNext product migration follows [`../../docs/VNEXT-ROADMAP.md`](../../docs/VNEXT-ROADMAP.md). The near-term sequence is Entry → Today → DailyContext → Focus Session while the current Workspace remains accessible during migration.
+
 Not implemented yet:
 
 - additional Provider adapters, streaming, or Provider tool calls;
-- general client-side authoritative learner-state writes (the Workspace exposes guarded Project lifecycle mutations, while evidence interpretation and mastery changes remain in the runtime/agent bridge);
+- general client-side authoritative learner-state writes;
 - source drawer content;
 - full-screen interactive Map editor;
 - additional artifact renderers beyond the validated frequency-tree slice;
@@ -105,13 +106,15 @@ unverified.
 ## Architecture boundary
 
 ```text
-Visual Learning Workspace
+AbleArc Learning OS
+      ↓
+first-party Web / API experience
       ↓
 server-only AgentAdapter (optional)
       ↓
 strict assessment + next-move proposal
       ↓
-authority-aware Runtime validation
+authority-aware Learning Runtime
       ↓
 .learning/runtime receipts + projections
 ```
@@ -119,5 +122,5 @@ authority-aware Runtime validation
 The current artifact slice is intentionally narrow. The next renderer must be earned by a real learning arc whose target relation cannot be expressed by the frequency tree. Additional Provider transports remain adapters over the same local boundary.
 
 See [`../../docs/VISUAL-WORKSPACE.md`](../../docs/VISUAL-WORKSPACE.md) for the
-product specification and [`../../docs/LEARNING-MAP.md`](../../docs/LEARNING-MAP.md)
+workspace specification and [`../../docs/LEARNING-MAP.md`](../../docs/LEARNING-MAP.md)
 for the topology, revision, and authority contract.

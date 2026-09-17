@@ -16,23 +16,48 @@ const request = {
 
 test("provider config is absent until both secret and model are set", () => {
   assert.equal(readOpenAICompatibleConfig({}), undefined);
-  assert.equal(readOpenAICompatibleConfig({ AI4LEARNING_PROVIDER_API_KEY: "secret" }), undefined);
+  assert.equal(readOpenAICompatibleConfig({ ABLEARC_PROVIDER_API_KEY: "secret" }), undefined);
+});
+
+test("AbleArc provider variables are preferred while legacy names remain compatible", () => {
+  assert.deepEqual(readOpenAICompatibleConfig({
+    ABLEARC_PROVIDER_API_KEY: "ablearc-secret",
+    ABLEARC_PROVIDER_MODEL: "ablearc-model",
+    ABLEARC_PROVIDER_BASE_URL: "https://ablearc-provider.example/v1",
+    AI4LEARNING_PROVIDER_API_KEY: "legacy-secret",
+    AI4LEARNING_PROVIDER_MODEL: "legacy-model",
+  }), {
+    apiKey: "ablearc-secret",
+    model: "ablearc-model",
+    baseUrl: "https://ablearc-provider.example/v1",
+    timeoutMs: 45_000,
+  });
+
+  assert.deepEqual(readOpenAICompatibleConfig({
+    AI4LEARNING_PROVIDER_API_KEY: "legacy-secret",
+    AI4LEARNING_PROVIDER_MODEL: "legacy-model",
+  }), {
+    apiKey: "legacy-secret",
+    model: "legacy-model",
+    baseUrl: "https://api.openai.com/v1",
+    timeoutMs: 45_000,
+  });
 });
 
 test("remote provider URLs require HTTPS", () => {
   assert.throws(
     () => readOpenAICompatibleConfig({
-      AI4LEARNING_PROVIDER_API_KEY: "secret",
-      AI4LEARNING_PROVIDER_MODEL: "test-model",
-      AI4LEARNING_PROVIDER_BASE_URL: "http://provider.example/v1",
+      ABLEARC_PROVIDER_API_KEY: "secret",
+      ABLEARC_PROVIDER_MODEL: "test-model",
+      ABLEARC_PROVIDER_BASE_URL: "http://provider.example/v1",
     }),
     (error) => error instanceof AgentAdapterError && error.code === "configuration",
   );
   assert.equal(
     readOpenAICompatibleConfig({
-      AI4LEARNING_PROVIDER_API_KEY: "secret",
-      AI4LEARNING_PROVIDER_MODEL: "test-model",
-      AI4LEARNING_PROVIDER_BASE_URL: "http://localhost:9000/v1/",
+      ABLEARC_PROVIDER_API_KEY: "secret",
+      ABLEARC_PROVIDER_MODEL: "test-model",
+      ABLEARC_PROVIDER_BASE_URL: "http://localhost:9000/v1/",
     })?.baseUrl,
     "http://localhost:9000/v1",
   );
@@ -40,9 +65,9 @@ test("remote provider URLs require HTTPS", () => {
 
 test("invalid provider config degrades to a safe Workspace status", () => {
   assert.deepEqual(getAgentProviderStatus({
-    AI4LEARNING_PROVIDER_API_KEY: "secret",
-    AI4LEARNING_PROVIDER_MODEL: "test-model",
-    AI4LEARNING_PROVIDER_BASE_URL: "http://provider.example/v1",
+    ABLEARC_PROVIDER_API_KEY: "secret",
+    ABLEARC_PROVIDER_MODEL: "test-model",
+    ABLEARC_PROVIDER_BASE_URL: "http://provider.example/v1",
   }), {
     configured: false,
     adapter: "openai-compatible",

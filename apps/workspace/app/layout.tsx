@@ -4,8 +4,8 @@ import "@xyflow/react/dist/style.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ai4learning · Visual Learning Workspace",
-  description: "A local-first visual workspace over the ai4learning teaching runtime.",
+  title: "AbleArc · Learning OS",
+  description: "A local-first personal Learning OS powered by an evidence-driven learning runtime.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
