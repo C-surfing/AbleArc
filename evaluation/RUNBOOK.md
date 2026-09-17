@@ -54,6 +54,28 @@ python tools/review_checkpoints.py --repo . <arc-name>
 
 This writes `.dogfooding/<arc-name>/review-observations/NNN.json`. The checkpoint is local evaluation evidence only. It is not learner state, does not assign Review priority, and cannot be overwritten for the same session.
 
+### vNext learner-facing product observation
+
+When the session used the AbleArc Entry / Today / DailyContext / Focus path, also create a product checkpoint for the same numbered session:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . start <arc-name>
+```
+
+Edit only fields that were actually observed, then validate them:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . validate <arc-name>
+```
+
+Across repeated sessions, inspect descriptive counts with:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . summary <arc-name>
+```
+
+These files live under `.dogfooding/<arc-name>/product-observations/`. They are evaluation-only and cannot create Evidence, change mastery, revise the Map, satisfy Completion, or decide whether a later product phase should be promoted. See `evaluation/VNEXT-PRODUCT-DOGFOOD.md` for the typed fields and Phase 4 gate.
+
 ## 2. Preserve longitudinal dependence
 
 Before the next session:
@@ -107,11 +129,12 @@ After the final planned session:
 2. classify runtime failures using `FAILURE-TAXONOMY.md`;
 3. compare early and late learner-model hypotheses;
 4. compare the session-bound Review checkpoints when delayed revisits occurred;
-5. identify whether scaffolding actually receded;
-6. identify whether apparent learning survived retrieval or transfer;
-7. decide whether the evidence supports a runtime change.
+5. compare vNext product checkpoints when the learner-facing product path was used;
+6. identify whether scaffolding actually receded;
+7. identify whether apparent learning survived retrieval or transfer;
+8. decide whether the evidence supports a runtime or product change.
 
-Checkpoint comparison is descriptive. Do not turn checkpoint counts into a retention score, Review priority, or scheduler rule without passing the promotion gate.
+Checkpoint comparison is descriptive. Do not turn checkpoint counts into a retention score, Review priority, scheduler rule, or product-phase promotion without passing the relevant promotion gate.
 
 ## 7. Public evidence reduction
 
@@ -132,6 +155,8 @@ Use `evaluation/PROMOTION.md` first. A general protocol change should normally r
 
 For Review automation specifically, first collect delayed-Evidence checkpoints from repeated real sessions. A scheduler trigger must be justified by observed retrieval/transfer patterns, not by the existence of the checkpoint tool itself.
 
+For vNext product phases, use the same evidence discipline. In particular, Capture Inbox should be promoted only after repeated product checkpoints show a real focus/continuity failure and `evaluation/PROMOTION.md` identifies fast capture as the smallest sufficient fix.
+
 ## 9. What counts as a completed dogfood arc
 
 A completed arc is not "three chats happened". It has:
@@ -142,6 +167,6 @@ A completed arc is not "three chats happened". It has:
 - at least one changed assumption, representation, or context when appropriate;
 - a conservative capability decision;
 - explicit unresolved uncertainty;
-- a documented decision about whether the runtime should change.
+- a documented decision about whether the runtime or product should change.
 
 If these conditions are not met, mark the arc `insufficient_evidence` and continue later rather than manufacturing closure.
