@@ -1,6 +1,6 @@
 # Usage
 
-`ai4learning` is intentionally usable without a dedicated app. The minimum unit is a skill file plus a small persistent learning workspace.
+**AbleArc** is intentionally usable without a dedicated app. The minimum unit is a skill file plus a small persistent learning workspace.
 
 ## Native skill loading
 
@@ -40,7 +40,7 @@ Paste or reference [`../prompts/bootstrap.md`](../prompts/bootstrap.md), then as
 A practical invocation is:
 
 ```text
-Read prompts/bootstrap.md and enter ai4learning mode.
+Read prompts/bootstrap.md and enter AbleArc mode.
 Teach me <topic>.
 ```
 
