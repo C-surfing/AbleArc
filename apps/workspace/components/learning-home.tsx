@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import type { ContextScale, DailyContext } from "@/lib/daily-context";
+import { deriveDailyRecommendation } from "@/lib/daily-recommendation";
 import type { WorkspaceSnapshot } from "@/lib/types";
-import { deriveTodayRecommendation, entryProjectTitle } from "@/lib/today";
+import { entryProjectTitle } from "@/lib/today";
 import { ProjectSwitcher } from "./project-switcher";
 import styles from "./learning-home.module.css";
 
@@ -20,11 +22,17 @@ function Brand() {
   );
 }
 
-export function LearningHome({ snapshot }: { snapshot: WorkspaceSnapshot }) {
+export function LearningHome({
+  snapshot,
+  dailyContext,
+}: {
+  snapshot: WorkspaceSnapshot;
+  dailyContext?: DailyContext;
+}) {
   if (!snapshot.hasMission || !snapshot.projectId) {
     return <Entry />;
   }
-  return <Today snapshot={snapshot} />;
+  return <Today snapshot={snapshot} initialContext={dailyContext} />;
 }
 
 function Entry() {
@@ -136,12 +144,57 @@ function Entry() {
   );
 }
 
-function Today({ snapshot }: { snapshot: WorkspaceSnapshot }) {
-  const recommendation = useMemo(() => deriveTodayRecommendation(snapshot), [snapshot]);
-  const [availableMinutes, setAvailableMinutes] = useState("");
+function Today({
+  snapshot,
+  initialContext,
+}: {
+  snapshot: WorkspaceSnapshot;
+  initialContext?: DailyContext;
+}) {
+  const [context, setContext] = useState<DailyContext | undefined>(initialContext);
+  const [energy, setEnergy] = useState<ContextScale | undefined>(initialContext?.energy);
+  const [availableMinutes, setAvailableMinutes] = useState(
+    initialContext?.availableMinutes ? String(initialContext.availableMinutes) : "",
+  );
+  const [focus, setFocus] = useState<ContextScale | undefined>(initialContext?.focus);
+  const [note, setNote] = useState(initialContext?.note || "");
+  const [savingContext, setSavingContext] = useState(false);
+  const [contextError, setContextError] = useState<string>();
+  const recommendation = useMemo(
+    () => deriveDailyRecommendation(snapshot, context),
+    [snapshot, context],
+  );
   const evidenceLabel = snapshot.evidence.length === 1
     ? "1 accepted evidence item"
     : `${snapshot.evidence.length} accepted evidence items`;
+
+  async function saveContext() {
+    if (!energy || savingContext) return;
+    setSavingContext(true);
+    setContextError(undefined);
+    try {
+      const response = await fetch("/api/daily-context", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          expectedRevision: context?.revision ?? 0,
+          energy,
+          ...(availableMinutes ? { availableMinutes: Number(availableMinutes) } : {}),
+          ...(focus ? { focus } : {}),
+          ...(note.trim() ? { note: note.trim() } : {}),
+        }),
+      });
+      const body = await response.json() as { context?: DailyContext; error?: string };
+      if (!response.ok || !body.context) {
+        throw new Error(body.error || "Could not save DailyContext.");
+      }
+      setContext(body.context);
+    } catch (caught) {
+      setContextError(caught instanceof Error ? caught.message : "Could not save DailyContext.");
+    } finally {
+      setSavingContext(false);
+    }
+  }
 
   return (
     <div className={styles.todayPage}>
@@ -164,30 +217,106 @@ function Today({ snapshot }: { snapshot: WorkspaceSnapshot }) {
             <h1>One useful move, then reassess.</h1>
             <p>{snapshot.mission}</p>
           </div>
-          <label className={styles.timeInput}>
-            <span>Available time <small>optional</small></span>
-            <span className={styles.timeControl}>
-              <input
-                inputMode="numeric"
-                min={1}
-                max={480}
-                type="number"
-                value={availableMinutes}
-                onChange={(event) => setAvailableMinutes(event.target.value)}
-                placeholder="30"
+
+          <aside className={styles.dailyContext} aria-label="Daily learning context">
+            <div className={styles.contextHeader}>
+              <div>
+                <span>Daily context</span>
+                <strong>Shape the session</strong>
+              </div>
+              {context ? <small>rev {context.revision}</small> : <small>optional</small>}
+            </div>
+
+            <fieldset className={styles.scaleField}>
+              <legend>Energy</legend>
+              <div className={styles.scaleButtons}>
+                {([1, 2, 3, 4, 5] as ContextScale[]).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={energy === value}
+                    className={energy === value ? styles.isSelected : ""}
+                    onClick={() => setEnergy(value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <div className={styles.contextFields}>
+              <label>
+                <span>Minutes <small>optional</small></span>
+                <input
+                  inputMode="numeric"
+                  min={1}
+                  max={720}
+                  type="number"
+                  value={availableMinutes}
+                  onChange={(event) => setAvailableMinutes(event.target.value)}
+                  placeholder="30"
+                />
+              </label>
+              <label>
+                <span>Focus <small>optional</small></span>
+                <select
+                  value={focus || ""}
+                  onChange={(event) => setFocus(
+                    event.target.value ? Number(event.target.value) as ContextScale : undefined,
+                  )}
+                >
+                  <option value="">—</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </label>
+            </div>
+
+            <details className={styles.contextNote}>
+              <summary>Optional note</summary>
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                maxLength={500}
+                rows={2}
+                placeholder="Anything that should shape this session, not your mastery."
               />
-              <span>min</span>
-            </span>
-            <small>Phase 1 keeps this local to the page; it does not change learner state.</small>
-          </label>
+            </details>
+
+            <button
+              className={styles.contextSave}
+              type="button"
+              disabled={!energy || savingContext}
+              onClick={saveContext}
+            >
+              {savingContext ? "Saving…" : context ? "Update context" : "Use this context"}
+            </button>
+            <small className={styles.contextBoundary}>
+              Context can alter recommendation strategy. It cannot change mastery.
+            </small>
+            {contextError ? <p className={styles.error} role="alert">{contextError}</p> : null}
+          </aside>
         </section>
 
         <section className={styles.primaryMove}>
-          <span className={styles.moveEyebrow}>{recommendation.eyebrow}</span>
-          <h2>{recommendation.action}</h2>
-          <p>{recommendation.rationale}</p>
+          <span className={styles.moveEyebrow}>{recommendation.primary.eyebrow}</span>
+          <h2>{recommendation.primary.action}</h2>
+          <p>{recommendation.primary.rationale}</p>
+          <div className={styles.sessionShape}>
+            <span>Session shape · {recommendation.moveType.replaceAll("-", " ")}</span>
+            <p>{recommendation.sessionShape}</p>
+            {recommendation.contextRationale ? (
+              <details>
+                <summary>Why did context change this shape?</summary>
+                <p>{recommendation.contextRationale}</p>
+              </details>
+            ) : null}
+          </div>
           <div className={styles.moveActions}>
-            <Link className={styles.primaryButton} href="/workspace">{recommendation.cta}</Link>
+            <Link className={styles.primaryButton} href="/workspace">{recommendation.primary.cta}</Link>
             <Link className={styles.secondaryButton} href="/workspace">Inspect map and evidence</Link>
           </div>
         </section>
@@ -210,7 +339,9 @@ function Today({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         </section>
 
         <footer className={styles.todayFooter}>
-          <span>Today is a recommendation surface, not a mastery authority.</span>
+          <span>
+            Recommendation authority: Evidence ✕ · mastery ✕ · Map ✕ · Completion ✕
+          </span>
           <Link href="/workspace">Open full Workspace →</Link>
         </footer>
       </main>
