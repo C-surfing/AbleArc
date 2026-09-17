@@ -59,6 +59,38 @@ class VNextProductDogfoodTests(unittest.TestCase):
         with self.assertRaisesRegex(vnext_product_dogfood.ProductDogfoodError, "arc scope"):
             vnext_product_dogfood.validate_checkpoint(clean, expected_arc_id="other-arc")
 
+    def test_status_reports_missing_checkpoint_without_calling_it_a_failure(self):
+        (self.arc / "sessions" / "002.md").write_text(
+            "# Session 2\n\nSecond real learner session.\n",
+            encoding="utf-8",
+        )
+        vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
+
+        status = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
+        self.assertEqual(status["session_ids"], ["001", "002"])
+        self.assertEqual(status["checkpoint_ids"], ["002"])
+        self.assertEqual(status["missing_checkpoint_ids"], ["001"])
+        self.assertEqual(status["orphan_checkpoint_ids"], [])
+        self.assertEqual(status["interpretation"], vnext_product_dogfood.INTERPRETATION)
+        self.assertNotIn("decision", status)
+        self.assertNotIn("promote", status)
+
+    def test_validate_rejects_orphan_checkpoint_but_status_can_diagnose_it(self):
+        checkpoint_path, _ = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
+        orphan_path = checkpoint_path.with_name("002.json")
+        orphan = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+        orphan["session_id"] = "002"
+        orphan["session_record"] = "sessions/002.md"
+        orphan_path.write_text(json.dumps(orphan, indent=2) + "\n", encoding="utf-8")
+
+        status = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
+        self.assertEqual(status["orphan_checkpoint_ids"], ["002"])
+        with self.assertRaisesRegex(
+            vnext_product_dogfood.ProductDogfoodError,
+            "no matching session record: 002",
+        ):
+            vnext_product_dogfood.load_checkpoints(self.root, self.arc.name)
+
     def test_summary_reports_observations_without_promotion_verdict(self):
         first_path, first = vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
         first["surface_checks"].update({

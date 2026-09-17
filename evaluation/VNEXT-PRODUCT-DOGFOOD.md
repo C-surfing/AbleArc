@@ -84,11 +84,21 @@ The command creates:
 
 The file starts with `not_observed` / `null` values. Edit only what was actually observed. Do not convert absence of observation into a pass.
 
+Inspect session/checkpoint coverage at any time:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . status <arc-name>
+```
+
+`status` is diagnostic only. It reports the numbered session records, existing product checkpoints, sessions that still lack a checkpoint, and orphan checkpoints that no longer have a matching `sessions/NNN.md`. It emits no pass/fail or Phase-4 verdict.
+
 Validate all product checkpoints in the arc:
 
 ```bash
 python tools/vnext_product_dogfood.py --repo . validate <arc-name>
 ```
+
+Validation is stricter than `status`: every checkpoint must be valid and must have a matching real numbered session record. Orphan checkpoints are rejected instead of being counted as evidence.
 
 Print descriptive counts across the arc:
 

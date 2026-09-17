@@ -92,19 +92,35 @@ def _assert_real_directory(path: Path, label: str) -> None:
         raise ProductDogfoodError(f"{label} must be a directory")
 
 
-def _latest_session(arc_dir: Path) -> Path:
+def _list_sessions(arc_dir: Path) -> list[Path]:
     sessions_dir = arc_dir / "sessions"
     _assert_real_directory(sessions_dir, "dogfooding sessions directory")
     if not sessions_dir.is_dir():
         raise ProductDogfoodError("dogfooding arc must contain sessions/")
-    sessions = sorted(
+    return sorted(
         path
         for path in sessions_dir.iterdir()
         if path.is_file() and not path.is_symlink() and SESSION_FILE.fullmatch(path.name)
     )
+
+
+def _latest_session(arc_dir: Path) -> Path:
+    sessions = _list_sessions(arc_dir)
     if not sessions:
         raise ProductDogfoodError("dogfooding arc has no numbered session record")
     return sessions[-1]
+
+
+def _checkpoint_files(arc_dir: Path) -> list[Path]:
+    observations_dir = arc_dir / "product-observations"
+    _assert_real_directory(observations_dir, "product-observations directory")
+    if not observations_dir.exists():
+        return []
+    return sorted(
+        path
+        for path in observations_dir.iterdir()
+        if path.is_file() and not path.is_symlink() and CHECKPOINT_FILE.fullmatch(path.name)
+    )
 
 
 def _write_json_once(path: Path, payload: dict[str, Any]) -> None:
@@ -275,6 +291,30 @@ def _read_checkpoint(path: Path, arc_id: str) -> dict[str, Any]:
     return validate_checkpoint(raw, expected_arc_id=arc_id, expected_session_id=path.stem)
 
 
+def coverage_status(repo_root: Path, arc: str) -> dict[str, Any]:
+    """Describe session/checkpoint coverage without evaluating feature promotion."""
+    repo_root = repo_root.resolve()
+    try:
+        arc_dir = learning.resolve_arc(repo_root, arc)
+    except learning.LearningToolError as exc:
+        raise ProductDogfoodError(str(exc)) from exc
+
+    session_ids = [path.stem for path in _list_sessions(arc_dir)]
+    checkpoint_ids = [path.stem for path in _checkpoint_files(arc_dir)]
+    session_set = set(session_ids)
+    checkpoint_set = set(checkpoint_ids)
+    return {
+        "schema_version": "0.1",
+        "kind": "vnext-product-dogfood-coverage",
+        "arc_id": arc_dir.name,
+        "session_ids": session_ids,
+        "checkpoint_ids": checkpoint_ids,
+        "missing_checkpoint_ids": sorted(session_set - checkpoint_set),
+        "orphan_checkpoint_ids": sorted(checkpoint_set - session_set),
+        "interpretation": INTERPRETATION,
+    }
+
+
 def load_checkpoints(repo_root: Path, arc: str) -> tuple[Path, list[dict[str, Any]]]:
     repo_root = repo_root.resolve()
     try:
@@ -282,15 +322,14 @@ def load_checkpoints(repo_root: Path, arc: str) -> tuple[Path, list[dict[str, An
     except learning.LearningToolError as exc:
         raise ProductDogfoodError(str(exc)) from exc
 
-    observations_dir = arc_dir / "product-observations"
-    _assert_real_directory(observations_dir, "product-observations directory")
-    if not observations_dir.exists():
-        return arc_dir, []
-    files = sorted(
-        path
-        for path in observations_dir.iterdir()
-        if path.is_file() and not path.is_symlink() and CHECKPOINT_FILE.fullmatch(path.name)
-    )
+    sessions = _list_sessions(arc_dir)
+    session_ids = {path.stem for path in sessions}
+    files = _checkpoint_files(arc_dir)
+    orphan_ids = sorted(path.stem for path in files if path.stem not in session_ids)
+    if orphan_ids:
+        raise ProductDogfoodError(
+            "product checkpoint has no matching session record: " + ", ".join(orphan_ids)
+        )
     return arc_dir, [_read_checkpoint(path, arc_dir.name) for path in files]
 
 
@@ -332,6 +371,9 @@ def build_parser() -> argparse.ArgumentParser:
     validate = subparsers.add_parser("validate", help="validate all product checkpoints in an arc")
     validate.add_argument("arc", help="arc directory name or path under .dogfooding/")
 
+    status = subparsers.add_parser("status", help="show descriptive session/checkpoint coverage")
+    status.add_argument("arc", help="arc directory name or path under .dogfooding/")
+
     summary = subparsers.add_parser("summary", help="print descriptive product-observation counts")
     summary.add_argument("arc", help="arc directory name or path under .dogfooding/")
     return parser
@@ -356,6 +398,9 @@ def main(argv: list[str] | None = None) -> int:
                 "validated": len(checkpoints),
                 "interpretation": INTERPRETATION,
             }, ensure_ascii=False, indent=2))
+            return 0
+        if args.command == "status":
+            print(json.dumps(coverage_status(repo_root, args.arc), ensure_ascii=False, indent=2))
             return 0
         if args.command == "summary":
             print(json.dumps(summarize(repo_root, args.arc), ensure_ascii=False, indent=2))
