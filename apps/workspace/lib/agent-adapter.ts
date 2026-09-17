@@ -65,13 +65,15 @@ function normalizedBaseUrl(value: string): string {
 export function readOpenAICompatibleConfig(
   env: Environment = process.env,
 ): OpenAICompatibleConfig | undefined {
-  const apiKey = env.AI4LEARNING_PROVIDER_API_KEY?.trim();
-  const model = env.AI4LEARNING_PROVIDER_MODEL?.trim();
+  const apiKey = (env.ABLEARC_PROVIDER_API_KEY ?? env.AI4LEARNING_PROVIDER_API_KEY)?.trim();
+  const model = (env.ABLEARC_PROVIDER_MODEL ?? env.AI4LEARNING_PROVIDER_MODEL)?.trim();
   if (!apiKey || !model) return undefined;
-  const parsedTimeout = Number(env.AI4LEARNING_PROVIDER_TIMEOUT_MS || 45_000);
+  const parsedTimeout = Number(
+    env.ABLEARC_PROVIDER_TIMEOUT_MS ?? env.AI4LEARNING_PROVIDER_TIMEOUT_MS ?? 45_000,
+  );
   if (!Number.isInteger(parsedTimeout) || parsedTimeout < 1_000 || parsedTimeout > 120_000) {
     throw new AgentAdapterError(
-      "AI4LEARNING_PROVIDER_TIMEOUT_MS must be an integer from 1000 to 120000.",
+      "ABLEARC_PROVIDER_TIMEOUT_MS must be an integer from 1000 to 120000.",
       "configuration",
     );
   }
@@ -79,7 +81,8 @@ export function readOpenAICompatibleConfig(
     apiKey,
     model,
     baseUrl: normalizedBaseUrl(
-      env.AI4LEARNING_PROVIDER_BASE_URL?.trim() || "https://api.openai.com/v1",
+      (env.ABLEARC_PROVIDER_BASE_URL ?? env.AI4LEARNING_PROVIDER_BASE_URL)?.trim()
+        || "https://api.openai.com/v1",
     ),
     timeoutMs: parsedTimeout,
   };
@@ -201,7 +204,7 @@ export function createConfiguredAgentAdapter(
   const config = readOpenAICompatibleConfig(env);
   if (!config) {
     throw new AgentAdapterError(
-      "No Provider is configured. Set AI4LEARNING_PROVIDER_API_KEY and AI4LEARNING_PROVIDER_MODEL.",
+      "No Provider is configured. Set ABLEARC_PROVIDER_API_KEY and ABLEARC_PROVIDER_MODEL.",
       "configuration",
     );
   }
