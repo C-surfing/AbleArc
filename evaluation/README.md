@@ -45,6 +45,7 @@ These are default evidentiary standards, not rigid scoring rules. Domain evidenc
 - `FAILURE-TAXONOMY.md` — classify failures before changing the protocol.
 - `DOMAINS.md` — initial five-domain dogfooding matrix.
 - `REPRESENTATIONS.md` — evaluate whether a representation changed learner capability rather than merely improving presentation.
+- `REVIEW-SIGNALS.md` — collect delayed-retrieval observations before defining any Review priority or scheduler policy.
 - `arcs/` — launch briefs for the five required v0.2 longitudinal arcs.
 
 Real learning state remains in `.learning/`. Evaluation records describe evidence about the runtime and should not be copied into `STATE.md` as transcript history.
@@ -70,6 +71,18 @@ An arc should make it possible to answer:
 
 A later session must depend on earlier evidence. If the same script could be run unchanged with a new learner, the experiment is not yet testing longitudinal adaptation.
 
+### Observing future Review semantics
+
+Do not invent a scheduler from intuition. Once a real arc contains delayed Evidence, export the descriptive observations locally:
+
+```bash
+python tools/review_observations.py --repo .
+```
+
+The export joins each delayed Evidence receipt to the learner's accepted state immediately before that attempt, its Evidence dimensions, optional Turn context, and any later accepted state transition that explicitly cites the Evidence. It does **not** output a priority, score, due time, or queue membership.
+
+Use repeated observations to formulate and falsify review-trigger hypotheses. A pattern seen once is not a scheduling rule.
+
 ## Recommended execution order
 
 ```text
@@ -84,6 +97,8 @@ run Teach / Study normally
 record decisive SESSION evidence
     ↓
 retrieve later with less scaffolding
+    ↓
+export delayed review observations when available
     ↓
 perturb one meaningful dimension
     ↓
@@ -110,6 +125,8 @@ Do not add a new rule to `skills/teach/SKILL.md` because one conversation was aw
 8. representation / source / tooling layer.
 
 Promote a protocol change when a failure is repeated across independent sessions or is a clearly structural failure with high consequence. Use `PROMOTION.md` to record the generality test, smallest-fix test, overfitting audit, and distinguishing behavioral scenario before changing core rules.
+
+A Review scheduler is held to the same bar. Descriptive delayed-Evidence exports are preparation for that decision, not permission to encode timing heuristics prematurely.
 
 Avoid case-specific patches, benchmark phrases, topic-specific answer rules, or heuristics that cannot be explained as teaching logic.
 

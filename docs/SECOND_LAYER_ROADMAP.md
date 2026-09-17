@@ -89,10 +89,14 @@ verified state replay / diff
 
 See [`LEARNER-STATE-REPLAY.md`](LEARNER-STATE-REPLAY.md).
 
-What remains future work is using longitudinal state history to derive a stable
-review priority policy and then a useful next learning action. The workspace
-may visualize accepted state history, but it must not infer durable learner
-conclusions merely from UI interaction.
+The next longitudinal step is observation, not scheduling. Delayed Evidence can
+now be exported as a descriptive evaluation dataset that joins the learner
+state immediately before the attempt, the Evidence dimensions, optional Turn
+context, and later accepted transitions that explicitly cite that Evidence.
+See [`../evaluation/REVIEW-SIGNALS.md`](../evaluation/REVIEW-SIGNALS.md).
+
+The workspace may visualize accepted state history, but it must not infer
+durable learner conclusions merely from UI interaction.
 
 ## Layer 2: Spaced Review
 
@@ -107,7 +111,9 @@ Rules:
 - prioritize concepts with high dependency centrality;
 - prefer transfer tasks over recognition.
 
-A Review view may exist before a scheduler. Scheduling automation remains deferred until longitudinal evidence supports trigger semantics. Learner-state replay now provides the longitudinal change history needed to inspect those semantics, but it does not itself define or schedule reviews.
+A Review view may exist before a scheduler. Scheduling automation remains deferred until longitudinal evidence supports trigger semantics. Learner-state replay provides the change history; `tools/review_observations.py` provides descriptive delayed-retrieval observations for dogfooding. Neither defines a priority score, queue membership, or due time.
+
+Promotion into an actual Review queue now requires repeated real observations showing that a proposed trigger predicts useful retrieval need across sessions and does not collapse into a topic-specific or learner-specific heuristic.
 
 ## Layer 3: Advanced Roadmap Interaction
 
