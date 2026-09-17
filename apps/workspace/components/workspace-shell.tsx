@@ -81,7 +81,7 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
               ) : null}
             </div>
           </header>
-          <LearningMap map={snapshot.map} expanded />
+          <LearningMap map={snapshot.map} expanded projectId={snapshot.projectId} />
           <div className={`map-legend ${mapStyles.fullLegend}`} aria-label="Mastery legend">
             <span>○ unknown</span>
             <span>◔ exposed</span>

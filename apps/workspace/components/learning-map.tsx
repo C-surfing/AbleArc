@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { inspectLearningMapNode } from "@/lib/learning-map-inspection";
 import { layoutLearningMap, type LearningMapPosition } from "@/lib/learning-map-layout";
 import type { LearningMapView, LearningNodeKind, MasteryState } from "@/lib/types";
+import { MapNodeHistory } from "./map-node-history";
 import styles from "./map-inspection.module.css";
 
 const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
@@ -49,7 +50,15 @@ function ConceptNode({ data }: NodeProps<Node<ConceptNodeData, "concept">>) {
 
 const nodeTypes = { concept: ConceptNode };
 
-export function LearningMap({ map, expanded = false }: { map: LearningMapView; expanded?: boolean }) {
+export function LearningMap({
+  map,
+  expanded = false,
+  projectId,
+}: {
+  map: LearningMapView;
+  expanded?: boolean;
+  projectId?: string;
+}) {
   const [positions, setPositions] = useState<LearningMapPosition[] | null | undefined>();
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
   const layoutIdentity = `${map.revision ?? map.source}:${map.nodes.map((node) => node.id).join(",")}:${map.edges.map((edge) => edge.id).join(",")}`;
@@ -205,8 +214,11 @@ export function LearningMap({ map, expanded = false }: { map: LearningMapView; e
                   </button>
                 )) : <p>No outgoing semantic dependency is recorded.</p>}
               </section>
+              {projectId && selectedNodeId ? (
+                <MapNodeHistory projectId={projectId} nodeId={selectedNodeId} />
+              ) : null}
               <p className={styles.boundary}>
-                Dependencies are the current topology hypothesis. Mastery is the accepted Runtime overlay; inspecting this node changes neither.
+                Dependencies and revision history describe the topology hypothesis. Mastery is the accepted Runtime overlay; inspecting either changes neither authority.
               </p>
             </>
           ) : <p>Select a node to inspect its dependencies and accepted learner overlay.</p>}

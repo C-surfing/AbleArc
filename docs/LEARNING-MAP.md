@@ -147,6 +147,33 @@ Creating, viewing, rejecting, or accepting a topology proposal never writes
 `runtime/state.json`. LearningMap proposal authority and learner-state proposal
 authority remain separate paths.
 
+## Node-level revision history
+
+The append-only revisions are also the source for a read-only node history:
+
+```bash
+python tools/learning_map_history.py --repo . node <node-id>
+```
+
+The reader validates every stored revision, verifies the parent chain is
+contiguous, and checks that `current.json` still equals the newest immutable
+revision. It then emits only revisions that meaningfully changed the selected
+node. A history event may record:
+
+- node added or removed;
+- label, kind, or mission-relevance change;
+- entering or leaving the frontier;
+- incoming or outgoing semantic relation changes.
+
+Each event carries the revision rationale, Evidence count, and compact
+before/after snapshots. It deliberately does **not** contain learner mastery;
+mastery history belongs to Runtime receipts/state decisions, not LearningMap
+revision history.
+
+Reading node history is allowed for paused or archived Projects because it is
+pure inspection. It never creates Evidence, changes the map, or modifies learner
+state.
+
 ## Workspace rendering
 
 The Workspace validates `current.json`, joins accepted mastery by stable node
@@ -156,10 +183,11 @@ therefore disposable presentation data and never enter the map schema.
 
 The focused Map mode is read-only except for explicit proposal decisions.
 Selecting a node exposes its incoming semantic dependencies, downstream
-unlocks, mission relevance, frontier status, and the accepted Runtime mastery
-overlay. Selection, panning, zooming, and navigation between connected nodes
-remain presentation state only; none of those interactions create Evidence or
-write either authority.
+unlocks, mission relevance, frontier status, accepted Runtime mastery overlay,
+and meaningful topology revision history. Selection, panning, zooming,
+history reads, and navigation between connected nodes remain presentation
+state only; none of those interactions create Evidence or write either
+authority.
 
 An existing but invalid canonical map fails closed rather than silently
 falling back to Markdown. Markdown fallback applies only when no canonical map
@@ -169,11 +197,12 @@ exists.
 
 This slice implements canonical storage, revision history, generated Markdown,
 CLI reads/writes, Runtime overlay, explicit-edge rendering, deterministic
-layout, full-screen read-only Map mode, node inspection, and learner review of
-immutable base-revision-scoped topology proposals.
+layout, full-screen read-only Map mode, node inspection, learner review of
+immutable base-revision-scoped topology proposals, and validated node-level
+before/after revision history.
 
-Still deferred are richer node-level revision history, visual
-before/delta/after comparison, semantic lenses beyond the current dependency
-and mastery overlay, animated transitions where they add learning value,
-large-graph filtering, and direct graph editing. Any future editing surface
-must preserve the topology/mastery split defined here and in ADR 0003/0007.
+Still deferred are richer whole-map comparison, semantic lenses beyond the
+current dependency/mastery views, animated transitions where they add learning
+value, large-graph filtering, and direct graph editing. Any future editing
+surface must preserve the topology/mastery split defined here and in ADR
+0003/0007.
