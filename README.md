@@ -1,12 +1,22 @@
-# ai4learning
+# AbleArc
 
-A lightweight, stateful **AI teaching and study protocol** for learning with agents.
+**AbleArc is a personal Learning OS powered by an evidence-driven learning runtime.**
 
-The goal is not to make an AI explain more. The goal is to make the learner **more capable after each interaction**.
+The goal is not to make AI explain more. The goal is to make the learner **more capable after each interaction** and make that capability change inspectable through evidence.
 
 > Keep the whole map in view. Teach at the edge of understanding. Make the learner perform the important cognitive move.
 
-`ai4learning` is designed as a headless, stateful learning runtime: Skills and apps are adapters over an adaptive control loop, not the source of learner truth.
+AbleArc is evolving as two separable layers: a learner-facing Learning OS for daily use and a provider-neutral, local-first Learning Runtime that remains the source of learner truth.
+
+```text
+Learning OS → Entry / Today / Focus Session / Review
+                   ↓
+Learning Runtime → Mission / Map / Model / Move / Evidence
+                   ↓
+Learning Engine → Agent / Skill / CLI / API
+```
+
+The canonical vNext direction is [`ROADMAP.md`](ROADMAP.md), backed by [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) and the accepted ADRs.
 
 ```text
 MAP   — Where could we go?
@@ -17,18 +27,13 @@ EVIDENCE — Did it actually land?
 
 The internal system is rigorous; the external interaction should feel natural.
 
-```text
-Core runtime → Teach / Study skill, agent, CLI, or app
-             → conversation, diagram, exercise, HTML, or notebook artifact
-```
-
 Representations are selected cognitive instruments. HTML is one renderer, not the teaching abstraction.
 
 ## Why
 
 Normal AI learning tends to become many-to-many: one learner jumps among many books, videos, teachers, chats, interfaces, and explanations. The switching cost is not only logistical. It consumes working memory, fragments context, and makes trust expensive.
 
-This project tries to create one consistent teaching interface over many sources while preserving the strengths of excellent human teaching:
+AbleArc tries to create one consistent teaching interface over many sources while preserving the strengths of excellent human teaching:
 
 - a global structural view of the subject;
 - teaching at the learner's current frontier;
@@ -84,7 +89,7 @@ The learner should not normally see these phase labels. They should experience a
 
 ## Persistent learning workspace
 
-When used in a learning project, the skill maintains a small `.learning/` workspace:
+When used in a learning project, the Runtime maintains a small `.learning/` workspace:
 
 ```text
 .learning/
@@ -107,8 +112,7 @@ The four important objects are intentionally separate:
 - **LearningMap** is a revisable hypothesis about the dependency structure of the subject.
 - **STATE** represents the learner now: stable, shaky, unknown, misconceptions, evidence, and next frontier.
 
-A roadmap is not a chapter list. The canonical graph and learner overlay have
-separate authority and are joined for display.
+A roadmap is not a chapter list. The canonical graph and learner overlay have separate authority and are joined for display.
 
 ```text
 Vectors ● ──→ Covectors ◐ ──→ Wedge product ○ ──→ Differential forms ○
@@ -168,14 +172,11 @@ DecisionProposal → Observation → EvidenceReceipt
                  → StateProposal → authority decision → TurnReceipt
 ```
 
-The LLM still selects moves and interprets rich behavior. The runtime makes those outputs inspectable, prevents observation from silently becoming learner state, rejects unsafe mastery promotion, and maintains a machine-operable projection of accepted concept-state changes. A single immediate correct answer cannot become `stable`; `transferable` requires evidence in a novel context.
+The LLM still selects moves and interprets rich behavior. The Runtime makes those outputs inspectable, prevents observation from silently becoming learner state, rejects unsafe mastery promotion, and maintains a machine-operable projection of accepted concept-state changes. A single immediate correct answer cannot become `stable`; `transferable` requires evidence in a novel context.
 
-See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), the immutable legacy
-[`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json) contract, the scoped
-[`schemas/runtime-v0.2.json`](schemas/runtime-v0.2.json) contract, and
-[`tools/runtime.py`](tools/runtime.py).
+See [`docs/RUNTIME-CONTRACT.md`](docs/RUNTIME-CONTRACT.md), the immutable legacy [`schemas/runtime-v0.1.json`](schemas/runtime-v0.1.json) contract, the scoped [`schemas/runtime-v0.2.json`](schemas/runtime-v0.2.json) contract, and [`tools/runtime.py`](tools/runtime.py).
 
-The Workspace now exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. An optional server-only OpenAI-compatible adapter can perform that assessment automatically with strict structured output, but the same Runtime validates and commits the turn. The Workspace renders feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
+The Workspace exposes a complete local handoff: **Your move** captures the learner response; any Teach/Study agent can read the pending response, commit information-rich feedback, and issue an evidence-grounded next decision through two high-level runtime commands. An optional server-only OpenAI-compatible adapter can perform that assessment automatically with strict structured output, but the same Runtime validates and commits the turn. The Workspace renders feedback and unlocks the next move without exposing ledger mechanics, auto-grading, or silently changing mastery.
 
 ## Local runner
 
@@ -195,49 +196,24 @@ python tools/learning.py doctor
 python tools/runtime.py --repo . verify
 ```
 
-`create-project` initializes workspace-v0.2, stores an explicit learner goal,
-and opens one fixed representative-attempt probe so the learner can act
-immediately. It does not invent a map, domain model, or mastery claim. The
-legacy `init` / `start-mission` path remains compatible; migrate it before
-creating additional Projects. Real arc evidence is scaffolded under Git-ignored
-`.dogfooding/`, while `.learning/` remains the operational learner state.
-Domain teaching and roadmap revision remain responsibilities of the Teach/Study
-protocol.
+`create-project` initializes workspace-v0.2, stores an explicit learner goal, and opens one fixed representative-attempt probe so the learner can act immediately. It does not invent a map, domain model, or mastery claim. The legacy `init` / `start-mission` path remains compatible; migrate it before creating additional Projects. Real arc evidence is scaffolded under Git-ignored `.dogfooding/`, while `.learning/` remains the operational learner state. Domain teaching and roadmap revision remain responsibilities of the Teach/Study protocol.
 
-For workspace-v0.2, the roadmap is now a canonical typed LearningMap with
-explicit semantic edges and append-only, Evidence-grounded revisions. Learner
-mastery remains in the Runtime state projection; the Workspace joins it onto
-the map and uses ELK for deterministic layout. See
-[`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md).
+For workspace-v0.2, the roadmap is a canonical typed LearningMap with explicit semantic edges and append-only, Evidence-grounded revisions. Learner mastery remains in the Runtime state projection; the Workspace joins it onto the map and uses ELK for deterministic layout. See [`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md).
 
-The official Workspace exposes the same Project lifecycle and a concise
-session-start brief. Paused and archived Projects become read-only in both the
-UI and Runtime; archived maintenance must be opened explicitly before new
-evidence can be recorded.
+The official Workspace exposes the same Project lifecycle and a concise session-start brief. Paused and archived Projects become read-only in both the UI and Runtime; archived maintenance must be opened explicitly before new evidence can be recorded.
 
-The Workspace also projects the headless Completion Gate and can request the
-guarded Complete + Archive transition. React never decides that learning is
-complete: the Python gate revalidates Mission scope, pending responses,
-criteria thresholds, and distinct Feynman/performance Evidence before commit.
+The Workspace also projects the headless Completion Gate and can request the guarded Complete + Archive transition. React never decides that learning is complete: the Python gate revalidates Mission scope, pending responses, criteria thresholds, and distinct Feynman/performance Evidence before commit.
 
-Mission completion is now a separate, evidence-gated authority path. A Mission
-must cite distinct qualifying Runtime Evidence for Feynman reconstruction and
-independent performance before `complete-project` can freeze an immutable
-completion record and archive the retained Project. Manual Archive does not
-claim mastery. See
-[`docs/MISSION-COMPLETION.md`](docs/MISSION-COMPLETION.md).
+Mission completion is a separate, evidence-gated authority path. A Mission must cite distinct qualifying Runtime Evidence for Feynman reconstruction and independent performance before `complete-project` can freeze an immutable completion record and archive the retained Project. Manual Archive does not claim mastery. See [`docs/MISSION-COMPLETION.md`](docs/MISSION-COMPLETION.md).
 
-The selected Project also has a typed Learning Library. Reusable derivations,
-worked examples, source notes, code, diagrams, misconception repairs, and final
-Feynman explanations are saved deliberately with a `why_return` and Evidence or
-source provenance. They remain non-authoritative for mastery and are not
-automatic chat summaries. See
-[`docs/LEARNING-LIBRARY.md`](docs/LEARNING-LIBRARY.md).
+The selected Project also has a typed Learning Library. Reusable derivations, worked examples, source notes, code, diagrams, misconception repairs, and final Feynman explanations are saved deliberately with a `why_return` and Evidence or source provenance. They remain non-authoritative for mastery and are not automatic chat summaries. See [`docs/LEARNING-LIBRARY.md`](docs/LEARNING-LIBRARY.md).
 
-The repository now has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
+The repository has automated CI for the runner and repository invariants. See [`tools/README.md`](tools/README.md).
 
 ## Design and evaluation documents
 
+- [`ROADMAP.md`](ROADMAP.md) — canonical vNext roadmap entry point.
+- [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) — product thesis, authority model, promotion gates, and phased delivery.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — state model, control loop, persistence, mode selection.
 - [`docs/adr/`](docs/adr/) — accepted product/runtime boundaries and compatibility consequences.
 - [`docs/PROJECT-STORAGE.md`](docs/PROJECT-STORAGE.md) — v0.2 Workspace/Project/Mission manifests and legacy read compatibility.
@@ -274,8 +250,16 @@ This project is strongly influenced by Matt Pocock's stateful `teach` skill, Eer
 
 The project intentionally does not clone any one of those systems. It turns compatible ideas into a compact learner-model protocol with a dynamic roadmap, natural interaction layer, representation-aware teaching, and evidence-driven iteration.
 
+## Naming and compatibility
+
+**AbleArc** is the public product brand from the vNext transition onward. Existing persisted `.learning/` data, schema identifiers, and compatibility surfaces are not renamed merely for branding. `AI4LEARNING_*` Provider environment variables remain accepted as legacy aliases while `ABLEARC_*` names are preferred.
+
+The GitHub repository may temporarily retain the historical `ai4learning` slug until the repository-level rename is performed; that slug is transport metadata, not the product name.
+
 ## Status
 
 **v0.1 — complete first usable protocol.** Teach + Study, persistent learner state, dynamic roadmap, evidence-aware mastery, Feynman model debugging, teaching taste, bootstrap/agent metadata, and behavioral acceptance scenarios are in place.
 
-**v0.2 — longitudinal evidence phase in progress.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, and CI are available. The learner-response → agent-assessment → visible-feedback → next-decision loop works both through an external Agent and through the first optional OpenAI-compatible Workspace adapter. The first typed interactive LearningArtifact requires prediction before reveal and preserves validated exploration context for the assessor without auto-grading it. The five real learner arcs are **not yet complete** and no simulated learner outcome counts as progress. Additional Provider adapters, artifact renderers, scheduling, and specialized subagents remain deferred until evidence justifies them.
+**v0.2 — learning runtime foundation established.** The evaluation layer, structured transaction runtime, conservative authority policy, cross-agent JSON contract, local runner, unit tests, CI, project lifecycle, typed LearningMap, Learning Library, completion gate, proposal review, learner-state replay, and longitudinal review observations are available.
+
+**vNext — Learning OS product phase.** Development now follows [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md): Entry → Today → DailyContext → Focus Session → Capture → Session Close → Reflection → authority refinement → capabilities → review. Runtime authority remains binding throughout.
