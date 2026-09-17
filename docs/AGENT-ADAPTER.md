@@ -1,6 +1,6 @@
 # Agent Adapter
 
-The official Workspace can complete one provider-backed learning loop without
+The official AbleArc Workspace can complete one provider-backed learning loop without
 making a model the source of learner truth:
 
 ```text
@@ -25,11 +25,15 @@ separate proposal and authority path.
 Copy `apps/workspace/.env.example` to `apps/workspace/.env.local`, then set:
 
 ```bash
-AI4LEARNING_PROVIDER_API_KEY=...
-AI4LEARNING_PROVIDER_MODEL=...
-AI4LEARNING_PROVIDER_BASE_URL=https://api.openai.com/v1
-AI4LEARNING_PROVIDER_TIMEOUT_MS=45000
+ABLEARC_PROVIDER_API_KEY=...
+ABLEARC_PROVIDER_MODEL=...
+ABLEARC_PROVIDER_BASE_URL=https://api.openai.com/v1
+ABLEARC_PROVIDER_TIMEOUT_MS=45000
 ```
+
+The previous `AI4LEARNING_PROVIDER_*` names remain accepted as compatibility
+aliases during the AbleArc migration. When both forms are present, the
+`ABLEARC_PROVIDER_*` value wins.
 
 Restart `npm run dev` after changing environment variables. The first adapter
 calls `POST <base-url>/chat/completions` and requires support for strict JSON
