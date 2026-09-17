@@ -84,6 +84,14 @@ The command creates:
 
 The file starts with `not_observed` / `null` values. Edit only what was actually observed. Do not convert absence of observation into a pass.
 
+If `status` later reveals that an older real session is missing its product checkpoint, create a blank checkpoint for that existing session explicitly:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . start <arc-name> --session 001
+```
+
+Backfill is allowed only when `sessions/001.md` actually exists. The command never creates or reconstructs a session record and still starts from `not_observed` / `null`; fill only observations that were genuinely recorded or can be responsibly recovered from contemporaneous notes.
+
 Inspect session/checkpoint coverage at any time:
 
 ```bash
