@@ -111,6 +111,15 @@ def _latest_session(arc_dir: Path) -> Path:
     return sessions[-1]
 
 
+def _session_by_id(arc_dir: Path, session_id: str) -> Path:
+    if not re.fullmatch(r"[0-9]{3}", session_id):
+        raise ProductDogfoodError("session must be a three-digit session number")
+    for session in _list_sessions(arc_dir):
+        if session.stem == session_id:
+            return session
+    raise ProductDogfoodError(f"session record not found: sessions/{session_id}.md")
+
+
 def _checkpoint_files(arc_dir: Path) -> list[Path]:
     observations_dir = arc_dir / "product-observations"
     _assert_real_directory(observations_dir, "product-observations directory")
@@ -259,14 +268,19 @@ def validate_checkpoint(
     return root
 
 
-def start_checkpoint(repo_root: Path, arc: str) -> tuple[Path, dict[str, Any]]:
+def start_checkpoint(
+    repo_root: Path,
+    arc: str,
+    *,
+    session_id: str | None = None,
+) -> tuple[Path, dict[str, Any]]:
     repo_root = repo_root.resolve()
     try:
         arc_dir = learning.resolve_arc(repo_root, arc)
     except learning.LearningToolError as exc:
         raise ProductDogfoodError(str(exc)) from exc
 
-    session = _latest_session(arc_dir)
+    session = _session_by_id(arc_dir, session_id) if session_id is not None else _latest_session(arc_dir)
     observations_dir = arc_dir / "product-observations"
     _assert_real_directory(observations_dir, "product-observations directory")
     observations_dir.mkdir(exist_ok=True)
@@ -365,8 +379,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--repo", type=Path, default=Path.cwd(), help="repository root")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    start = subparsers.add_parser("start", help="create a checkpoint for the latest dogfooding session")
+    start = subparsers.add_parser("start", help="create a checkpoint for a real dogfooding session")
     start.add_argument("arc", help="arc directory name or path under .dogfooding/")
+    start.add_argument(
+        "--session",
+        help="optional three-digit session ID to backfill; defaults to the latest real session",
+    )
 
     validate = subparsers.add_parser("validate", help="validate all product checkpoints in an arc")
     validate.add_argument("arc", help="arc directory name or path under .dogfooding/")
@@ -384,7 +402,7 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = args.repo.resolve()
     try:
         if args.command == "start":
-            path, payload = start_checkpoint(repo_root, args.arc)
+            path, payload = start_checkpoint(repo_root, args.arc, session_id=args.session)
             print(json.dumps({
                 "path": str(path.relative_to(repo_root)),
                 "session_id": payload["session_id"],
