@@ -1,75 +1,265 @@
 # Usage
 
-**AbleArc** is intentionally usable without a dedicated app. The minimum unit is a skill file plus a small persistent learning workspace.
+AbleArc has two first-class ways to use the same Learning Runtime:
 
-## Native skill loading
+```text
+A. your own Agent + AbleArc skill
+B. AbleArc Web + your own model API (BYOM)
+```
 
-If your agent supports skills, copy or symlink:
+They share the same learner-state and Runtime authority model, but they test different parts of the system.
+
+- **Agent mode** primarily exercises the AbleArc Learning Engine / Runtime. Your Agent already supplies the model, so AbleArc does not need a separate Provider API key.
+- **Web mode** exercises the first-party Learning OS path (`Entry → Today → DailyContext → Focus`). The Web needs a server-side Provider configuration so it can assess a saved learner response and propose the next move.
+
+For the current pre-Phase-4 product pilot, use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md). A pure Agent session is still real learning evidence, but it does not by itself validate the Web product surfaces tracked in Issue #43.
+
+---
+
+## A. Use AbleArc with your own Agent
+
+This is the simplest path when you already use an Agent such as a coding/research assistant that can read files and run commands.
+
+### 1. Work from an AbleArc checkout
+
+```bash
+git clone https://github.com/C-surfing/AbleArc.git
+cd AbleArc
+python tools/learning.py doctor
+python tools/runtime.py --repo . verify
+```
+
+The Agent should operate with the repository root as its working directory so it can use `skills/`, `tools/`, `.learning/`, and the Runtime together.
+
+### 2. If the Agent supports skills
+
+Expose or install:
 
 ```text
 skills/teach/
 skills/study/
 ```
 
-into the agent's skill directory according to that agent's conventions.
+according to that Agent's skill conventions.
 
-Then invoke naturally:
-
-```text
-Teach me Bayes theorem.
-```
+Then invoke naturally, for example:
 
 ```text
-Help me really understand pointers in C.
+Use the AbleArc Teach skill.
+I want to become able to explain why nonlinear hidden representations make an MLP able to separate patterns that a single linear layer cannot.
 ```
+
+or:
 
 ```text
-Continue my differential forms learning from where I left off.
+Use the AbleArc Study skill and continue from my current learning state.
+Do not reteach material I can retrieve.
 ```
+
+### 3. If the Agent does not support skills
+
+Ask it to read the bootstrap prompt:
 
 ```text
-Study the probability material I learned this week.
+Read prompts/bootstrap.md and skills/teach/SKILL.md, then enter AbleArc mode in this repository.
+I want to become able to <capability>.
 ```
 
-The skill should read and maintain `.learning/` in the current project when persistence is useful.
+`prompts/bootstrap.md` resolves workspace-v0.2 first. It uses the supported helpers to identify the selected Project/Mission and checks for a pending Workspace response before asking you to repeat anything.
 
-## Agents without skill support
+### 4. Creating the first Project
 
-Paste or reference [`../prompts/bootstrap.md`](../prompts/bootstrap.md), then ask the agent to read the repository files.
+The Agent may create the Project through the supported helper after you state a capability-oriented goal. You can also initialize it explicitly:
 
-A practical invocation is:
+```bash
+printf '%s' '{"title":"MLP representations","goal":"Explain and reason about how nonlinear hidden representations change what an MLP can express"}' \
+  | python tools/learning.py create-project -
+```
+
+This creates a workspace-v0.2 Project/Mission and a conservative representative-attempt Decision. It does **not** invent mastery, misconceptions, or a domain map.
+
+Useful inspection commands are:
+
+```bash
+python tools/learning.py projects
+python tools/learning.py brief
+python tools/learning.py map
+python tools/runtime.py --repo . pending
+```
+
+Do not hand-edit Runtime receipts or canonical map revisions as a shortcut.
+
+### 5. What Agent mode means architecturally
 
 ```text
-Read prompts/bootstrap.md and enter AbleArc mode.
-Teach me <topic>.
+your Agent/model
+      ↓
+AbleArc Teach / Study skill
+      ↓
+AbleArc Learning Runtime
+      ↓
+.learning/ learner state
 ```
 
-## First session
+There is no second AbleArc model call in this mode. Your Agent performs the teaching/assessment reasoning and commits through the Runtime boundary.
 
-The agent should avoid a long intake form. It can create `.learning/` progressively.
+---
+
+## B. Use AbleArc through the Web
+
+The Web path is the current first-party Learning OS experience:
+
+```text
+Entry
+  ↓
+Today + DailyContext
+  ↓
+Focus Session
+  ↓
+learner response
+  ↓
+BYOM assessment
+  ↓
+next Runtime Decision
+```
+
+### 1. Install the Workspace
+
+From the repository root:
+
+```bash
+python tools/learning.py doctor
+python tools/runtime.py --repo . verify
+```
+
+Then:
+
+```bash
+cd apps/workspace
+npm install
+cp .env.example .env.local
+```
+
+### 2. Configure your own model
+
+Edit `apps/workspace/.env.local`.
+
+For a Provider that supports strict JSON Schema on OpenAI-compatible Chat Completions:
+
+```bash
+ABLEARC_PROVIDER_API_KEY=<your key>
+ABLEARC_PROVIDER_MODEL=<model id>
+ABLEARC_PROVIDER_BASE_URL=<provider base URL>
+ABLEARC_PROVIDER_STRUCTURED_OUTPUT=json_schema
+ABLEARC_PROVIDER_TIMEOUT_MS=45000
+```
+
+For DeepSeek Chat Completions, use JSON Object mode:
+
+```bash
+ABLEARC_PROVIDER_API_KEY=<your DeepSeek API key>
+ABLEARC_PROVIDER_MODEL=deepseek-flash
+ABLEARC_PROVIDER_BASE_URL=https://api.deepseek.com
+ABLEARC_PROVIDER_STRUCTURED_OUTPUT=json_object
+ABLEARC_PROVIDER_TIMEOUT_MS=45000
+```
+
+The current pilot reads credentials only on the local server. Do **not** use `NEXT_PUBLIC_` variables and do not commit `.env.local`.
+
+A learner-facing Provider Settings screen is not implemented yet; during the current local pilot BYOM is configured through `.env.local`. See [`AGENT-ADAPTER.md`](AGENT-ADAPTER.md).
+
+### 3. Start the Web product
+
+```bash
+npm run dev
+```
+
+Open the local Next.js URL and start at `/`.
+
+If there is no learner state, AbleArc shows Entry and asks what you want to become able to do. Returning use goes through Today. Evidence-bearing recommendations enter `/focus`.
+
+### 4. Use it as a learner, not as a test script
+
+For a real session:
+
+1. state a capability you genuinely care about;
+2. use Today and optionally set DailyContext;
+3. enter Focus from the primary action;
+4. reveal scaffolds only when you actually need them;
+5. submit your real reasoning;
+6. let the configured Provider assess that response;
+7. continue when the next Runtime Decision appears.
+
+The Provider only proposes the assessment and next move. Runtime validation remains the learner-truth boundary.
+
+---
+
+## Real dogfooding / evaluation
+
+If you are intentionally using AbleArc to guide product development, start a private arc from the repository root before or around the real session:
+
+```bash
+python tools/learning.py start-arc conceptual mlp-representation-learning
+```
+
+Available domains:
+
+```text
+probability
+mathematics
+paper-reading
+programming-agent
+conceptual
+```
+
+This creates a Git-ignored `.dogfooding/<arc>/` directory with `sessions/001.md`.
+
+For another meaningful session:
+
+```bash
+python tools/learning.py new-session <arc>
+```
+
+After a Web pilot session, create the product observation checkpoint:
+
+```bash
+python tools/vnext_product_dogfood.py --repo . start <arc>
+python tools/vnext_product_dogfood.py --repo . status <arc>
+python tools/vnext_product_dogfood.py --repo . validate <arc>
+python tools/vnext_product_dogfood.py --repo . summary <arc>
+```
+
+Use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md) for the exact first Web pilot procedure. Use [`../evaluation/RUNBOOK.md`](../evaluation/RUNBOOK.md) for longitudinal Runtime evidence. Keep private learner evidence local according to [`../evaluation/PRIVACY.md`](../evaluation/PRIVACY.md).
+
+Agent-mode sessions can contribute genuine longitudinal Runtime evidence. However, Agent mode does not observe whether Entry, Today, DailyContext, Focus chrome, Web scaffolds, or the Web response-to-assessment flow are good product interactions; those require Web dogfooding.
+
+---
+
+## Teaching behavior
 
 A good first-session interaction often looks like:
 
 ```text
 learner goal
-→ tiny orientation map
+→ small orientation
 → one discriminative probe
 → first useful cognitive move
+→ learner action
 → evidence
-→ state update
+→ repair or advance
 ```
 
-If the learner's mission is ambiguous in a way that materially changes the route, ask one concrete mission question.
+The agent/product should avoid a long intake form. If the mission is ambiguous in a way that materially changes the route, ask one concrete question rather than a questionnaire.
 
-## Example: learning Bayes
+### Example: learning Bayes
 
-Initial user message:
+Initial learner intent:
 
 ```text
 Teach me Bayes theorem. I have basic probability but it has never felt intuitive.
 ```
 
-A good opening is closer to:
+A useful opening is closer to:
 
 ```text
 Probability → Conditional probability → Bayes → Bayesian inference
@@ -79,135 +269,46 @@ Probability → Conditional probability → Bayes → Bayesian inference
 The formula is short; the hard part is why reversing a condition changes the answer so much. Before I give you the formula: a disease affects 1% of people, and a test catches 99% of sick people. If you test positive, does 99% feel like a plausible probability that you are sick, or should it be much lower?
 ```
 
-The answer is diagnostic. The next turn depends on the learner's model rather than a fixed lesson script.
+The answer is diagnostic. The next move depends on the learner's model rather than a fixed lesson script.
 
-## Example: studying after teaching
-
-User:
+### Study after teaching
 
 ```text
 Study Bayes with me. Don't reteach it unless I fail to retrieve something.
 ```
 
-The study skill should begin with retrieval or application, not a summary.
+Study mode should begin with retrieval/application rather than a summary.
 
-For example:
+---
 
-```text
-Without writing the formula, tell me what Bayes is correcting for when a positive test seems more convincing than it really is.
-```
+## Recommended domain workflows
 
-Then diagnose what failed.
+For a course, use one Project per sufficiently coherent capability line and let the map mirror conceptual dependencies rather than blindly mirror the textbook table of contents.
 
-## Persistent workspace setup
+For a book or paper, keep the source as evidence but let the learning route follow the conceptual structure required by the learner's goal.
 
-The recommended low-friction setup is:
+For programming, give the Agent access to a runnable environment when possible. Prefer prediction, execution, inspection, modification, and explanation over passive code reading.
 
-```bash
-python tools/learning.py init
-```
+For mathematics, state the desired rigor. The map may distinguish intuition, definitions, propositions, proof dependencies, techniques, and transfer problems when those distinctions matter.
 
-This creates missing files from `templates/` under `.learning/` plus `records/` and `references/`. Existing learner state is never overwritten.
-
-Manual setup remains valid:
-
-```text
-mkdir -p .learning/records .learning/references
-cp templates/MISSION.md .learning/MISSION.md
-cp templates/LEARNER.md .learning/LEARNER.md
-cp templates/ROADMAP.md .learning/ROADMAP.md
-cp templates/STATE.md .learning/STATE.md
-```
-
-Both approaches are optional. The agent can create files progressively when needed.
-
-The Visual Workspace can also start from one learner-owned goal. Its API uses the same guarded local command:
-
-```bash
-printf '%s' '{"goal":"Read an empirical ML paper and challenge its causal claims"}' \
-  | python tools/learning.py start-mission -
-```
-
-This succeeds only while `MISSION.md` is absent or still matches the untouched template. It also creates a high-uncertainty `mission-entry` probe so the learner can make a representative attempt immediately. The Teach agent should consume that response without asking the learner to repeat the goal, then use it to create a small provisional map and the first domain-specific Decision. Mission creation alone is not evidence of prior knowledge.
-
-## Running a v0.2 longitudinal arc
-
-Real evaluation evidence is local by default. Start an arc with:
-
-```bash
-python tools/learning.py start-arc probability bayes-base-rate
-```
-
-This creates a dated `.dogfooding/<arc>/` directory containing the selected domain brief, an arc record, and `sessions/001.md`. `.dogfooding/` is Git-ignored by default.
-
-For the next meaningful session:
-
-```bash
-python tools/learning.py new-session <arc>
-```
-
-Inspect local scaffolding without printing learner evidence:
-
-```bash
-python tools/learning.py status
-python tools/learning.py doctor
-```
-
-The helper does not choose teaching moves or infer mastery. Follow [`../evaluation/RUNBOOK.md`](../evaluation/RUNBOOK.md) for the actual evidence protocol and [`../evaluation/PRIVACY.md`](../evaluation/PRIVACY.md) before publishing any case derived from real learners.
-
-## Recommended workflow
-
-### For a course
-
-Use one learning workspace per course or sufficiently coherent domain. Let the roadmap mirror conceptual dependencies rather than blindly mirror the textbook table of contents.
-
-### For a book or paper
-
-Keep the source as evidence, but let the agent build a roadmap around the conceptual structure required for your goal. A chapter order and a learning order are not always the same.
-
-### For programming
-
-Give the agent access to a runnable environment when possible. Prefer prediction, execution, inspection, modification, and explanation over passive code reading.
-
-### For mathematics
-
-Tell the agent your desired rigor. The roadmap should distinguish intuition, definitions, propositions, proof dependencies, techniques, and transfer problems when those distinctions matter.
-
-### For exam preparation
-
-State the exam scope and date in `MISSION.md`. Use Teach mode to repair models and Study mode to strengthen retrieval, discrimination, and representative application. Do not let exam preparation collapse entirely into recognition-style multiple choice unless the exam itself demands it.
-
-## Commands are intentionally optional
-
-The protocol is designed for natural language rather than a command-heavy interface. If your agent supports slash commands, these are enough conceptually:
-
-```text
-/teach <topic>
-/study <topic>
-/map
-/state
-/review
-```
-
-They should map to the same underlying state model; they are convenience interfaces, not separate systems.
-
-The Python helper is likewise optional. It handles local files and evaluation scaffolding; it is not a user-facing teaching command language.
+For exam preparation, store the exam scope/constraints in the Mission. Use Teach to repair models and Study to strengthen retrieval, discrimination, and representative application.
 
 ## What should be visible to the learner?
 
 Usually visible:
 
-- compact local roadmap when orientation helps;
-- the current idea or challenge;
+- compact local structure when orientation helps;
+- the current idea/challenge;
+- one clear learner action;
 - meaningful feedback;
-- relevant source links when useful;
-- a concise note about what remains uncertain.
+- relevant sources when useful;
+- concise uncertainty / next-step context.
 
 Usually hidden:
 
-- repeated phase labels;
+- receipt mechanics;
+- repeated internal phase labels;
 - raw learner-state bookkeeping;
-- internal uncertainty calculations;
 - long diagnostic plans;
 - mechanical mastery scores.
 
