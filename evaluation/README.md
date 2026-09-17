@@ -1,6 +1,6 @@
 # Teaching Runtime Evaluation
 
-This directory evaluates whether ai4learning produces durable learner capability, not whether the tutor sounds helpful.
+This directory evaluates whether **AbleArc** produces durable learner capability, not whether the tutor sounds helpful.
 
 ## Primary outcome
 
@@ -38,9 +38,11 @@ These are default evidentiary standards, not rigid scoring rules. Domain evidenc
 
 ## Evaluation artifacts
 
+- `FIRST-PILOT.md` — end-to-end runbook for the first real learner-facing vNext session from Web startup through product checkpoint validation.
 - `SESSION.md` — one meaningful session record.
 - `ARC.md` — cross-session contract for a longitudinal learning arc.
 - `RUNBOOK.md` — execution procedure for running real dogfooding without turning the learner experience into an evaluation form.
+- `VNEXT-PRODUCT-DOGFOOD.md` — typed learner-facing product observations and the pre-Phase-4 promotion boundary.
 - `PROMOTION.md` — evidence gate before general Teach/Study protocol changes.
 - `FAILURE-TAXONOMY.md` — classify failures before changing the protocol.
 - `DOMAINS.md` — initial five-domain dogfooding matrix.
@@ -85,6 +87,8 @@ Use repeated observations to formulate and falsify review-trigger hypotheses. A 
 
 ## Recommended execution order
 
+For the first learner-facing vNext run, start with `FIRST-PILOT.md`. For continued longitudinal evaluation, use the broader sequence below:
+
 ```text
 choose real mission
     ↓
@@ -96,6 +100,8 @@ run Teach / Study normally
     ↓
 record decisive SESSION evidence
     ↓
+record product checkpoint when evaluating vNext surfaces
+    ↓
 retrieve later with less scaffolding
     ↓
 export delayed review observations when available
@@ -106,7 +112,7 @@ transfer / revisit
     ↓
 classify failures
     ↓
-PROMOTION gate if runtime change is justified
+PROMOTION gate if runtime/product change is justified
 ```
 
 Do not pre-fill success. `insufficient_evidence` is a valid outcome.
