@@ -25,7 +25,8 @@ Operational evaluation lives in `../evaluation/`:
 - `README.md` defines evidence standards and promotion rules;
 - `SESSION.md` records one meaningful session;
 - `FAILURE-TAXONOMY.md` classifies failures before fixes;
-- `DOMAINS.md` defines the initial five-domain matrix.
+- `DOMAINS.md` defines the initial five-domain matrix;
+- `REVIEW-SIGNALS.md` defines how to observe delayed retrieval before any scheduler policy is promoted.
 
 ## Longitudinal first
 
@@ -70,6 +71,14 @@ During each arc, look for:
 
 Record decisive evidence, not a full transcript.
 
+When a later session produces real `delay: delayed` Evidence, export the local descriptive review observations:
+
+```bash
+python tools/review_observations.py --repo .
+```
+
+Use the export to compare state-at-attempt, Evidence level/outcome, scaffolding, context, independence, and later accepted transitions across sessions. The export deliberately does not calculate review priority or a due date. Treat one observation as a hypothesis generator, not a scheduler rule.
+
 ## Iteration rule
 
 When a failure appears:
@@ -92,6 +101,8 @@ The first expected modifications should be to the learner model and teaching-dec
 - Obsidian / Markdown learning logs;
 - researcher subagent;
 - visualizer subagent.
+
+The current Review work stops at descriptive delayed-Evidence observation. Queue ranking and scheduling remain unimplemented until repeated longitudinal evidence supports their semantics.
 
 Complexity must be earned by observed need.
 
