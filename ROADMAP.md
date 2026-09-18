@@ -14,7 +14,7 @@ Branding has since completed its separate transition: **AbleArc** is the accepte
 
 ## Current delivery checkpoint
 
-vNext Phases 1–5 are implemented on `main`:
+vNext Phases 1–6 are implemented on `main`:
 
 ```text
 Entry → Today + DailyContext → Focus Session
@@ -30,7 +30,9 @@ The conversation-first correction is now part of the baseline architecture: host
 
 Phase 5 Session Close + Tomorrow Seed is now part of the baseline product loop: a Close is derived from existing Runtime Evidence/state only, and its Mission-scoped Tomorrow Seed is operational continuity that becomes stale when the unanswered Decision changes.
 
-The current development checkpoint is **Phase 6 — learner-owned free-form Reflection**, tracked by Issue [#85](https://github.com/C-surfing/AbleArc/issues/85). Reflection must remain optional, Project-local, explicitly learner-owned, and separate from Evidence, LearningMaterial, mastery, Map, and Completion authority.
+Phase 6 learner-owned Reflection is now part of the baseline product: free-form, optional, Project-local, and separate from Evidence/LearningMaterial/mastery authority.
+
+The current development checkpoint is **Phase 7 — risk-tiered state authority policy**, tracked by Issue [#87](https://github.com/C-surfing/AbleArc/issues/87). Only descriptive first exposure (`unknown → exposed`) may be auto-accepted by deterministic Runtime policy; stronger learner-state claims remain explicit review.
 
 Capture Inbox remains **not promoted and removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
 
