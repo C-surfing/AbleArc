@@ -187,3 +187,28 @@ export function researchSourcesFromHostTurn(input: HostTurnInput): CapabilitySou
     return source ? [source] : [];
   });
 }
+
+export function researchRequestFromHostTurn(
+  input: HostTurnInput,
+  decisionId: string,
+  purpose: string,
+  query: string,
+): ResearchCapabilityRequest {
+  if (!input.projectId) {
+    throw new Error("Plugin/host research requires an explicit Project binding");
+  }
+  if (!input.capabilities.includes("retrieve_source")) {
+    throw new Error("Plugin/host does not declare retrieve_source capability");
+  }
+  const sources = researchSourcesFromHostTurn(input);
+  if (!sources.length) {
+    throw new Error("Plugin/host research requires at least one retrieved source excerpt");
+  }
+  return {
+    expectedProjectId: input.projectId,
+    decisionId,
+    purpose,
+    query,
+    sources,
+  };
+}
