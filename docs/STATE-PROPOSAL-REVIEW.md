@@ -11,18 +11,30 @@ StateProposal + Evidence references
     ↓
 Runtime transition-policy inspection
     ↓
-Workspace learner review
-    ↓
-accept / reject + learner rationale
-    ↓
-runtime.decide_state_proposal
+risk classification
+    ├── low + eligible → runtime_policy reconcile
+    └── medium / high → Workspace learner review
+                         ↓
+                  accept / reject + learner rationale
+                         ↓
+                 runtime.decide_state_proposal
     ↓
 immutable StateDecision receipt
     ↓
 accepted state projection (accept only)
 ```
 
-The Workspace reads unresolved proposals through `tools/state_proposals.py`. That adapter calls the existing Runtime policy implementation; it does not duplicate transition rules in TypeScript.
+The Workspace reads unresolved proposals through `tools/state_proposals.py`. That adapter calls the existing Runtime policy implementation; it does not duplicate transition or risk rules in TypeScript. The Web client may request `reconcile`, but Python decides which proposals are eligible and writes the resulting immutable state-decision receipts.
+
+## Risk taxonomy
+
+Risk is derived by the Runtime and is not stored as a new authority-bearing receipt field.
+
+- **low** — only `unknown → exposed`, with no policy issues and a non-stale current state. This records evidence-bearing exposure, not mastery. It may be accepted automatically by `runtime_policy:low-risk-v0.1`.
+- **medium** — ordinary evidence-backed transitions that make a stronger learner-state claim, such as `exposed → developing`. These remain explicit learner/human review.
+- **high** — transitions to `stable` or `transferable`, downgrades, skipped states, or any proposal with conservative-policy issues. These remain explicit and policy-blocked cases still require learner/human override where allowed.
+
+A stale proposal is never auto-accepted. Runtime policy cannot override its own safety checks. LearningMap topology is unaffected and remains proposal-first.
 
 ## Learner action
 
@@ -34,6 +46,7 @@ A review shows only the learner-relevant fields:
 - number of grounding Evidence receipts;
 - proposer identity;
 - current-state mismatch when the proposal is stale;
+- Runtime risk level;
 - Runtime policy issues when acceptance would require an override.
 
 The learner must provide a rationale before accepting or rejecting. A rejection records a `state-decision` receipt but does not change state. A normal acceptance is allowed only when Runtime policy permits it and the proposal is not stale.
