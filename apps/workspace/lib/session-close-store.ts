@@ -1,6 +1,6 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { atomicWriteJson, withExclusiveFileLock } from "./local-file-store.ts";
 import { resolveProjectReadContext } from "./project-store.ts";
 import type {
   SessionCapabilityChange,
@@ -199,86 +199,77 @@ export function writeSessionClose(
   }
   const context = currentContext(repoRoot);
   const projectRoot = path.dirname(context.runtimeRoot);
-  const lockPath = path.join(projectRoot, ".session-close.lock");
-  let descriptor: number | undefined;
-  try {
-    descriptor = fs.openSync(lockPath, "wx");
-    fs.writeFileSync(descriptor, crypto.randomUUID() + "\n", "utf8");
-    const current = readSessionClose(repoRoot);
-    const revision = current?.revision ?? 0;
-    if (revision !== expectedRevision) {
-      throw new Error("Session Close changed before this update was saved");
-    }
+  return withExclusiveFileLock(
+    path.join(projectRoot, ".session-close.lock"),
+    "another Session Close write is already in progress",
+    () => {
+      const current = readSessionClose(repoRoot);
+      const revision = current?.revision ?? 0;
+      if (revision !== expectedRevision) {
+        throw new Error("Session Close changed before this update was saved");
+      }
 
-    const record: SessionCloseRecord = {
-      schemaVersion: "0.1",
-      revision: revision + 1,
-      workspaceId: context.workspaceId!,
-      projectId: context.projectId,
-      missionId: context.missionId!,
-      closedAt: new Date().toISOString(),
-      ...draft,
-    };
+      const record: SessionCloseRecord = {
+        schemaVersion: "0.1",
+        revision: revision + 1,
+        workspaceId: context.workspaceId!,
+        projectId: context.projectId,
+        missionId: context.missionId!,
+        closedAt: new Date().toISOString(),
+        ...draft,
+      };
 
-    const continuityRoot = path.join(projectRoot, "continuity", context.missionId!);
-    if (fs.existsSync(continuityRoot) && fs.lstatSync(continuityRoot).isSymbolicLink()) {
-      throw new Error("Session Close directory must not be a symbolic link");
-    }
-    fs.mkdirSync(continuityRoot, { recursive: true });
-    const target = path.join(continuityRoot, "session-close.json");
-    const temporary = path.join(continuityRoot, ".session-close." + crypto.randomUUID() + ".tmp");
-    const payload = {
-      schema_version: record.schemaVersion,
-      kind: "session-close",
-      workspace_id: record.workspaceId,
-      project_id: record.projectId,
-      mission_id: record.missionId,
-      revision: record.revision,
-      closed_at: record.closedAt,
-      source_decision_id: record.sourceDecisionId,
-      source_observation_id: record.sourceObservationId,
-      source_evidence_id: record.sourceEvidenceId,
-      evidence_summary: record.evidenceSummary,
-      ...(record.capabilityChange ? {
-        capability_change: {
-          concept: record.capabilityChange.concept,
-          before: record.capabilityChange.before,
-          after: record.capabilityChange.after,
+      const target = path.join(
+        projectRoot,
+        "continuity",
+        context.missionId!,
+        "session-close.json",
+      );
+      atomicWriteJson(
+        target,
+        {
+          schema_version: record.schemaVersion,
+          kind: "session-close",
+          workspace_id: record.workspaceId,
+          project_id: record.projectId,
+          mission_id: record.missionId,
+          revision: record.revision,
+          closed_at: record.closedAt,
+          source_decision_id: record.sourceDecisionId,
+          source_observation_id: record.sourceObservationId,
+          source_evidence_id: record.sourceEvidenceId,
+          evidence_summary: record.evidenceSummary,
+          ...(record.capabilityChange ? {
+            capability_change: {
+              concept: record.capabilityChange.concept,
+              before: record.capabilityChange.before,
+              after: record.capabilityChange.after,
+            },
+          } : {}),
+          ...(record.unresolved ? {
+            unresolved: {
+              target: record.unresolved.target,
+              uncertainty: record.unresolved.uncertainty,
+              rationale: record.unresolved.rationale,
+            },
+          } : {}),
+          materials: record.materials,
+          pending_proposal_count: record.pendingProposalCount,
+          ...(record.tomorrowSeed ? {
+            tomorrow_seed: {
+              decision_id: record.tomorrowSeed.decisionId,
+              target: record.tomorrowSeed.target,
+              action: record.tomorrowSeed.action,
+            },
+          } : {}),
         },
-      } : {}),
-      ...(record.unresolved ? {
-        unresolved: {
-          target: record.unresolved.target,
-          uncertainty: record.unresolved.uncertainty,
-          rationale: record.unresolved.rationale,
+        {
+          directoryLabel: "Session Close directory",
+          targetLabel: "Session Close manifest",
+          temporaryPrefix: ".session-close",
         },
-      } : {}),
-      materials: record.materials,
-      pending_proposal_count: record.pendingProposalCount,
-      ...(record.tomorrowSeed ? {
-        tomorrow_seed: {
-          decision_id: record.tomorrowSeed.decisionId,
-          target: record.tomorrowSeed.target,
-          action: record.tomorrowSeed.action,
-        },
-      } : {}),
-    };
-    try {
-      fs.writeFileSync(temporary, JSON.stringify(payload, null, 2) + "\n", "utf8");
-      fs.renameSync(temporary, target);
-    } finally {
-      try { fs.unlinkSync(temporary); } catch {}
-    }
-    return record;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      throw new Error("another Session Close write is already in progress");
-    }
-    throw error;
-  } finally {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-      try { fs.unlinkSync(lockPath); } catch {}
-    }
-  }
+      );
+      return record;
+    },
+  );
 }
