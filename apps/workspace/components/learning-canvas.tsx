@@ -429,21 +429,16 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
       ) : (
       <section className="teacher-move" aria-labelledby="move-title">
         <div className="teacher-move__meta">
-          <span>Current move</span>
+          <span>Next step</span>
           <span className="thin-rule" />
-          <span>capability delta, not content volume</span>
+          <span>one useful thing at a time</span>
         </div>
         <h2 id="move-title">{snapshot.nextMove}</h2>
         <div className="learner-action">
           <span>Your move</span>
           <p>{snapshot.expectedLearnerAction}</p>
         </div>
-        {snapshot.decision ? (
-          <div className="decision-expectation">
-            <div><span>Expected evidence</span><p>{snapshot.decision.expectedEvidence}</p></div>
-            <div><span>Would falsify</span><p>{snapshot.decision.falsificationSignal}</p></div>
-          </div>
-        ) : null}
+        {null}
       </section>
       )}
 
@@ -451,29 +446,14 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         <section className="feedback-card" aria-labelledby="feedback-title">
           <div className="feedback-card__header">
             <div>
-              <span className="section-kicker">Feedback from your last move</span>
-              <strong id="feedback-title">What changed in the learner model</strong>
+              <span className="section-kicker">From your last response</span>
+              <strong id="feedback-title">Feedback</strong>
             </div>
-            <span className={`feedback-outcome feedback-outcome--${snapshot.latestExchange.outcome}`}>
-              {snapshot.latestExchange.outcome}
-            </span>
           </div>
           <p className="feedback-card__response">“{snapshot.latestExchange.response}”</p>
           <p className="feedback-card__message">{snapshot.latestExchange.feedback}</p>
-          <div className="feedback-card__meta">
-            <span>{snapshot.latestExchange.level} evidence</span>
-            <span>{snapshot.latestExchange.confidence} confidence</span>
-            {snapshot.latestExchange.nextDecisionId === snapshot.decision?.id ? <span>next move ready</span> : null}
-          </div>
-          {snapshot.latestExchange.supports.length > 0 || snapshot.latestExchange.contradicts.length > 0 ? (
-            <div className="feedback-card__implications">
-              {snapshot.latestExchange.supports.length > 0 ? (
-                <p><strong>Supports</strong> {snapshot.latestExchange.supports.join(" · ")}</p>
-              ) : null}
-              {snapshot.latestExchange.contradicts.length > 0 ? (
-                <p><strong>Still challenges</strong> {snapshot.latestExchange.contradicts.join(" · ")}</p>
-              ) : null}
-            </div>
+          {snapshot.latestExchange.nextDecisionId === snapshot.decision?.id ? (
+            <div className="feedback-card__meta"><span>Next step ready</span></div>
           ) : null}
         </section>
       ) : null}
@@ -540,7 +520,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
               : !projectWritable
                 ? "Resume this Project or start an archived maintenance review before adding evidence."
               : snapshot.decision
-                ? "Write what you think. Partial reasoning is useful evidence."
+                ? "Write what you think. Partial reasoning is completely fine."
                 : "Start a Teach or Study turn to respond here."}
           />
         </label>
@@ -575,7 +555,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
                   ? "Response saved"
                   : snapshot.artifact && !artifactInteraction
                     ? "Predict first"
-                    : "Submit thinking"}
+                    : "Send"}
             </button>
           </div>
         </div>
