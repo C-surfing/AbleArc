@@ -122,6 +122,20 @@ class LearningToolTests(unittest.TestCase):
         self.assertTrue((arc / "sessions" / "001.md").is_file())
         self.assertIn("probability", (arc / "README.md").read_text(encoding="utf-8"))
 
+    def test_untouched_session_template_is_not_real_evidence(self):
+        arc = learning.start_arc(self.root, "procedural", "linked-list-skill")
+
+        self.assertEqual(learning.real_session_records(self.root, arc), [])
+        session = arc / "sessions" / "001.md"
+        session.write_text(
+            session.read_text(encoding="utf-8") + "\nLearner implemented and explained one deletion case.\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            [path.name for path in learning.real_session_records(self.root, arc)],
+            ["001.md"],
+        )
+
     def test_start_learning_mission_saves_explicit_goal_without_model_inference(self):
         path = learning.start_learning_mission(
             self.root,
