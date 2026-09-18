@@ -46,10 +46,14 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             schema["$defs"]["base"]["properties"]["schema_version"],
             {"const": "0.2"},
         )
+        decision = schema["$defs"]["decision"]["allOf"][1]
         self.assertEqual(
-            tuple(schema["$defs"]["decision"]["allOf"][1]["properties"]["move"]["enum"]),
+            tuple(decision["properties"]["move"]["enum"]),
             runtime.MOVE_TYPES,
         )
+        self.assertIn("recorded_after_action", decision["properties"])
+        self.assertIn("late_record_reason", decision["properties"])
+        self.assertEqual(len(decision["allOf"]), 2)
         self.assertIn("frontierRevision", schema["$defs"])
         self.assertIn(
             {"$ref": "#/$defs/frontierRevision"},
@@ -156,6 +160,36 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             )
         self.assertEqual(runtime._current_state(self.root)["schema_version"], "0.1")
         self.assertEqual(runtime.verify_runtime(self.root), [])
+
+    def test_late_decision_records_ordering_deviation_explicitly(self):
+        payload = {
+            **self.next_decision(),
+            "mode": "teach",
+            "concept_ids": ["bayes-base-rate"],
+        }
+        late = runtime.record_late_decision(
+            self.root,
+            payload,
+            "The Agent presented this learner action before recording its Decision.",
+        )
+
+        self.assertTrue(late["recorded_after_action"])
+        self.assertEqual(
+            late["late_record_reason"],
+            "The Agent presented this learner action before recording its Decision.",
+        )
+        self.assertEqual(late["schema_version"], "0.2")
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+        with self.assertRaisesRegex(
+            runtime.RuntimeContractError,
+            "late-decision assigns",
+        ):
+            runtime.record_late_decision(
+                self.root,
+                {**payload, "recorded_after_action": True},
+                "Do not let callers forge the marker.",
+            )
 
     def test_callers_cannot_override_runtime_assigned_scope(self):
         payload = {
