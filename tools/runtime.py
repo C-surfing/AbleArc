@@ -1158,11 +1158,11 @@ def decide_state_proposal(
         raise RuntimeContractError(f"proposal already has a state decision: {previous[0]['id']}")
 
     issues = transition_policy_issues(repo_root, proposal) if decision == "accepted" else []
-    if issues and not override_policy:
-        raise RuntimeContractError("transition policy rejected acceptance: " + "; ".join(issues))
     if override_policy and authority_type == "runtime_policy":
         raise RuntimeContractError("runtime_policy cannot override its own safety checks")
 
+    policy_rejected = bool(issues and not override_policy)
+    effective_decision = "rejected" if policy_rejected else decision
     data: dict[str, Any] = {"id": receipt_id, "created_at": created_at}
     receipt = _base(
         repo_root,
@@ -1173,7 +1173,7 @@ def decide_state_proposal(
     receipt.update(
         {
             "proposal_id": proposal_id,
-            "decision": decision,
+            "decision": effective_decision,
             "authority": {"type": authority_type, "id": authority_id},
             "reason": reason,
             "policy_issues": issues,
@@ -1181,7 +1181,14 @@ def decide_state_proposal(
         }
     )
 
-    if decision == "accepted":
+    if policy_rejected:
+        receipt = _save(repo_root, "state-decision", receipt)
+        raise RuntimeContractError(
+            f"transition policy rejected acceptance; rejection recorded as {receipt['id']}: "
+            + "; ".join(issues)
+        )
+
+    if effective_decision == "accepted":
         state = _current_state(repo_root)
         existing = state["concepts"].get(proposal["concept_id"])
         current = existing["state"] if existing else "unknown"
