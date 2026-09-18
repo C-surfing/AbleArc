@@ -57,6 +57,7 @@ The receipt runtime preserves this inspectable chain:
 
 ```text
 decision → observation → evidence → state proposal → authority decision → turn
+                └────→ frontier revision → corrected decision
 ```
 
 Initialize it directly when needed:
@@ -90,6 +91,16 @@ python tools/runtime.py --repo . advance <decision-id> assessment.json
 ```
 
 `advance` validates the assessment and next move before writing anything, then records feedback as evidence, closes the completed turn, and grounds the next decision in that evidence. It does not change mastery state.
+
+If that Evidence refutes an earlier frontier hypothesis, record the correction
+without changing mastery:
+
+```bash
+python tools/runtime.py --repo . record frontier-revision frontier-revision.json
+```
+
+The revising Decision must already use the cited Evidence. Frontier revisions
+are scoped workspace receipts; legacy v0.1 storage remains immutable.
 
 Create a validated learner-operable representation:
 

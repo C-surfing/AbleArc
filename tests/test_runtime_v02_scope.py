@@ -50,6 +50,11 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             tuple(schema["$defs"]["decision"]["allOf"][1]["properties"]["move"]["enum"]),
             runtime.MOVE_TYPES,
         )
+        self.assertIn("frontierRevision", schema["$defs"])
+        self.assertIn(
+            {"$ref": "#/$defs/frontierRevision"},
+            schema["oneOf"],
+        )
 
     def assessment(self):
         return {
@@ -147,6 +152,92 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(runtime.RuntimeContractError, "assigned by the active Project"):
             runtime.record_decision(self.root, payload)
+
+    def test_frontier_revision_preserves_refuted_hypothesis_without_changing_mastery(self):
+        _, first = self.create_scoped_decision()
+        superseded = first["next_decision"]
+        runtime.record_learner_response(
+            self.root,
+            superseded["id"],
+            "I cannot identify which populations the denominator represents.",
+        )
+        assessment = {
+            **self.assessment(),
+            "outcome": "contradicts",
+            "result_summary": "The learner lacks the prerequisite population representation.",
+            "supports": [],
+            "contradicts": ["usable population representation"],
+        }
+        next_decision = {
+            **self.next_decision(),
+            "frontier_hypothesis": (
+                "The prerequisite population representation is missing; denominator reasoning "
+                "is not yet the active frontier."
+            ),
+            "move": "establish_intuition",
+        }
+        revised = runtime.advance_learning_turn(
+            self.root,
+            superseded["id"],
+            {"assessment": assessment, "next_decision": next_decision},
+        )
+
+        revision = runtime.record_frontier_revision(
+            self.root,
+            {
+                "supersedes_decision_id": superseded["id"],
+                "revised_by_decision_id": revised["next_decision"]["id"],
+                "evidence_ids": [revised["evidence"]["id"]],
+                "reason": "prerequisite_discovered",
+                "rationale": "The failed explanation locates the frontier below denominator use.",
+                "recorded_by": "teach-agent:test",
+            },
+        )
+
+        self.assertEqual(revision["previous_hypothesis"], superseded["frontier_hypothesis"])
+        self.assertEqual(
+            revision["revised_hypothesis"],
+            revised["next_decision"]["frontier_hypothesis"],
+        )
+        self.assertEqual(revision["reason"], "prerequisite_discovered")
+        self.assertEqual(runtime._current_state(self.root)["revision"], 0)
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+    def test_frontier_revision_requires_evidence_used_by_revising_decision(self):
+        _, first = self.create_scoped_decision()
+        superseded = first["next_decision"]
+        runtime.record_learner_response(self.root, superseded["id"], "I am not sure.")
+        revised = runtime.advance_learning_turn(
+            self.root,
+            superseded["id"],
+            {
+                "assessment": {
+                    **self.assessment(),
+                    "outcome": "inconclusive",
+                    "supports": [],
+                },
+                "next_decision": {
+                    **self.next_decision(),
+                    "frontier_hypothesis": "A prerequisite representation may be missing.",
+                },
+            },
+        )
+
+        with self.assertRaisesRegex(
+            runtime.RuntimeContractError,
+            "evidence must be used by the revising decision",
+        ):
+            runtime.record_frontier_revision(
+                self.root,
+                {
+                    "supersedes_decision_id": superseded["id"],
+                    "revised_by_decision_id": revised["next_decision"]["id"],
+                    "evidence_ids": [first["evidence"]["id"]],
+                    "reason": "hypothesis_refuted",
+                    "rationale": "This should not be accepted without linked evidence.",
+                    "recorded_by": "teach-agent:test",
+                },
+            )
 
     def test_tampered_project_scope_is_rejected_on_read(self):
         _, result = self.create_scoped_decision()

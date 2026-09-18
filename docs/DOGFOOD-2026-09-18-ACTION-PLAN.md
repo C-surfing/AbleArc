@@ -159,6 +159,7 @@ predict
 - #58 failed first attempt / contradicting and inconclusive evidence
   (`unknown → exposed` corrected so first contact is recordable without a mastery claim)
 - #59 frontier hypothesis revision / prerequisite discovered
+  (`frontier-revision` receipts preserve refuted hypotheses without changing mastery)
 - #60 failure-mode taxonomy
 - #61 evidence artifact form
 

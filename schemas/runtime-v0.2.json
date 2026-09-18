@@ -7,6 +7,9 @@
       "$ref": "#/$defs/decision"
     },
     {
+      "$ref": "#/$defs/frontierRevision"
+    },
+    {
       "$ref": "#/$defs/observation"
     },
     {
@@ -271,6 +274,65 @@
                   "maximum": 1
                 }
               }
+            }
+          }
+        }
+      ]
+    },
+    "frontierRevision": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base"
+        },
+        {
+          "type": "object",
+          "required": [
+            "supersedes_decision_id",
+            "revised_by_decision_id",
+            "previous_hypothesis",
+            "revised_hypothesis",
+            "evidence_ids",
+            "reason",
+            "rationale",
+            "recorded_by"
+          ],
+          "properties": {
+            "kind": {
+              "const": "frontier-revision"
+            },
+            "supersedes_decision_id": {
+              "type": "string",
+              "pattern": "^dec_"
+            },
+            "revised_by_decision_id": {
+              "type": "string",
+              "pattern": "^dec_"
+            },
+            "previous_hypothesis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revised_hypothesis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence_ids": {
+              "$ref": "#/$defs/stringList"
+            },
+            "reason": {
+              "enum": [
+                "prerequisite_discovered",
+                "hypothesis_refuted",
+                "scope_refined"
+              ]
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            },
+            "recorded_by": {
+              "type": "string",
+              "minLength": 1
             }
           }
         }

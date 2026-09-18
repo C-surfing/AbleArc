@@ -430,6 +430,14 @@ Use evidence to update state conservatively:
 - `stable` requires independent evidence beyond a single immediate response;
 - `transferable` requires successful use outside the original presentation pattern.
 
+If new evidence shows that the earlier `frontier_hypothesis` was wrong, do not
+hide the correction in a later rationale and do not treat it as automatic
+mastery regression. Issue the corrected Decision, then record a
+`frontier-revision` that links the superseded Decision, revising Decision, and
+decisive Evidence. Use `prerequisite_discovered` when the frontier moved below
+the assumed skill, `hypothesis_refuted` when the model itself failed, and
+`scope_refined` when the original claim was too broad or too narrow.
+
 If long-term retention matters, schedule or suggest later retrieval rather than pretending immediate fluency proves storage strength.
 
 Before telling the learner that a Mission is complete, run
