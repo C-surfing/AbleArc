@@ -200,6 +200,66 @@ class ProjectLifecycleTests(unittest.TestCase):
         self.assertIn("ready for assessment", brief["headline"])
         self.assertNotIn("ai4learning", brief["headline"].lower())
 
+    def test_learning_brief_surfaces_runtime_to_map_topology_drift(self):
+        self.create()
+        decision = runtime.list_receipts(self.root, "decision")[-1]
+        runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "The prior changes the size of the candidate population.",
+        )
+        runtime.advance_learning_turn(
+            self.root,
+            decision["id"],
+            {
+                "assessment": {
+                    "level": "explanation",
+                    "outcome": "supports",
+                    "failure_mode": "none",
+                    "artifact_form": "prose",
+                    "result_summary": "The learner used the prior as population information.",
+                    "scaffolding": "light",
+                    "context": "same",
+                    "delay": "immediate",
+                    "independence": "same_form",
+                    "supports": ["base-rate reasoning"],
+                    "contradicts": [],
+                    "confidence": "medium",
+                    "assessor": "test-suite",
+                },
+                "next_decision": {
+                    "mode": "teach",
+                    "target": "Use the base rate in a changed context",
+                    "concept_ids": ["bayes-base-rate"],
+                    "frontier_hypothesis": "Transfer now depends on preserving the base-rate population.",
+                    "uncertainty": "medium",
+                    "move": "apply",
+                    "rationale": "A varied case tests whether the representation is usable.",
+                    "learner_action": "Solve one changed-base-rate case.",
+                    "representation": {
+                        "kind": "conversation",
+                        "purpose": "Test application without inventing a topology edge.",
+                    },
+                    "expected_evidence": "The prior remains part of the candidate population.",
+                    "falsification_signal": "The prior is discarded after observing the cue.",
+                },
+            },
+        )
+
+        brief = project_lifecycle.learning_brief(self.root)
+
+        self.assertTrue(brief["topology_drift"]["needs_proposal"])
+        self.assertEqual(
+            brief["topology_drift"]["missing_concept_ids"],
+            ["bayes-base-rate"],
+        )
+        self.assertTrue(brief["topology_drift"]["frontier_out_of_sync"])
+        self.assertEqual(
+            brief["topology_action"],
+            "python tools/learning_map_proposals.py --repo . derive",
+        )
+        self.assertEqual(brief["next_action"], "continue-current-decision")
+
     def test_learning_brief_surfaces_due_archived_review(self):
         self.create()
         project_lifecycle.archive_project(self.root, "bayes")
