@@ -1,6 +1,6 @@
 # Host Integration Contract
 
-Status: **v0.1 contract implemented; host mappings pending**
+Status: **v0.1 host contract implemented; thin plugin/Capability mapping active**
 
 AbleArc should work inside the conversational product the learner already prefers. The first-party Web app remains important, but it is one host over the Learning Engine rather than the only natural interaction surface.
 
@@ -70,14 +70,19 @@ control
 
 A host may render only `presentation`. AbleArc still validates and persists `control` through the Runtime boundary.
 
-## 4. ChatGPT and other assistant products
+## 4. ChatGPT, plugins/connectors, and other assistant products
+
+Plugins/connectors are a required AbleArc product surface. They are not removed in the name of architectural simplicity. The simplicity target is the internal implementation: every plugin should be a thin adapter over the same `HostTurnInput`, Capability, Teacher, and Runtime contracts.
 
 Do not build separate learning semantics for each product. Implement:
 
 1. the host-neutral envelope;
-2. one local reference adapter and conformance tests;
-3. a ChatGPT/assistant connector mapping;
-4. additional host mappings only when their capability model materially differs.
+2. thin plugin/connector mappings into that envelope;
+3. capability negotiation such as `retrieve_source`, `read_attachment`, or `execute_code`;
+4. the shared AbleArc Capability boundary;
+5. additional host-specific behavior only when the host capability model materially differs.
+
+A ChatGPT or other assistant plugin may retrieve a source using host-native tools, then pass the retrieved excerpt plus provenance into Research Capability. The plugin does not create its own learner model, Evidence semantics, or teaching policy.
 
 The integration should let a learner say, naturally:
 
@@ -100,7 +105,7 @@ The adapter should declare what the host can do for the current turn, for exampl
 
 ```text
 read_attachment
-retrieve_web_source
+retrieve_source
 execute_code
 render_diagram
 edit_file
@@ -120,6 +125,6 @@ The first slice now includes:
 - no mastery writes from the adapter;
 - contract tests.
 
-The next slice is to map the existing Web composer onto this envelope and add one external-assistant fixture proving both hosts preserve identical Runtime semantics.
+Phase 8 adds the first concrete mapping: retrieved host references can be converted into the same Research Capability request used by the first-party server path. The remaining product work is packaging concrete ChatGPT/assistant connectors around this thin adapter and adding host-specific conformance fixtures, without duplicating learning semantics.
 
 Streaming, rich generative UI, cloud sync, and broad attachment ingestion are later concerns.
