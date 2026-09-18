@@ -210,6 +210,7 @@ mathematics
 paper-reading
 programming-agent
 conceptual
+procedural
 ```
 
 This creates a Git-ignored `.dogfooding/<arc>/` directory with `sessions/001.md`.
@@ -287,7 +288,7 @@ For a course, use one Project per sufficiently coherent capability line and let 
 
 For a book or paper, keep the source as evidence but let the learning route follow the conceptual structure required by the learner's goal.
 
-For programming, give the Agent access to a runnable environment when possible. Prefer prediction, execution, inspection, modification, and explanation over passive code reading.
+For programming, give the Agent access to a runnable environment when possible, but do not execute by reflex. Prefer prediction and reasoning first; run/build/test when concrete behavior, learner code, or environment effects can change the teaching decision. For learning a language, data structure, algorithm, or other productive skill from scratch, use the `procedural` dogfood arc rather than `programming-agent`, which is for understanding/debugging an existing system.
 
 For mathematics, state the desired rigor. The map may distinguish intuition, definitions, propositions, proof dependencies, techniques, and transfer problems when those distinctions matter.
 
