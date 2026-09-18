@@ -60,6 +60,7 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         return {
             "level": "explanation",
             "outcome": "supports",
+            "failure_mode": "none",
             "result_summary": "The learner distinguished the prior from the likelihood.",
             "scaffolding": "light",
             "context": "same",
@@ -153,6 +154,49 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(runtime.RuntimeContractError, "assigned by the active Project"):
             runtime.record_decision(self.root, payload)
 
+    def test_scoped_evidence_records_failure_mode_without_changing_mastery(self):
+        _, first = self.create_scoped_decision()
+        decision = first["next_decision"]
+        observation = runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "I reused the earlier rule even though this case has a different structure.",
+        )
+        base = {
+            **self.assessment(),
+            "observation_id": observation["id"],
+            "concept_ids": decision["concept_ids"],
+            "result_summary": "A known rule was applied outside the conditions that made it valid.",
+            "supports": [],
+            "contradicts": ["context-sensitive transfer"],
+        }
+
+        with self.assertRaisesRegex(
+            runtime.RuntimeContractError,
+            "specific failure_mode",
+        ):
+            runtime.record_evidence(
+                self.root,
+                {**base, "outcome": "contradicts", "failure_mode": "none"},
+            )
+
+        with self.assertRaisesRegex(
+            runtime.RuntimeContractError,
+            "failure_mode=none",
+        ):
+            runtime.record_evidence(
+                self.root,
+                {**base, "outcome": "supports", "failure_mode": "slip"},
+            )
+
+        evidence = runtime.record_evidence(
+            self.root,
+            {**base, "outcome": "contradicts", "failure_mode": "failed_transfer"},
+        )
+        self.assertEqual(evidence["failure_mode"], "failed_transfer")
+        self.assertEqual(runtime._current_state(self.root)["revision"], 0)
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
     def test_frontier_revision_preserves_refuted_hypothesis_without_changing_mastery(self):
         _, first = self.create_scoped_decision()
         superseded = first["next_decision"]
@@ -164,6 +208,7 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         assessment = {
             **self.assessment(),
             "outcome": "contradicts",
+            "failure_mode": "missing_prerequisite",
             "result_summary": "The learner lacks the prerequisite population representation.",
             "supports": [],
             "contradicts": ["usable population representation"],
