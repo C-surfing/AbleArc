@@ -266,8 +266,10 @@ def _mission_projection(mission: dict[str, Any]) -> str:
     for item in criteria:
         marker = "x" if item.get("evidence_ids") else " "
         kind = item.get("kind", "legacy")
+        forms = item.get("artifact_forms") or []
+        form_note = f" · forms: {', '.join(forms)}" if forms else ""
         criterion_lines.append(
-            f"- [{marker}] **{item['capability']}** (`{item['id']}` · {kind} · "
+            f"- [{marker}] **{item['capability']}** (`{item['id']}` · {kind}{form_note} · "
             f"{'required' if item['required'] else 'optional'})"
         )
     if not criterion_lines:
