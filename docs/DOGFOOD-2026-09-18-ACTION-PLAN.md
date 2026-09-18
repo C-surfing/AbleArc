@@ -245,7 +245,9 @@ Compare Agent, first-party Web, and future host/plugin entry modes separately. D
 
 ## 7. Promotion rule
 
-This correction gate takes priority over optional vNext feature expansion. Capture, richer Review, notifications, or additional product chrome may proceed only when independent of these foundations and justified by observed need.
+This correction gate takes priority over optional vNext feature expansion. **Capture Inbox is explicitly not promoted and is removed from the canonical architecture.** Richer Review, notifications, or additional product chrome may proceed only when independent of these foundations and justified by observed need.
+
+If future dogfooding reveals a repeated “I need to externalize this without losing focus” problem, reopen the problem—not the old solution—and choose the smallest sufficient interaction. Ordinary conversational context should cover the default case.
 
 The next product milestone is not “more features.” It is:
 
