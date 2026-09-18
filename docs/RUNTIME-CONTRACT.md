@@ -152,6 +152,15 @@ The initial policy is intentionally conservative:
 
 These are guardrails, not a complete theory of learning. Change them only after real longitudinal evidence reveals a repeated failure.
 
+A policy-blocked acceptance is itself part of the audit trail. Runtime persists an
+immutable `state-decision` with `decision=rejected`, the attempted authority and
+reason, and the complete `policy_issues`, then still returns a failure to the
+caller. The rejected proposal is no longer pending and cannot later be rewritten
+as accepted. If the learner or a human reviewer intentionally wants to override
+the conservative policy, create a fresh state proposal and accept that new
+proposal with the explicit override path. Rejections never advance the learner
+state projection.
+
 `exposed` is deliberately not a mastery claim. It means the learner has
 encountered the concept through an evidence-bearing attempt. A failed or
 ambiguous first attempt is therefore allowed to move `unknown → exposed`: the
