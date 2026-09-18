@@ -136,6 +136,7 @@ export function parseLearningMaterialSummary(
     summary: detail.summary,
     whyReturn: detail.whyReturn,
     conceptIds: detail.conceptIds,
+    evidenceIds: detail.evidenceIds,
     evidenceCount: detail.evidenceCount,
     sourceCount: detail.sourceCount,
     createdAt: detail.createdAt,
