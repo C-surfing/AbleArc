@@ -1,6 +1,11 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  assertNotSymlink,
+  atomicWriteJson,
+  withExclusiveFileLock,
+} from "./local-file-store.ts";
 import { isLearningMaterialId } from "./learning-material-data.ts";
 import { readLearningMaterialDetail } from "./learning-material-reader.ts";
 import { resolveProjectReadContext, type ProjectReadContext } from "./project-store.ts";
@@ -148,9 +153,7 @@ function parseRecord(
 
 function ensureRoot(context: ProjectReadContext): string {
   const root = reflectionRoot(context);
-  if (fs.existsSync(root) && fs.lstatSync(root).isSymbolicLink()) {
-    throw new Error("Reflection directory must not be a symbolic link");
-  }
+  assertNotSymlink(root, "Reflection directory");
   fs.mkdirSync(root, { recursive: true });
   return root;
 }
@@ -260,35 +263,26 @@ function payload(record: ReflectionRecord) {
 function writeRecord(context: SelectedContext, record: ReflectionRecord, createOnly = false): void {
   const root = ensureRoot(context);
   const target = reflectionPath(context, record.id);
-  const temporary = path.join(root, ".reflection." + crypto.randomUUID() + ".tmp");
-  try {
-    fs.writeFileSync(temporary, JSON.stringify(payload(record), null, 2) + "\n", "utf8");
-    if (createOnly && fs.existsSync(target)) throw new Error("Reflection already exists");
-    fs.renameSync(temporary, target);
-  } finally {
-    try { fs.unlinkSync(temporary); } catch {}
-  }
+  atomicWriteJson(
+    target,
+    payload(record),
+    {
+      directoryLabel: "Reflection directory",
+      targetLabel: "Reflection record",
+      temporaryPrefix: ".reflection",
+      createOnly,
+      existsMessage: "Reflection already exists",
+    },
+  );
 }
 
 function withReflectionLock<T>(context: SelectedContext, operation: () => T): T {
   const projectRoot = path.dirname(context.runtimeRoot);
-  const lockPath = path.join(projectRoot, ".reflection.lock");
-  let descriptor: number | undefined;
-  try {
-    descriptor = fs.openSync(lockPath, "wx");
-    fs.writeFileSync(descriptor, crypto.randomUUID() + "\n", "utf8");
-    return operation();
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      throw new Error("another Reflection write is already in progress");
-    }
-    throw error;
-  } finally {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-      try { fs.unlinkSync(lockPath); } catch {}
-    }
-  }
+  return withExclusiveFileLock(
+    path.join(projectRoot, ".reflection.lock"),
+    "another Reflection write is already in progress",
+    operation,
+  );
 }
 
 export function createReflection(
