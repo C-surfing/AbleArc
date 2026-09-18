@@ -617,6 +617,22 @@ def _prepare_decision(
     representation = data.get("representation")
     if not isinstance(representation, dict):
         raise RuntimeContractError("representation must be an object")
+    recorded_after_action = data.get("recorded_after_action", False)
+    if not isinstance(recorded_after_action, bool):
+        raise RuntimeContractError("recorded_after_action must be a boolean")
+    late_record_reason = _optional_string(data, "late_record_reason")
+    if receipt["schema_version"] != SCOPED_RECEIPT_SCHEMA_VERSION and (
+        recorded_after_action or late_record_reason
+    ):
+        raise RuntimeContractError("late Decision recording requires workspace-v0.2 storage")
+    if recorded_after_action and not late_record_reason:
+        raise RuntimeContractError(
+            "recorded_after_action decisions require late_record_reason"
+        )
+    if late_record_reason and not recorded_after_action:
+        raise RuntimeContractError(
+            "late_record_reason requires recorded_after_action=true"
+        )
     concept_ids = _string_list(data, "concept_ids", required=True)
     artifact_ref = _optional_string(representation, "artifact_ref")
     if artifact_ref:
@@ -642,6 +658,14 @@ def _prepare_decision(
             },
             "expected_evidence": _required_string(data, "expected_evidence"),
             "falsification_signal": _required_string(data, "falsification_signal"),
+            **(
+                {
+                    "recorded_after_action": True,
+                    "late_record_reason": late_record_reason,
+                }
+                if recorded_after_action
+                else {}
+            ),
         }
     )
     return receipt
@@ -649,6 +673,29 @@ def _prepare_decision(
 
 def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     return _save(repo_root, "decision", _prepare_decision(repo_root, data))
+
+
+def record_late_decision(
+    repo_root: Path,
+    data: dict[str, Any],
+    reason: str,
+) -> dict[str, Any]:
+    """Repair an Agent ordering mistake without pretending the Decision was recorded first."""
+    if "recorded_after_action" in data or "late_record_reason" in data:
+        raise RuntimeContractError(
+            "late-decision assigns recorded_after_action and late_record_reason"
+        )
+    reason = reason.strip()
+    if not reason:
+        raise RuntimeContractError("late-decision reason must not be empty")
+    return record_decision(
+        repo_root,
+        {
+            **data,
+            "recorded_after_action": True,
+            "late_record_reason": reason,
+        },
+    )
 
 
 def record_frontier_revision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -1440,6 +1487,16 @@ def verify_runtime(repo_root: Path) -> list[str]:
             except RuntimeContractError as exc:
                 problems.append(f"{item['id']}: {exc}")
     for item in decisions.values():
+        recorded_after_action = item.get("recorded_after_action", False)
+        late_record_reason = item.get("late_record_reason")
+        if recorded_after_action is not False and recorded_after_action is not True:
+            problems.append(f"{item['id']}: recorded_after_action must be a boolean")
+        if recorded_after_action is True and not (
+            isinstance(late_record_reason, str) and late_record_reason.strip()
+        ):
+            problems.append(f"{item['id']}: late Decision is missing late_record_reason")
+        if late_record_reason is not None and recorded_after_action is not True:
+            problems.append(f"{item['id']}: late_record_reason requires recorded_after_action=true")
         for evidence_id in item.get("evidence_used", []):
             if evidence_id not in evidence:
                 problems.append(f"{item['id']}: missing evidence {evidence_id}")
@@ -1557,6 +1614,12 @@ def build_parser() -> argparse.ArgumentParser:
     record = sub.add_parser("record", help="record an immutable structured receipt")
     record.add_argument("kind", choices=tuple(RECORDERS))
     record.add_argument("payload", help="JSON file or - for stdin")
+    late_decision = sub.add_parser(
+        "late-decision",
+        help="repair an Agent move that was presented before its Decision was recorded",
+    )
+    late_decision.add_argument("payload", help="Decision JSON file or - for stdin")
+    late_decision.add_argument("reason", help="why the Decision had to be recorded after presentation")
     decide = sub.add_parser("decide", help="accept or reject a state proposal")
     decide.add_argument("proposal_id")
     decide.add_argument("decision", choices=("accepted", "rejected"))
@@ -1603,6 +1666,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Runtime ready ({len(created)} item(s) created).")
         elif args.command == "record":
             receipt = RECORDERS[args.kind](repo_root, _load_payload(args.payload))
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "late-decision":
+            receipt = record_late_decision(
+                repo_root,
+                _load_payload(args.payload),
+                args.reason,
+            )
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "decide":
             receipt = decide_state_proposal(
