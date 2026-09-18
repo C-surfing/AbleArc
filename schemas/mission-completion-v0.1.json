@@ -18,22 +18,47 @@
     "independent_performance_criterion_ids"
   ],
   "properties": {
-    "schema_version": { "const": "0.1" },
-    "kind": { "const": "mission-completion" },
-    "id": { "type": "string", "pattern": "^comp_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
-    "workspace_id": { "type": "string", "pattern": "^ws_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
-    "project_id": { "$ref": "#/$defs/localId" },
-    "mission_id": { "$ref": "#/$defs/localId" },
-    "completed_at": { "type": "string", "format": "date-time" },
+    "schema_version": {
+      "const": "0.1"
+    },
+    "kind": {
+      "const": "mission-completion"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^comp_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^ws_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$"
+    },
+    "project_id": {
+      "$ref": "#/$defs/localId"
+    },
+    "mission_id": {
+      "$ref": "#/$defs/localId"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "criteria": {
       "type": "array",
       "minItems": 2,
       "maxItems": 30,
-      "items": { "$ref": "#/$defs/criterion" }
+      "items": {
+        "$ref": "#/$defs/criterion"
+      }
     },
-    "evidence_ids": { "$ref": "#/$defs/evidenceIds" },
-    "feynman_criterion_ids": { "$ref": "#/$defs/localIds" },
-    "independent_performance_criterion_ids": { "$ref": "#/$defs/localIds" }
+    "evidence_ids": {
+      "$ref": "#/$defs/evidenceIds"
+    },
+    "feynman_criterion_ids": {
+      "$ref": "#/$defs/localIds"
+    },
+    "independent_performance_criterion_ids": {
+      "$ref": "#/$defs/localIds"
+    }
   },
   "$defs": {
     "localId": {
@@ -43,14 +68,19 @@
     "localIds": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/localId" },
+      "items": {
+        "$ref": "#/$defs/localId"
+      },
       "uniqueItems": true
     },
     "evidenceIds": {
       "type": "array",
       "minItems": 1,
       "maxItems": 900,
-      "items": { "type": "string", "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
+      "items": {
+        "type": "string",
+        "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$"
+      },
       "uniqueItems": true
     },
     "criterion": {
@@ -70,20 +100,88 @@
         "evidence_ids"
       ],
       "properties": {
-        "id": { "$ref": "#/$defs/localId" },
-        "capability": { "type": "string", "minLength": 1, "maxLength": 500 },
-        "kind": { "enum": ["feynman", "performance", "application", "transfer", "retrieval"] },
-        "required": { "type": "boolean" },
-        "minimum_level": { "enum": ["recognition", "recall", "explanation", "application", "transfer"] },
-        "max_scaffolding": { "enum": ["none", "light", "heavy"] },
-        "minimum_context": { "enum": ["same", "varied", "novel"] },
-        "minimum_delay": { "enum": ["immediate", "delayed"] },
-        "minimum_independence": { "enum": ["same_form", "new_form", "independent"] },
-        "minimum_evidence": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "id": {
+          "$ref": "#/$defs/localId"
+        },
+        "capability": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "kind": {
+          "enum": [
+            "feynman",
+            "performance",
+            "application",
+            "transfer",
+            "retrieval"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "minimum_level": {
+          "enum": [
+            "recognition",
+            "recall",
+            "explanation",
+            "application",
+            "transfer"
+          ]
+        },
+        "max_scaffolding": {
+          "enum": [
+            "none",
+            "light",
+            "heavy"
+          ]
+        },
+        "minimum_context": {
+          "enum": [
+            "same",
+            "varied",
+            "novel"
+          ]
+        },
+        "minimum_delay": {
+          "enum": [
+            "immediate",
+            "delayed"
+          ]
+        },
+        "minimum_independence": {
+          "enum": [
+            "same_form",
+            "new_form",
+            "independent"
+          ]
+        },
+        "minimum_evidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
         "evidence_ids": {
           "type": "array",
           "maxItems": 30,
-          "items": { "type": "string", "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$" },
+          "items": {
+            "type": "string",
+            "pattern": "^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$"
+          },
+          "uniqueItems": true
+        },
+        "artifact_forms": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "enum": [
+              "prose",
+              "pseudocode",
+              "code",
+              "executed_code",
+              "diagram"
+            ]
+          },
           "uniqueItems": true
         }
       }
