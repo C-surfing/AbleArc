@@ -350,6 +350,7 @@
             "concept_ids",
             "level",
             "outcome",
+            "failure_mode",
             "result_summary",
             "scaffolding",
             "context",
@@ -385,6 +386,18 @@
                 "supports",
                 "contradicts",
                 "inconclusive"
+              ]
+            },
+            "failure_mode": {
+              "enum": [
+                "none",
+                "slip",
+                "missing_prerequisite",
+                "vocabulary_confusion",
+                "local_procedural_gap",
+                "wrong_causal_model",
+                "overgeneralization",
+                "failed_transfer"
               ]
             },
             "result_summary": {
