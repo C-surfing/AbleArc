@@ -63,6 +63,7 @@ class LearningToolTests(unittest.TestCase):
         (self.root / "schemas" / "mission-v0.2.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "runtime-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "runtime-v0.2.json").write_text("{}\n", encoding="utf-8")
+        (self.root / "schemas" / "host-turn-input-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.1.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-artifact-v0.2.json").write_text("{}\n", encoding="utf-8")
         (self.root / "schemas" / "learning-map-v0.1.json").write_text("{}\n", encoding="utf-8")
