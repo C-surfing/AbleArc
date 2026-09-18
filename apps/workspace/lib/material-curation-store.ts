@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
+import { atomicWriteJson, withExclusiveFileLock } from "./local-file-store.ts";
 import { isLearningMaterialId } from "./learning-material-data.ts";
 import { readLearningMaterialDetail } from "./learning-material-reader.ts";
 import { resolveProjectReadContext, type ProjectReadContext } from "./project-store.ts";
@@ -107,59 +107,34 @@ export function readMaterialCuration(repoRoot: string): MaterialCurationView {
 
 function withProjectWriteLock<T>(repoRoot: string, operation: () => T): T {
   const learningRoot = path.join(path.resolve(repoRoot), ".learning");
-  const lockPath = path.join(learningRoot, ".project-lifecycle.lock");
-  let descriptor: number | undefined;
-  try {
-    descriptor = fs.openSync(lockPath, "wx");
-    fs.writeFileSync(descriptor, `${crypto.randomUUID()}\n`, "utf8");
-    return operation();
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      throw new Error("another Project lifecycle write is already in progress");
-    }
-    throw error;
-  } finally {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-      try {
-        fs.unlinkSync(lockPath);
-      } catch {
-        // The lock is best-effort cleanup after this process acquired it.
-      }
-    }
-  }
+  return withExclusiveFileLock(
+    path.join(learningRoot, ".project-lifecycle.lock"),
+    "another Project lifecycle write is already in progress",
+    operation,
+  );
 }
 
 function writeManifest(
   context: ProjectReadContext & { workspaceId: string },
   value: MaterialCurationView,
 ): void {
-  const filePath = curationPath(context);
-  const root = path.dirname(filePath);
-  if (fs.existsSync(root) && fs.lstatSync(root).isSymbolicLink()) {
-    throw new Error("Material curation directory must not be a symbolic link");
-  }
-  fs.mkdirSync(root, { recursive: true });
-  const temporary = path.join(root, `.materials.${crypto.randomUUID()}.tmp`);
-  const payload = {
-    schema_version: "0.1",
-    kind: "learning-material-curation",
-    workspace_id: context.workspaceId,
-    project_id: context.projectId,
-    revision: value.revision,
-    selected_material_ids: value.selectedMaterialIds,
-    updated_at: value.updatedAt,
-  };
-  try {
-    fs.writeFileSync(temporary, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-    fs.renameSync(temporary, filePath);
-  } finally {
-    try {
-      fs.unlinkSync(temporary);
-    } catch {
-      // rename already removed the temporary path on success.
-    }
-  }
+  atomicWriteJson(
+    curationPath(context),
+    {
+      schema_version: "0.1",
+      kind: "learning-material-curation",
+      workspace_id: context.workspaceId,
+      project_id: context.projectId,
+      revision: value.revision,
+      selected_material_ids: value.selectedMaterialIds,
+      updated_at: value.updatedAt,
+    },
+    {
+      directoryLabel: "Material curation directory",
+      targetLabel: "Material curation manifest",
+      temporaryPrefix: ".materials",
+    },
+  );
 }
 
 export function setMaterialCuration(

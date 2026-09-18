@@ -3,6 +3,7 @@ import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseCompletionGateStatus } from "@/lib/completion-status";
 import { resolveProjectReadContext } from "@/lib/project-store";
+import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
@@ -18,18 +19,6 @@ class CompletionApiError extends Error {
     this.name = "CompletionApiError";
   }
 }
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try {
-    const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-    const requestHost = forwardedHost || request.headers.get("host") || request.nextUrl.host;
-    return new URL(origin).host === requestHost;
-  } catch {
-    return false;
-  }
-}
-
 function runCompletionCommand(repoRoot: string, args: string[]): Promise<unknown> {
   const python = process.env.AI4LEARNING_PYTHON
     || (process.platform === "win32" ? "python" : "python3");
