@@ -138,8 +138,25 @@
               ]
             },
             "move": {
-              "type": "string",
-              "minLength": 1
+              "enum": [
+                "orient",
+                "probe",
+                "motivate",
+                "establish_intuition",
+                "name_or_formalize",
+                "connect",
+                "contrast",
+                "derive",
+                "worked_example",
+                "prediction",
+                "practice",
+                "retrieve",
+                "repair_misconception",
+                "apply",
+                "generalize",
+                "transfer",
+                "compress_or_reference"
+              ]
             },
             "rationale": {
               "type": "string",
