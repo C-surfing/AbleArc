@@ -24,9 +24,11 @@ Entry → Today + DailyContext → Focus Session
               response → assessment → next Decision
 ```
 
-The current development checkpoint is **real learner-facing pilot validation before Phase 4**. Start with [`evaluation/FIRST-PILOT.md`](evaluation/FIRST-PILOT.md), then record longitudinal learner evidence under the private `.dogfooding/` arc and product-surface observations with [`evaluation/VNEXT-PRODUCT-DOGFOOD.md`](evaluation/VNEXT-PRODUCT-DOGFOOD.md).
+The current development checkpoint is **Phase 4 conversation-first dogfood correction**. The first real Agent-mode session exposed structural interaction problems that should be repaired before adding optional learner-facing subsystems: protocol leakage into dialogue, weak use of negative/ambiguous evidence, missing learner-provided context/reference semantics, and over-eager verification/tool execution.
 
-Phase 4 Capture Inbox is **evidence-gated**, not the automatic next implementation step. It should be promoted only when repeated real sessions show a recurring focus/continuity failure and [`evaluation/PROMOTION.md`](evaluation/PROMOTION.md) identifies fast capture as the smallest sufficient fix. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) tracks this gate.
+Capture Inbox is **not promoted and is removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
+
+The active correction plan is [`docs/DOGFOOD-2026-09-18-ACTION-PLAN.md`](docs/DOGFOOD-2026-09-18-ACTION-PLAN.md), with the architectural boundary in ADR 0009 and the host contract in [`docs/HOST-INTEGRATION.md`](docs/HOST-INTEGRATION.md).
 
 The broader runtime still has a separate five-domain longitudinal evidence goal tracked in Issue [#2](https://github.com/C-surfing/AbleArc/issues/2). Product pilot completion and five-domain runtime validation are related but not interchangeable.
 
@@ -42,7 +44,7 @@ collect_more_evidence / deferred
 not_promoted_for_now
 ```
 
-If an optional feature is not promoted, that does **not** automatically block a later phase whose learner problem, authority boundary, and implementation dependencies are independent. For example, if real Focus sessions do not show a recurring capture/continuity problem, Capture Inbox may remain `not_promoted_for_now` while an independently justified Session Close slice is evaluated next.
+If an optional feature is not promoted, that does **not** automatically block a later phase whose learner problem, authority boundary, and implementation dependencies are independent. The removed Capture Inbox hypothesis is the first explicit example: its non-promotion does not block independently justified work on natural conversation, Session Close, learner context, or Review.
 
 A phase still blocks later work when there is a real dependency: the later behavior requires its data contract, authority path, continuity mechanism, or validated user interaction. Skipping a dependency to preserve roadmap velocity is not allowed.
 
