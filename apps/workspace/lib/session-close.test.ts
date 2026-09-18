@@ -182,7 +182,7 @@ test("Session Close persists under Project continuity state with optimistic revi
   const first = writeSessionClose(root, draft, 0);
   assert.equal(first.revision, 1);
   assert.equal(sessionCloseFilePath(root), path.join(
-    root, ".learning", "projects", "project-one", "continuity", "session-close.json",
+    root, ".learning", "projects", "project-one", "continuity", "mission-one", "session-close.json",
   ));
   assert.deepEqual(readSessionClose(root), first);
   assert.throws(() => writeSessionClose(root, draft, 0), /changed before/);
