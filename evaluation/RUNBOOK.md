@@ -59,7 +59,7 @@ This writes `.dogfooding/<arc-name>/review-observations/NNN.json`. The checkpoin
 When the session used the AbleArc Entry / Today / DailyContext / Focus path, also create a product checkpoint for the same numbered session:
 
 ```bash
-python tools/vnext_product_dogfood.py --repo . start <arc-name>
+python tools/vnext_product_dogfood.py --repo . start <arc-name> --entry-mode workspace
 ```
 
 Edit only fields that were actually observed, then validate them:

@@ -233,7 +233,7 @@ This creates the next numbered record (`002.md`, `003.md`, ...). Existing eviden
 After completing the corresponding `sessions/NNN.md` from a real learner session, create a product-surface checkpoint for the same numbered session:
 
 ```bash
-python tools/vnext_product_dogfood.py --repo . start <arc-name>
+python tools/vnext_product_dogfood.py --repo . start <arc-name> --entry-mode workspace
 ```
 
 Then edit only fields that were actually observed and validate the local records:

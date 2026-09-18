@@ -224,7 +224,7 @@ python tools/learning.py new-session <arc>
 After a Web pilot session, create the product observation checkpoint:
 
 ```bash
-python tools/vnext_product_dogfood.py --repo . start <arc>
+python tools/vnext_product_dogfood.py --repo . start <arc> --entry-mode workspace
 python tools/vnext_product_dogfood.py --repo . status <arc>
 python tools/vnext_product_dogfood.py --repo . validate <arc>
 python tools/vnext_product_dogfood.py --repo . summary <arc>

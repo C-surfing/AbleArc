@@ -1,7 +1,7 @@
 # 2026-09-18 Dogfooding Correction Plan
 
 Status: **Active corrective plan**  
-Evidence source: one real learner / one procedural programming topic / Agent entry mode, plus Issues #56–#69  
+Evidence source: one real learner / one procedural programming topic / Agent entry mode, plus Issues #56–#71
 Scope: product interaction, Runtime semantics, evaluation integrity, and host integration
 
 This plan translates the first substantial AbleArc dogfooding session into development priorities. It does not treat one session as proof of universal learner behavior. It does treat structural failures—where the current data model cannot represent what happened, or the product exposes internal protocol as conversation—as sufficient reason to repair the architecture before adding optional product surfaces.
@@ -152,7 +152,7 @@ predict
 - #56 fresh-clone initialization deadlock
 - #57 Runtime move enum vs published schema drift
 - #67 empty session template counted as real evidence
-- #69 entry-mode-aware product checkpoints
+- #69 / #71 entry-mode-aware product checkpoints (implemented as schema v0.3 with separate Agent and Workspace aggregates)
 
 ### P1 — Learner-model semantics
 

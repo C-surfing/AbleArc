@@ -29,12 +29,12 @@ class ProductDogfoodError(RuntimeError):
 
 SESSION_FILE = re.compile(r"^[0-9]{3}\.md$")
 CHECKPOINT_FILE = re.compile(r"^[0-9]{3}\.json$")
-CURRENT_SCHEMA_VERSION = "0.2"
-LEGACY_SCHEMA_VERSION = "0.1"
+CURRENT_SCHEMA_VERSION = "0.3"
+LEGACY_SCHEMA_VERSIONS = {"0.1", "0.2"}
 INTERPRETATION = "descriptive_only_no_feature_promotion"
 LEGACY_INTERPRETATION = "descriptive_only_no_phase4_promotion"
 
-TOP_LEVEL_FIELDS = {
+LEGACY_TOP_LEVEL_FIELDS = {
     "schema_version",
     "kind",
     "recorded_at",
@@ -46,7 +46,9 @@ TOP_LEVEL_FIELDS = {
     "notes",
     "interpretation",
 }
-SURFACE_FIELDS = {
+TOP_LEVEL_FIELDS = LEGACY_TOP_LEVEL_FIELDS | {"entry_mode"}
+ENTRY_MODES = {"agent", "workspace"}
+WORKSPACE_SURFACE_FIELDS = {
     "entry",
     "today",
     "daily_context",
@@ -54,6 +56,13 @@ SURFACE_FIELDS = {
     "evidence_turn",
     "lifecycle",
     "mobile",
+}
+AGENT_SURFACE_FIELDS = {
+    "conversation",
+    "learner_context",
+    "control_trace",
+    "runtime_turn",
+    "verification",
 }
 OBSERVATION_FIELDS_V01 = {
     "entry_time_seconds",
@@ -75,6 +84,16 @@ OBSERVATION_FIELDS_V02 = {
     "authority_confusion",
     "turn_friction",
 }
+WORKSPACE_OBSERVATION_FIELDS = OBSERVATION_FIELDS_V02
+AGENT_OBSERVATION_FIELDS = {
+    "conversation_naturalness",
+    "context_usefulness",
+    "control_trace_alignment",
+    "verification_budget",
+    "continuity_friction",
+    "authority_confusion",
+    "turn_friction",
+}
 SURFACE_STATUS = {"pass", "friction", "not_observed"}
 DAILY_CONTEXT_USEFULNESS = {"useful", "mixed", "cosmetic", "not_observed"}
 FOCUS_CHROME = {"reduced", "distracting", "missing_controls", "not_observed"}
@@ -82,6 +101,10 @@ SCAFFOLD_EFFECT = {"helpful", "too_revealing", "insufficient", "not_used", "not_
 CONTINUITY_FRICTION = {"none", "single", "repeated", "not_observed"}
 AUTHORITY_CONFUSION = {"none", "observed", "not_observed"}
 TURN_FRICTION = {"none", "low", "material", "blocked", "not_observed"}
+CONVERSATION_NATURALNESS = {"natural", "mixed", "mechanical", "not_observed"}
+CONTEXT_USEFULNESS = {"useful", "mixed", "cosmetic", "not_observed"}
+CONTROL_TRACE_ALIGNMENT = {"aligned", "late", "missing", "not_observed"}
+VERIFICATION_BUDGET = {"proportionate", "overused", "underused", "not_observed"}
 PROHIBITED_DECISION_FIELDS = {
     "promotion_decision",
     "feature_promotion_decision",
@@ -167,15 +190,22 @@ def _write_json_once(path: Path, payload: dict[str, Any]) -> None:
             temporary.unlink()
 
 
-def _new_payload(arc_id: str, session: Path) -> dict[str, Any]:
-    return {
+def _new_payload(arc_id: str, session: Path, entry_mode: str) -> dict[str, Any]:
+    if entry_mode not in ENTRY_MODES:
+        raise ProductDogfoodError("entry_mode must be agent or workspace")
+    payload = {
         "schema_version": CURRENT_SCHEMA_VERSION,
         "kind": "vnext-product-dogfood",
         "recorded_at": _now(),
         "arc_id": arc_id,
         "session_id": session.stem,
         "session_record": f"sessions/{session.name}",
-        "surface_checks": {
+        "entry_mode": entry_mode,
+        "notes": [],
+        "interpretation": INTERPRETATION,
+    }
+    if entry_mode == "workspace":
+        payload["surface_checks"] = {
             "entry": "not_observed",
             "today": "not_observed",
             "daily_context": "not_observed",
@@ -183,8 +213,8 @@ def _new_payload(arc_id: str, session: Path) -> dict[str, Any]:
             "evidence_turn": "not_observed",
             "lifecycle": "not_observed",
             "mobile": "not_observed",
-        },
-        "observations": {
+        }
+        payload["observations"] = {
             "entry_time_seconds": None,
             "today_primary_action_clear": None,
             "daily_context_usefulness": "not_observed",
@@ -193,10 +223,25 @@ def _new_payload(arc_id: str, session: Path) -> dict[str, Any]:
             "continuity_friction": "not_observed",
             "authority_confusion": "not_observed",
             "turn_friction": "not_observed",
-        },
-        "notes": [],
-        "interpretation": INTERPRETATION,
-    }
+        }
+    else:
+        payload["surface_checks"] = {
+            "conversation": "not_observed",
+            "learner_context": "not_observed",
+            "control_trace": "not_observed",
+            "runtime_turn": "not_observed",
+            "verification": "not_observed",
+        }
+        payload["observations"] = {
+            "conversation_naturalness": "not_observed",
+            "context_usefulness": "not_observed",
+            "control_trace_alignment": "not_observed",
+            "verification_budget": "not_observed",
+            "continuity_friction": "not_observed",
+            "authority_confusion": "not_observed",
+            "turn_friction": "not_observed",
+        }
+    return payload
 
 
 def _reject_prohibited_keys(value: Any) -> None:
@@ -221,12 +266,43 @@ def _exact_fields(value: Any, expected: set[str], label: str) -> dict[str, Any]:
     return value
 
 
-def _schema_contract(root: dict[str, Any]) -> tuple[set[str], str, str]:
+def _schema_contract(root: dict[str, Any]) -> tuple[str, set[str], set[str], str, str]:
     version = root.get("schema_version")
     if version == CURRENT_SCHEMA_VERSION:
-        return OBSERVATION_FIELDS_V02, "continuity_friction", INTERPRETATION
-    if version == LEGACY_SCHEMA_VERSION:
-        return OBSERVATION_FIELDS_V01, "capture_need", LEGACY_INTERPRETATION
+        entry_mode = root.get("entry_mode")
+        if entry_mode == "workspace":
+            return (
+                entry_mode,
+                WORKSPACE_SURFACE_FIELDS,
+                WORKSPACE_OBSERVATION_FIELDS,
+                "continuity_friction",
+                INTERPRETATION,
+            )
+        if entry_mode == "agent":
+            return (
+                entry_mode,
+                AGENT_SURFACE_FIELDS,
+                AGENT_OBSERVATION_FIELDS,
+                "continuity_friction",
+                INTERPRETATION,
+            )
+        raise ProductDogfoodError("entry_mode must be agent or workspace")
+    if version == "0.2":
+        return (
+            "workspace",
+            WORKSPACE_SURFACE_FIELDS,
+            OBSERVATION_FIELDS_V02,
+            "continuity_friction",
+            INTERPRETATION,
+        )
+    if version == "0.1":
+        return (
+            "workspace",
+            WORKSPACE_SURFACE_FIELDS,
+            OBSERVATION_FIELDS_V01,
+            "capture_need",
+            LEGACY_INTERPRETATION,
+        )
     raise ProductDogfoodError("unsupported product checkpoint schema")
 
 
@@ -237,10 +313,23 @@ def validate_checkpoint(
     expected_session_id: str | None = None,
 ) -> dict[str, Any]:
     """Validate one dogfood checkpoint without inferring any promotion decision."""
-    root = _exact_fields(value, TOP_LEVEL_FIELDS, "product checkpoint")
+    if not isinstance(value, dict):
+        raise ProductDogfoodError("product checkpoint must be an object")
+    expected_top_level = (
+        TOP_LEVEL_FIELDS
+        if value.get("schema_version") == CURRENT_SCHEMA_VERSION
+        else LEGACY_TOP_LEVEL_FIELDS
+    )
+    root = _exact_fields(value, expected_top_level, "product checkpoint")
     _reject_prohibited_keys(root)
 
-    observation_fields, continuity_field, expected_interpretation = _schema_contract(root)
+    (
+        _entry_mode,
+        surface_fields,
+        observation_fields,
+        continuity_field,
+        expected_interpretation,
+    ) = _schema_contract(root)
     if root["kind"] != "vnext-product-dogfood":
         raise ProductDogfoodError("unsupported product checkpoint schema")
     if not isinstance(root["recorded_at"], str):
@@ -263,28 +352,44 @@ def validate_checkpoint(
     if root["interpretation"] != expected_interpretation:
         raise ProductDogfoodError("product checkpoint lost its descriptive-only boundary")
 
-    surfaces = _exact_fields(root["surface_checks"], SURFACE_FIELDS, "surface_checks")
+    surfaces = _exact_fields(root["surface_checks"], surface_fields, "surface_checks")
     for field, status in surfaces.items():
         if status not in SURFACE_STATUS:
             raise ProductDogfoodError(f"surface_checks.{field} is invalid")
 
     observations = _exact_fields(root["observations"], observation_fields, "observations")
-    entry_time = observations["entry_time_seconds"]
-    if entry_time is not None and (
-        not isinstance(entry_time, int) or isinstance(entry_time, bool) or entry_time < 0 or entry_time > 3600
-    ):
-        raise ProductDogfoodError("entry_time_seconds must be null or an integer from 0 to 3600")
-    primary_clear = observations["today_primary_action_clear"]
-    if primary_clear is not None and not isinstance(primary_clear, bool):
-        raise ProductDogfoodError("today_primary_action_clear must be null or boolean")
-    enum_fields = {
-        "daily_context_usefulness": DAILY_CONTEXT_USEFULNESS,
-        "focus_chrome": FOCUS_CHROME,
-        "scaffold_effect": SCAFFOLD_EFFECT,
-        continuity_field: CONTINUITY_FRICTION,
-        "authority_confusion": AUTHORITY_CONFUSION,
-        "turn_friction": TURN_FRICTION,
-    }
+    if _entry_mode == "workspace":
+        entry_time = observations["entry_time_seconds"]
+        if entry_time is not None and (
+            not isinstance(entry_time, int)
+            or isinstance(entry_time, bool)
+            or entry_time < 0
+            or entry_time > 3600
+        ):
+            raise ProductDogfoodError(
+                "entry_time_seconds must be null or an integer from 0 to 3600"
+            )
+        primary_clear = observations["today_primary_action_clear"]
+        if primary_clear is not None and not isinstance(primary_clear, bool):
+            raise ProductDogfoodError("today_primary_action_clear must be null or boolean")
+        enum_fields = {
+            "daily_context_usefulness": DAILY_CONTEXT_USEFULNESS,
+            "focus_chrome": FOCUS_CHROME,
+            "scaffold_effect": SCAFFOLD_EFFECT,
+            continuity_field: CONTINUITY_FRICTION,
+            "authority_confusion": AUTHORITY_CONFUSION,
+            "turn_friction": TURN_FRICTION,
+        }
+    else:
+        enum_fields = {
+            "conversation_naturalness": CONVERSATION_NATURALNESS,
+            "context_usefulness": CONTEXT_USEFULNESS,
+            "control_trace_alignment": CONTROL_TRACE_ALIGNMENT,
+            "verification_budget": VERIFICATION_BUDGET,
+            "continuity_friction": CONTINUITY_FRICTION,
+            "authority_confusion": AUTHORITY_CONFUSION,
+            "turn_friction": TURN_FRICTION,
+        }
     for field, allowed in enum_fields.items():
         if observations[field] not in allowed:
             raise ProductDogfoodError(f"observations.{field} is invalid")
@@ -302,6 +407,7 @@ def start_checkpoint(
     repo_root: Path,
     arc: str,
     *,
+    entry_mode: str,
     session_id: str | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     repo_root = repo_root.resolve()
@@ -315,7 +421,7 @@ def start_checkpoint(
     _assert_real_directory(observations_dir, "product-observations directory")
     observations_dir.mkdir(exist_ok=True)
     target = observations_dir / f"{session.stem}.json"
-    payload = _new_payload(arc_dir.name, session)
+    payload = _new_payload(arc_dir.name, session, entry_mode)
     validate_checkpoint(
         payload,
         expected_arc_id=arc_dir.name,
@@ -379,35 +485,66 @@ def load_checkpoints(repo_root: Path, arc: str) -> tuple[Path, list[dict[str, An
 
 def _continuity_value(item: dict[str, Any]) -> str:
     observations = item["observations"]
-    if item["schema_version"] == LEGACY_SCHEMA_VERSION:
+    if item["schema_version"] == "0.1":
         return observations["capture_need"]
     return observations["continuity_friction"]
+
+
+def _entry_mode(item: dict[str, Any]) -> str:
+    if item["schema_version"] in LEGACY_SCHEMA_VERSIONS:
+        return "workspace"
+    return item["entry_mode"]
 
 
 def summarize(repo_root: Path, arc: str) -> dict[str, Any]:
     """Return descriptive counts only; never emit a feature-promotion verdict."""
     arc_dir, checkpoints = load_checkpoints(repo_root, arc)
 
-    def counts(field: str, values: set[str]) -> dict[str, int]:
+    def counts(items: list[dict[str, Any]], field: str, values: set[str]) -> dict[str, int]:
         return {
-            value: sum(1 for item in checkpoints if item["observations"][field] == value)
+            value: sum(1 for item in items if item["observations"][field] == value)
             for value in sorted(values)
         }
 
+    workspace = [item for item in checkpoints if _entry_mode(item) == "workspace"]
+    agent = [item for item in checkpoints if _entry_mode(item) == "agent"]
     return {
         "schema_version": CURRENT_SCHEMA_VERSION,
         "kind": "vnext-product-dogfood-summary",
         "arc_id": arc_dir.name,
         "session_count": len(checkpoints),
-        "continuity_friction": {
-            value: sum(1 for item in checkpoints if _continuity_value(item) == value)
-            for value in sorted(CONTINUITY_FRICTION)
+        "entry_modes": {
+            "workspace": {
+                "session_count": len(workspace),
+                "continuity_friction": {
+                    value: sum(1 for item in workspace if _continuity_value(item) == value)
+                    for value in sorted(CONTINUITY_FRICTION)
+                },
+                "daily_context_usefulness": counts(
+                    workspace, "daily_context_usefulness", DAILY_CONTEXT_USEFULNESS
+                ),
+                "focus_chrome": counts(workspace, "focus_chrome", FOCUS_CHROME),
+                "scaffold_effect": counts(workspace, "scaffold_effect", SCAFFOLD_EFFECT),
+                "authority_confusion": counts(
+                    workspace, "authority_confusion", AUTHORITY_CONFUSION
+                ),
+                "turn_friction": counts(workspace, "turn_friction", TURN_FRICTION),
+            },
+            "agent": {
+                "session_count": len(agent),
+                "conversation_naturalness": counts(
+                    agent, "conversation_naturalness", CONVERSATION_NATURALNESS
+                ),
+                "context_usefulness": counts(agent, "context_usefulness", CONTEXT_USEFULNESS),
+                "control_trace_alignment": counts(
+                    agent, "control_trace_alignment", CONTROL_TRACE_ALIGNMENT
+                ),
+                "verification_budget": counts(agent, "verification_budget", VERIFICATION_BUDGET),
+                "continuity_friction": counts(agent, "continuity_friction", CONTINUITY_FRICTION),
+                "authority_confusion": counts(agent, "authority_confusion", AUTHORITY_CONFUSION),
+                "turn_friction": counts(agent, "turn_friction", TURN_FRICTION),
+            },
         },
-        "daily_context_usefulness": counts("daily_context_usefulness", DAILY_CONTEXT_USEFULNESS),
-        "focus_chrome": counts("focus_chrome", FOCUS_CHROME),
-        "scaffold_effect": counts("scaffold_effect", SCAFFOLD_EFFECT),
-        "authority_confusion": counts("authority_confusion", AUTHORITY_CONFUSION),
-        "turn_friction": counts("turn_friction", TURN_FRICTION),
         "interpretation": INTERPRETATION,
     }
 
@@ -421,6 +558,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     start = subparsers.add_parser("start", help="create a checkpoint for a real dogfooding session")
     start.add_argument("arc", help="arc directory name or path under .dogfooding/")
+    start.add_argument(
+        "--entry-mode",
+        choices=sorted(ENTRY_MODES),
+        required=True,
+        help="surface that originated the session; keeps incompatible observations separate",
+    )
     start.add_argument(
         "--session",
         help="optional three-digit session ID to backfill; defaults to the latest real session",
@@ -442,10 +585,16 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = args.repo.resolve()
     try:
         if args.command == "start":
-            path, payload = start_checkpoint(repo_root, args.arc, session_id=args.session)
+            path, payload = start_checkpoint(
+                repo_root,
+                args.arc,
+                entry_mode=args.entry_mode,
+                session_id=args.session,
+            )
             print(json.dumps({
                 "path": str(path.relative_to(repo_root)),
                 "session_id": payload["session_id"],
+                "entry_mode": payload["entry_mode"],
                 "interpretation": payload["interpretation"],
             }, ensure_ascii=False, indent=2))
             return 0
