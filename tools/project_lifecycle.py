@@ -19,10 +19,12 @@ from typing import Iterator
 
 try:
     from tools import learning_map
+    from tools import learning_map_proposals
     from tools import project_store
     from tools import runtime as learning_runtime
 except ImportError:  # Direct execution from tools/
     import learning_map
+    import learning_map_proposals
     import project_store
     import runtime as learning_runtime
 
@@ -441,6 +443,15 @@ def learning_brief(repo_root: Path) -> dict:
     pending = learning_runtime.pending_learner_turn(repo_root)
     decisions = learning_runtime.list_receipts(repo_root, "decision")
     latest_decision = decisions[-1] if decisions else None
+    topology_drift = None
+    topology_action = None
+    if layout == project_store.LAYOUT_WORKSPACE:
+        try:
+            topology_drift = learning_map_proposals.runtime_topology_drift(repo_root)
+        except learning_map_proposals.LearningMapProposalError as exc:
+            raise ProjectLifecycleError(str(exc)) from exc
+        if topology_drift["needs_proposal"]:
+            topology_action = "python tools/learning_map_proposals.py --repo . derive"
 
     if context.project_status == "paused":
         headline = f"{title} is paused."
@@ -499,6 +510,8 @@ def learning_brief(repo_root: Path) -> dict:
             pending["observation"]["id"] if pending else None
         ),
         "decision_id": latest_decision.get("id") if latest_decision else None,
+        "topology_drift": topology_drift,
+        "topology_action": topology_action,
     }
 
 
