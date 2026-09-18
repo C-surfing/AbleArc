@@ -1,6 +1,6 @@
 # Host Integration Contract
 
-Status: **Design target after 2026-09-18 dogfooding**
+Status: **v0.1 contract implemented; host mappings pending**
 
 AbleArc should work inside the conversational product the learner already prefers. The first-party Web app remains important, but it is one host over the Learning Engine rather than the only natural interaction surface.
 
@@ -27,7 +27,7 @@ A host adapter is deliberately thin. It translates host message/attachment/tool 
 
 ## 2. Input envelope
 
-A future `HostTurnInput` should support:
+The v0.1 `HostTurnInput` is published in `schemas/host-turn-input-v0.1.json` and validated by `apps/workspace/lib/host-turn.ts`. It supports:
 
 ```text
 host
@@ -110,12 +110,16 @@ The Teacher chooses a capability only when it has decision value. A programming-
 
 ## 7. First implementation slice
 
-The minimum useful slice is:
+The first slice now includes:
 
-- one host-neutral TypeScript contract;
+- a host-neutral TypeScript contract;
+- a published JSON Schema for input validation;
 - text message + reference metadata + self-report input;
-- separate `presentation` and `control` output;
+- capability negotiation;
+- separate `presentation` and `control` output types;
 - no mastery writes from the adapter;
-- fixtures proving the same teaching turn can be mapped from Web and an external assistant without changing Runtime semantics.
+- contract tests.
+
+The next slice is to map the existing Web composer onto this envelope and add one external-assistant fixture proving both hosts preserve identical Runtime semantics.
 
 Streaming, rich generative UI, cloud sync, and broad attachment ingestion are later concerns.
