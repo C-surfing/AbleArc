@@ -4,6 +4,12 @@ The canonical post-v0.2 product and development plan is:
 
 - [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md)
 
+The current near-term delivery focus is:
+
+- [`docs/PAPER-FIRST-FOCUS.md`](docs/PAPER-FIRST-FOCUS.md) — Teacher quality → Paper Learning → Research → host/plugin → learner-facing Map/Review → Learner Profile.
+
+Where Phase 8+ ordering in the broader vNext roadmap conflicts with this paper-first focus, the paper-first focus controls near-term priority; accepted Runtime/authority boundaries remain unchanged.
+
 The corresponding accepted architecture boundary is:
 
 - [`docs/adr/0008-learning-os-product-boundary.md`](docs/adr/0008-learning-os-product-boundary.md)
@@ -34,7 +40,7 @@ Phase 6 learner-owned Reflection is now part of the baseline product: free-form,
 
 Phase 7 risk-tiered state authority is now part of the baseline: only descriptive first exposure (`unknown → exposed`) may be auto-accepted by deterministic Runtime policy; stronger learner-state claims remain explicit review.
 
-Before adding Phase 8 capability/plugin code, Issue [#90](https://github.com/C-surfing/AbleArc/issues/90) is reducing duplicated Workspace infrastructure. After that, the active product feature is **Phase 8 — Capability boundary + Research Capability**, tracked by Issue [#89](https://github.com/C-surfing/AbleArc/issues/89). Plugin/host support remains required; the constraint is that capability transport stays thin and does not enlarge Runtime learner-truth authority.
+The architecture-simplification work in Issue #90 is complete. Near-term product priority has now shifted from module-order delivery to the paper-first proving loop in [`docs/PAPER-FIRST-FOCUS.md`](docs/PAPER-FIRST-FOCUS.md): **Teacher Policy v1 → Paper Learning v1 → Research Capability → thin ChatGPT/assistant host slice → learner-facing LearningMap/Review → Learner Profile**. Issue [#89](https://github.com/C-surfing/AbleArc/issues/89) remains the Research Capability tracker, but Research follows the first coherent Teacher/Paper slice rather than preceding it.
 
 Capture Inbox remains **not promoted and removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
 

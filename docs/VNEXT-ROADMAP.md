@@ -616,7 +616,27 @@ Naming requirements:
 
 ## 13. Delivery roadmap
 
-The following ordering is canonical unless real dogfooding evidence justifies a documented change.
+### 13.0 Current paper-first focus override — 2026-09-18
+
+The broad vNext phases remain useful architecture history and dependency guidance, but the next delivery cycle is now constrained by a narrower learner-facing proving scenario: **deep paper learning**.
+
+The near-term order is:
+
+```text
+Teacher Policy v1
+→ Paper Learning v1
+→ Research Capability
+→ thin ChatGPT / assistant host slice
+→ learner-facing LearningMap + Review Suggestions
+→ Learner Profile v1
+→ longitudinal paper-first dogfooding
+```
+
+This ordering supersedes the older assumption that Research Capability is automatically the immediate next feature after Phase 7. Research remains the first specialist Capability, but it is promoted in service of a concrete paper-learning move rather than as standalone infrastructure.
+
+See `docs/PAPER-FIRST-FOCUS.md` for the canonical near-term acceptance criteria and engineering constraints.
+
+The following phase descriptions remain valid unless they conflict with this focus override.
 
 ### Phase 0 — Freeze vNext direction
 
@@ -772,7 +792,7 @@ Less learner confirmation friction without any client-side direct mastery write.
 
 ### Phase 8 — Capability boundary and first Research Capability
 
-**Status:** next product slice after the architecture-simplification pass in Issue #90; tracked by Issue #89.
+**Status:** tracked by Issue #89; promoted after the first coherent Teacher Policy + Paper Learning slice demonstrates a real source-verification need.
 
 **Goal:** let one coherent Teacher invoke specialist workflows.
 
@@ -898,21 +918,20 @@ No collaboration feature may introduce an alternate mastery source without a new
 
 ## 14. Recommended PR sequence
 
-Numbers are illustrative after the current merged #37 and should be adapted to actual repository state.
+Historical PR numbers above are no longer useful for scheduling. The current recommended sequence is:
 
 ```text
-#38  docs: vNext Learning OS thesis, roadmap, ADR
-#39  feat: minimal Entry + Today shell
-#40  feat: DailyContext + recommendation contract
-#41  feat: Focus Session surface
-#42  correction: conversation/context boundary
-#43  feat: Session Close + Tomorrow Seed
-#44  feat: free-form Reflection
-#45  refactor: authority risk policy / reduced approval fatigue
-#46  feat: capability boundary + Research Capability
-#47  feat: Review Suggestions on Today
-#48+ evidence-driven: simple review queue if promotion gate is met
+Teacher Policy v1
+Paper Learning v1: source structure + prerequisite hypotheses
+Paper Learning v1: learner-facing loop + evidence-bearing reconstruction
+Research Capability (#89), narrowed to Teacher/source verification needs
+thin ChatGPT / assistant host adapter over existing HostTurn contracts
+LearningMap learner UX + Review Suggestions
+Learner Profile v1
+longitudinal paper-first dogfooding
 ```
+
+The simple Review Queue and any adaptive scheduler remain evidence-gated.
 
 Do not stack speculative infrastructure behind these PRs without learner-facing justification.
 
