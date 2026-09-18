@@ -39,6 +39,12 @@ def pending_state_proposals(repo_root: Path) -> list[dict[str, Any]]:
         current_state = str(current.get("state")) if isinstance(current, dict) else "unknown"
         before = str(proposal.get("before", "unknown"))
         policy_issues = learning_runtime.transition_policy_issues(repo_root, proposal)
+        risk = learning_runtime.state_transition_risk(repo_root, proposal)
+        auto_accept_eligible = (
+            not policy_issues
+            and current_state == before
+            and learning_runtime.low_risk_auto_accept_eligible(repo_root, proposal)
+        )
         pending.append(
             {
                 "id": proposal_id,
@@ -55,6 +61,8 @@ def pending_state_proposals(repo_root: Path) -> list[dict[str, Any]]:
                 if isinstance(proposal.get("evidence_ids"), list)
                 else 0,
                 "policy_issues": policy_issues,
+                "risk": risk,
+                "auto_accept_eligible": auto_accept_eligible,
                 "stale": current_state != before,
                 "created_at": str(proposal.get("created_at", "")),
             }
@@ -84,11 +92,39 @@ def decide_state_proposal(
     )
 
 
+def reconcile_low_risk_state_proposals(repo_root: Path) -> list[dict[str, Any]]:
+    """Auto-accept only Runtime-classified low-risk exposure proposals."""
+    accepted: list[dict[str, Any]] = []
+    for proposal in pending_state_proposals(repo_root):
+        if not proposal["auto_accept_eligible"]:
+            continue
+        try:
+            accepted.append(
+                learning_runtime.decide_state_proposal(
+                    repo_root,
+                    proposal["id"],
+                    "accepted",
+                    "runtime_policy",
+                    "low-risk-v0.1",
+                    (
+                        "Automatically accepted descriptive first exposure "
+                        "(unknown → exposed); no mastery beyond exposure is claimed."
+                    ),
+                )
+            )
+        except learning_runtime.RuntimeContractError as exc:
+            if "stale state proposal" in str(exc) or "proposal already has a state decision" in str(exc):
+                continue
+            raise
+    return accepted
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="ai4learning learner state-proposal review adapter")
     parser.add_argument("--repo", type=Path, default=Path.cwd(), help="repository root")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="list unresolved state proposals with policy status")
+    sub.add_parser("reconcile", help="auto-accept eligible low-risk proposals through Runtime policy")
     decide = sub.add_parser("decide", help="accept or reject one proposal as the local learner")
     decide.add_argument("proposal_id")
     decide.add_argument("decision", choices=("accepted", "rejected"))
@@ -103,6 +139,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "list":
             print(json.dumps({"proposals": pending_state_proposals(repo_root)}, ensure_ascii=False, indent=2))
+            return 0
+        if args.command == "reconcile":
+            decisions = reconcile_low_risk_state_proposals(repo_root)
+            print(json.dumps({"decisions": decisions}, ensure_ascii=False, indent=2))
             return 0
         if args.command == "decide":
             result = decide_state_proposal(
