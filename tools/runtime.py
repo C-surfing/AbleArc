@@ -898,6 +898,45 @@ def record_learner_response(
     )
 
 
+def unanswered_decisions(repo_root: Path) -> list[dict[str, Any]]:
+    """Return learner-facing Decisions that still have no learner response."""
+    repo_root = repo_root.resolve()
+    context = project_store.resolve_project_context(repo_root)
+    answered = {
+        item.get("decision_id")
+        for item in list_receipts(repo_root, "observation")
+        if item.get("source") == "learner"
+    }
+    result: list[dict[str, Any]] = []
+    for decision in reversed(list_receipts(repo_root, "decision")):
+        if decision.get("id") in answered:
+            continue
+        if (
+            context.layout == project_store.LAYOUT_WORKSPACE
+            and (
+                decision.get("workspace_id") != context.workspace_id
+                or decision.get("project_id") != context.project_id
+                or decision.get("mission_id") != context.mission_id
+            )
+        ):
+            continue
+        representation = decision.get("representation")
+        result.append(
+            {
+                "id": decision["id"],
+                "target": decision["target"],
+                "concept_ids": list(decision["concept_ids"]),
+                "learner_action": decision["learner_action"],
+                "created_at": decision["created_at"],
+                "has_artifact": bool(
+                    isinstance(representation, dict)
+                    and isinstance(representation.get("artifact_ref"), str)
+                ),
+            }
+        )
+    return result
+
+
 def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     receipt = _base(repo_root, "evidence", data)
     observation_id = _required_string(data, "observation_id")
@@ -1525,9 +1564,18 @@ def build_parser() -> argparse.ArgumentParser:
     decide.add_argument("authority_id")
     decide.add_argument("reason")
     decide.add_argument("--override-policy", action="store_true")
-    respond = sub.add_parser("respond", help="record one learner response to a decision")
+    respond = sub.add_parser("respond", help="record one agent-attributed learner response to a decision")
     respond.add_argument("decision_id")
     respond.add_argument("response", help="response text or - for stdin")
+    respond.add_argument(
+        "--confirm-attribution",
+        action="store_true",
+        help="confirm that the learner's latest answer is actually responding to this Decision",
+    )
+    sub.add_parser(
+        "open-decisions",
+        help="list current-Mission Decisions that still have no learner response",
+    )
     respond_context = sub.add_parser("respond-context", help="record a response with artifact interaction context")
     respond_context.add_argument("decision_id")
     respond_context.add_argument("payload", help="response/context JSON file or - for stdin")
@@ -1568,9 +1616,16 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "respond":
+            if not args.confirm_attribution:
+                raise RuntimeContractError(
+                    "Agent respond requires --confirm-attribution after checking open-decisions "
+                    "and verifying that the learner's latest answer actually responds to the selected learner_action"
+                )
             response = sys.stdin.read() if args.response == "-" else args.response
             receipt = record_learner_response(repo_root, args.decision_id, response)
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
+        elif args.command == "open-decisions":
+            print(json.dumps({"decisions": unanswered_decisions(repo_root)}, ensure_ascii=False, indent=2))
         elif args.command == "respond-context":
             payload = _load_payload(args.payload)
             receipt = record_learner_response(
