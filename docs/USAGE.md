@@ -78,6 +78,18 @@ printf '%s' '{"title":"MLP representations","goal":"Explain and reason about how
 
 This creates a workspace-v0.2 Project/Mission and a conservative representative-attempt Decision. It does **not** invent mastery, misconceptions, or a domain map.
 
+For a non-ASCII Project title in Agent mode, pass a readable portable
+`project_id` explicitly instead of relying on the hash fallback. For example:
+
+```bash
+printf '%s' '{"title":"双向链表","project_id":"shuang-xiang-lian-biao","goal":"理解双向链表并能独立写出正确的插入、删除与边界处理代码"}' \
+  | python tools/learning.py create-project -
+```
+
+The title remains learner-facing Unicode; the ID is a stable local path/receipt
+identifier. A language-aware Agent should choose the transliteration or semantic
+ASCII slug rather than asking the learner to manage internal IDs.
+
 Useful inspection commands are:
 
 ```bash
