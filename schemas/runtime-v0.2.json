@@ -197,8 +197,51 @@
             "falsification_signal": {
               "type": "string",
               "minLength": 1
+            },
+            "recorded_after_action": {
+              "type": "boolean"
+            },
+            "late_record_reason": {
+              "type": "string",
+              "minLength": 1
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "recorded_after_action": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "recorded_after_action"
+                ]
+              },
+              "then": {
+                "required": [
+                  "late_record_reason"
+                ]
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "late_record_reason"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "recorded_after_action": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "recorded_after_action"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
