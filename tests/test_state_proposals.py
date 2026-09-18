@@ -85,8 +85,51 @@ class StateProposalReviewTests(unittest.TestCase):
         self.assertEqual(pending[0]["current_state"], "unknown")
         self.assertEqual(pending[0]["evidence_count"], 1)
         self.assertEqual(pending[0]["policy_issues"], [])
+        self.assertEqual(pending[0]["risk"], "low")
+        self.assertTrue(pending[0]["auto_accept_eligible"])
         self.assertFalse(pending[0]["stale"])
         self.assertNotIn("evidence_ids", pending[0])
+
+    def test_runtime_policy_reconcile_accepts_only_low_risk_first_exposure(self):
+        evidence = self.evidence()
+        first = self.proposal("unknown", "exposed", [evidence["id"]])
+
+        decisions = state_proposals.reconcile_low_risk_state_proposals(self.root)
+        self.assertEqual(len(decisions), 1)
+        self.assertEqual(decisions[0]["proposal_id"], first["id"])
+        self.assertEqual(decisions[0]["decision"], "accepted")
+        self.assertEqual(
+            decisions[0]["authority"],
+            {"type": "runtime_policy", "id": "low-risk-v0.1"},
+        )
+        self.assertFalse(decisions[0]["policy_overridden"])
+        self.assertEqual(
+            runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+        self.assertEqual(state_proposals.pending_state_proposals(self.root), [])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+        second = self.proposal("exposed", "developing", [evidence["id"]])
+        pending = state_proposals.pending_state_proposals(self.root)
+        self.assertEqual(pending[0]["id"], second["id"])
+        self.assertEqual(pending[0]["risk"], "medium")
+        self.assertFalse(pending[0]["auto_accept_eligible"])
+        self.assertEqual(state_proposals.reconcile_low_risk_state_proposals(self.root), [])
+        self.assertEqual(state_proposals.pending_state_proposals(self.root)[0]["id"], second["id"])
+
+    def test_high_risk_transitions_never_become_auto_accept_eligible(self):
+        evidence = self.evidence()
+        first = self.proposal("unknown", "exposed", [evidence["id"]])
+        state_proposals.reconcile_low_risk_state_proposals(self.root)
+        second = self.proposal("exposed", "stable", [evidence["id"]])
+
+        pending = state_proposals.pending_state_proposals(self.root)
+        self.assertEqual(pending[0]["id"], second["id"])
+        self.assertEqual(pending[0]["risk"], "high")
+        self.assertFalse(pending[0]["auto_accept_eligible"])
+        self.assertTrue(pending[0]["policy_issues"])
+        self.assertEqual(state_proposals.reconcile_low_risk_state_proposals(self.root), [])
 
     def test_learner_acceptance_projects_state_and_clears_pending(self):
         evidence = self.evidence()
