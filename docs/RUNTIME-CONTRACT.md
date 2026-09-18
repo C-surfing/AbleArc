@@ -133,13 +133,19 @@ Teacher's earlier model was wrong” auditable while leaving mastery unchanged.
 
 Agents may create `StateProposal` receipts. They may not accept their own proposal merely because they produced it. Acceptance requires one of:
 
-- `runtime_policy`: deterministic safety checks passed, followed by an explicit acceptance call;
+- `runtime_policy`: deterministic policy acceptance for explicitly eligible low-risk transitions, or an explicit trusted acceptance call;
 - `learner`: an explicit learner edit or override;
 - `human_reviewer`: a human assessment or override.
 
 Policy overrides are allowed only for learner or human authority and are recorded with both the failed checks and the reason. This preserves flexibility without making exceptions invisible.
 
-The initial policy is intentionally conservative:
+The initial policy is intentionally conservative. It also classifies transition risk:
+
+- **low**: only `unknown → exposed`, when current state still matches and no policy issue exists; the Workspace may request Runtime reconciliation and `runtime_policy:low-risk-v0.1` may accept it automatically;
+- **medium**: non-stable/non-transferable changes that pass policy but make a stronger learner-state claim, such as `exposed → developing`; explicit learner/human authority remains required;
+- **high**: stable/transferable claims, downgrades, skipped states, or any policy-blocked acceptance; these are never auto-accepted.
+
+The underlying safety rules remain:
 
 - promotion cannot skip mastery states;
 - `unknown → exposed` records first contact and may use supporting,
@@ -248,7 +254,16 @@ python tools/runtime.py --repo . advance dec_example assessment.json
 
 The compact payload contains an `assessment` using the EvidenceReceipt fields and a `next_decision` using the DecisionProposal fields. The runtime derives the observation and concept references, adds the new evidence to the next decision, closes the old turn, and returns all three receipts. Invalid next moves are rejected before feedback is persisted. This façade introduces no new receipt kind and never mutates mastery state.
 
-Accept or reject a proposal:
+Inspect/reconcile learner-facing proposal policy:
+
+```bash
+python tools/state_proposals.py --repo . list
+python tools/state_proposals.py --repo . reconcile
+```
+
+`reconcile` can accept only Runtime-classified low-risk first-exposure proposals. It cannot accept developing/stable/transferable claims, downgrades, stale proposals, or anything with policy issues.
+
+Accept or reject a proposal explicitly:
 
 ```bash
 python tools/runtime.py --repo . decide \
