@@ -225,6 +225,79 @@ Quickly remind me what a covariance matrix is; I'm in the middle of solving some
 - Rebalances roadmap priorities and study mode toward exam-relevant retrieval/application.
 - Does not discard conceptual understanding, but does not pretend priorities are unchanged.
 
+## 19. Slip should not trigger a full reteach
+
+**Context**: learner has repeatedly explained the correct mechanism, then makes one arithmetic/sign error.
+
+**Expected behavior**
+
+- Diagnoses a likely local slip rather than missing conceptual understanding.
+- Corrects the local error briefly and returns the learner to use/retrieval/application.
+- Does not replay the complete concept explanation.
+
+**Failure mode**: treating every incorrect answer as evidence that the whole concept was never understood.
+
+## 20. Missing prerequisite should cause a bounded descent
+
+**Context**: learner is studying attention but cannot interpret matrix shape changes that the current step depends on.
+
+**Expected behavior**
+
+- Identifies the matrix/linear-map prerequisite as the current blocker.
+- Temporarily descends to the smallest prerequisite repair that unlocks the original mission.
+- Keeps the original target visible and returns to it after repair.
+- Does not silently convert the detour into a new unrelated curriculum.
+
+## 21. Overgeneralization needs a boundary case
+
+**Context**: learner correctly learned a rule in one structural setting, then applies it where its assumptions no longer hold.
+
+**Expected behavior**
+
+- Diagnoses overgeneralization rather than simple forgetting.
+- Uses a contrast, counterexample, prediction, or boundary case.
+- Makes the learner identify which assumption changed.
+- Does not respond with several more examples where the original rule still works.
+
+## 22. Failed transfer should preserve established knowledge
+
+**Context**: learner previously demonstrated the concept independently but fails to recognize the same structure in a new surface context.
+
+**Expected behavior**
+
+- Treats the base concept as potentially intact.
+- Focuses on mapping the new context to the known structure.
+- Uses connection/contrast/application/transfer rather than restarting from definitions.
+- Reopens the base concept only if new evidence actually contradicts it.
+
+## 23. Curiosity may advance with uncertainty
+
+**Context**: learner says, "I know this prerequisite is still shaky, but I want to see how it connects to the next idea first."
+
+**Expected behavior**
+
+- Allows the learner to continue when doing so is coherent and safe for the learning goal.
+- Keeps the prerequisite uncertainty explicit in the learner model.
+- Avoids claiming mastery merely because the learner advanced.
+- Returns to the prerequisite when it becomes consequential.
+
+**Failure mode**: blocking all forward movement until every prior node is proven stable.
+
+## 24. A genuine question should be answered before assessment
+
+**User**
+
+```text
+What is the actual difference between representation learning and feature engineering?
+```
+
+**Expected behavior**
+
+- Gives a direct, useful distinction first.
+- Uses the learner's existing context if available.
+- May add one discriminative follow-up only if it changes the next teaching move.
+- Does not respond first with a diagnostic quiz or demand a teach-back.
+
 ## Review rubric
 
 For each scenario, inspect whether the agent demonstrates:
