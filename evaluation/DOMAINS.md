@@ -1,6 +1,6 @@
-# Initial Dogfooding Domains
+# Dogfooding Domains
 
-These five domains are deliberately different. The goal is to expose failures that generalize across teaching contexts rather than tune the protocol to one subject.
+The original five domains are deliberately different; procedural / skill-acquisition is a sixth extension added from real dogfooding evidence. The goal remains to expose failures that generalize across teaching contexts rather than tune the protocol to one subject.
 
 ## 1. Probability and statistics
 
@@ -112,6 +112,31 @@ Failure signals:
 - polished explanation creates recognition only;
 - analogy becomes the learner's final model;
 - Feynman check degenerates into generic "explain it in your own words".
+
+## 6. Procedural / skill acquisition
+
+Representative arcs:
+
+- data structure → invariants → implementation → boundary transfer;
+- language syntax → smallest runnable use → variation → independent production;
+- algorithm/proof/tool procedure → essential steps → failure diagnosis → neighboring case.
+
+Test:
+
+- prediction before execution when it creates useful evidence;
+- smallest viable performance rather than tutorial copying;
+- distinction between semantic requirements and hygiene/convention;
+- failure-mode diagnosis from violated structure;
+- concrete artifact form when the Mission promises performance;
+- transfer to a boundary or neighboring procedure.
+
+Failure signals:
+
+- prose explanation is accepted for a Mission that requires actual implementation;
+- every code fragment is executed without a learning reason;
+- the learner memorizes a canonical sequence but cannot explain which steps are essential;
+- debugging becomes patch guessing rather than invariant diagnosis;
+- the original example works but a small boundary change collapses performance.
 
 ## Cross-domain questions
 

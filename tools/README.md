@@ -220,6 +220,7 @@ mathematics
 paper-reading
 programming-agent
 conceptual
+procedural
 ```
 
 The command initializes `.learning/` if necessary, then creates a dated directory under `.dogfooding/` containing:
@@ -281,7 +282,7 @@ Shows whether `.learning/` exists and lists local arcs with their number of sess
 python tools/learning.py doctor
 ```
 
-Checks that required templates, evaluation contracts, five domain briefs, and the `.learning/` / `.dogfooding/` privacy ignores are present.
+Checks that required templates, evaluation contracts, all registered domain briefs, and the `.learning/` / `.dogfooding/` privacy ignores are present.
 
 ## Tests
 

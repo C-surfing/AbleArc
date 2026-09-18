@@ -25,7 +25,7 @@ Operational evaluation lives in `../evaluation/`:
 - `README.md` defines evidence standards and promotion rules;
 - `SESSION.md` records one meaningful session;
 - `FAILURE-TAXONOMY.md` classifies failures before fixes;
-- `DOMAINS.md` defines the initial five-domain matrix;
+- `DOMAINS.md` defines the five original domains plus the procedural / skill-acquisition extension;
 - `REVIEW-SIGNALS.md` defines how to observe delayed retrieval before any scheduler policy is promoted.
 
 ## Longitudinal first
@@ -48,9 +48,10 @@ Run real tasks across:
 2. mathematics;
 3. paper reading;
 4. programming / Agent systems;
-5. conceptual learning.
+5. conceptual learning;
+6. procedural / skill acquisition.
 
-The domains intentionally demand different forms of evidence. General teaching logic should improve only from patterns that survive those differences.
+The domains intentionally demand different forms of evidence. The procedural arc was added after real dogfooding exposed a common target — acquiring a procedure and producing a concrete artifact — that did not fit the existing programming/Agent-systems arc. General teaching logic should improve only from patterns that survive those differences.
 
 ## What to observe
 
@@ -110,7 +111,7 @@ Complexity must be earned by observed need.
 
 Do not declare v0.2 because files were added. A credible v0.2 candidate requires:
 
-- multiple longitudinal arcs across all five domains;
+- multiple longitudinal arcs across the original five domains, plus procedural evidence when validating skill-acquisition behavior;
 - recorded capability-delta evidence;
 - a non-trivial set of classified failures;
 - at least one learner-model or teaching-decision improvement justified by repeated evidence;
