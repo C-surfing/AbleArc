@@ -40,7 +40,12 @@ function currentContext(repoRoot: string) {
 
 export function sessionCloseFilePath(repoRoot: string): string {
   const context = currentContext(repoRoot);
-  return path.join(path.dirname(context.runtimeRoot), "continuity", "session-close.json");
+  return path.join(
+    path.dirname(context.runtimeRoot),
+    "continuity",
+    context.missionId!,
+    "session-close.json",
+  );
 }
 
 function parseCapability(value: unknown): SessionCapabilityChange | undefined {
@@ -166,7 +171,12 @@ function parseManifest(input: unknown, expected: ReturnType<typeof currentContex
 
 export function readSessionClose(repoRoot: string): SessionCloseRecord | undefined {
   const context = currentContext(repoRoot);
-  const filePath = path.join(path.dirname(context.runtimeRoot), "continuity", "session-close.json");
+  const filePath = path.join(
+    path.dirname(context.runtimeRoot),
+    "continuity",
+    context.missionId!,
+    "session-close.json",
+  );
   if (!fs.existsSync(filePath)) return undefined;
   if (fs.lstatSync(filePath).isSymbolicLink()) {
     throw new Error("Session Close manifest must not be a symbolic link");
@@ -210,7 +220,7 @@ export function writeSessionClose(
       ...draft,
     };
 
-    const continuityRoot = path.join(projectRoot, "continuity");
+    const continuityRoot = path.join(projectRoot, "continuity", context.missionId!);
     if (fs.existsSync(continuityRoot) && fs.lstatSync(continuityRoot).isSymbolicLink()) {
       throw new Error("Session Close directory must not be a symbolic link");
     }
