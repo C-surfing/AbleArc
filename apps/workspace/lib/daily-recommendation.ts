@@ -1,4 +1,5 @@
 import type { DailyContext } from "./daily-context.ts";
+import type { TomorrowSeed } from "./session-close.ts";
 import { deriveTodayRecommendation, type TodayRecommendation } from "./today.ts";
 import type { WorkspaceSnapshot } from "./types.ts";
 
@@ -69,8 +70,9 @@ function contextShape(context: DailyContext): {
 export function deriveDailyRecommendation(
   snapshot: WorkspaceSnapshot,
   context?: DailyContext,
+  tomorrowSeed?: TomorrowSeed,
 ): DailyRecommendation {
-  const primary = deriveTodayRecommendation(snapshot);
+  const primary = deriveTodayRecommendation(snapshot, tomorrowSeed);
 
   if (primary.kind === "read-only" || primary.kind === "await-assessment") {
     return {
