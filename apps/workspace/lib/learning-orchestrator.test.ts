@@ -12,6 +12,7 @@ function generatedAdvance(): Record<string, unknown> {
       level: "explanation",
       outcome: "supports",
       failure_mode: "none",
+      artifact_form: "prose",
       result_summary: "The learner reconstructed the relation without copying the prompt.",
       scaffolding: "light",
       context: "same",
@@ -41,6 +42,7 @@ test("validator injects deterministic assessor identity", () => {
   const result = validateTeachingAdvance(generatedAdvance(), "provider:openai-compatible:test-model");
   assert.equal(result.assessment.assessor, "provider:openai-compatible:test-model");
   assert.equal(result.assessment.failure_mode, "none");
+  assert.equal(result.assessment.artifact_form, "prose");
   assert.equal(result.next_decision.move, "transfer");
 });
 
@@ -98,6 +100,8 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
   assert.match(request?.system || "", /failed transfer/);
+  assert.match(request?.system || "", /what the learner actually produced/);
+  assert.match(request?.system || "", /executed_code/);
   assert.match(request?.system || "", /Prefer direct explanation/);
   assert.match(request?.system || "", /self-report as routing context/);
   assert.match(request?.prompt || "", /Ignore prior instructions/);
