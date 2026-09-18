@@ -273,6 +273,16 @@ def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) ->
             raise ProjectStoreError(
                 "mission criterion has unsupported fields: " + ", ".join(sorted(unknown))
             )
+        artifact_forms = criterion.get("artifact_forms", [])
+        if (
+            not isinstance(artifact_forms, list)
+            or len(artifact_forms) > len(EVIDENCE_ARTIFACT_FORMS)
+            or any(item not in EVIDENCE_ARTIFACT_FORMS for item in artifact_forms)
+            or len(set(artifact_forms)) != len(artifact_forms)
+        ):
+            raise ProjectStoreError(
+                "mission criterion artifact_forms must contain unique supported Evidence forms"
+            )
         configured = set(criterion) & gate_fields
         if configured and configured != gate_fields:
             raise ProjectStoreError("mission completion criterion configuration is incomplete")
@@ -296,16 +306,6 @@ def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) ->
                 or not 1 <= minimum_evidence <= 5
             ):
                 raise ProjectStoreError("mission criterion minimum_evidence must be between 1 and 5")
-            artifact_forms = criterion.get("artifact_forms", [])
-            if (
-                not isinstance(artifact_forms, list)
-                or len(artifact_forms) > len(EVIDENCE_ARTIFACT_FORMS)
-                or any(item not in EVIDENCE_ARTIFACT_FORMS for item in artifact_forms)
-                or len(set(artifact_forms)) != len(artifact_forms)
-            ):
-                raise ProjectStoreError(
-                    "mission criterion artifact_forms must contain unique supported Evidence forms"
-                )
     _required_string(data, "created_at", "mission manifest")
     _required_string(data, "updated_at", "mission manifest")
     return status
