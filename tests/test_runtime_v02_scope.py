@@ -61,6 +61,7 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             tuple(evidence["properties"]["failure_mode"]["enum"]),
             runtime.FAILURE_MODES,
         )
+        self.assertEqual(len(evidence["allOf"]), 2)
 
     def assessment(self):
         return {
@@ -197,9 +198,9 @@ class RuntimeV02ScopeTests(unittest.TestCase):
 
         evidence = runtime.record_evidence(
             self.root,
-            {**base, "outcome": "contradicts", "failure_mode": "failed_transfer"},
+            {**base, "outcome": "contradicts", "failure_mode": "overgeneralization"},
         )
-        self.assertEqual(evidence["failure_mode"], "failed_transfer")
+        self.assertEqual(evidence["failure_mode"], "overgeneralization")
         self.assertEqual(runtime._current_state(self.root)["revision"], 0)
         self.assertEqual(runtime.verify_runtime(self.root), [])
 
