@@ -55,6 +55,12 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             {"$ref": "#/$defs/frontierRevision"},
             schema["oneOf"],
         )
+        evidence = schema["$defs"]["evidence"]["allOf"][1]
+        self.assertIn("failure_mode", evidence["required"])
+        self.assertEqual(
+            tuple(evidence["properties"]["failure_mode"]["enum"]),
+            runtime.FAILURE_MODES,
+        )
 
     def assessment(self):
         return {
