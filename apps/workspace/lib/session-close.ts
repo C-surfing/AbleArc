@@ -49,9 +49,10 @@ export function deriveSessionClose(snapshot: WorkspaceSnapshot): SessionCloseDra
   if (!snapshot.projectId || !snapshot.missionId) {
     throw new Error("Session Close requires an active workspace-v0.2 Project and Mission");
   }
-  if (!exchange || exchange.status !== "assessed" || !exchange.evidenceId) {
+  if (!exchange || exchange.status !== "assessed" || !evidenceId) {
     throw new Error("Session Close requires an assessed learner response");
   }
+  const evidenceId = exchange.evidenceId;
 
   const currentDecision = snapshot.decision;
   const nextDecisionIsCurrent = Boolean(
@@ -63,7 +64,7 @@ export function deriveSessionClose(snapshot: WorkspaceSnapshot): SessionCloseDra
 
   const stateDecision = snapshot.latestStateDecision;
   const capabilityChange = stateDecision?.decision === "accepted"
-    && stateDecision.evidenceIds.includes(exchange.evidenceId)
+    && stateDecision.evidenceIds.includes(evidenceId)
     ? {
         concept: stateDecision.concept,
         before: stateDecision.before,
@@ -72,13 +73,13 @@ export function deriveSessionClose(snapshot: WorkspaceSnapshot): SessionCloseDra
     : undefined;
 
   const materials = snapshot.materials
-    .filter((material) => material.evidenceIds.includes(exchange.evidenceId))
+    .filter((material) => material.evidenceIds.includes(evidenceId))
     .map((material) => ({ id: material.id, title: material.title }));
 
   return {
     sourceDecisionId: exchange.decisionId,
     sourceObservationId: exchange.observationId,
-    sourceEvidenceId: exchange.evidenceId,
+    sourceEvidenceId: evidenceId,
     evidenceSummary: exchange.feedback || "Assessment recorded.",
     ...(capabilityChange ? { capabilityChange } : {}),
     ...(nextDecisionIsCurrent && currentDecision
