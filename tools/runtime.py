@@ -37,6 +37,7 @@ SCHEMA_VERSION = LEGACY_SCHEMA_VERSION
 ARTIFACT_SCHEMA_VERSION = "0.2"
 SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
+STATE_TRANSITION_RISKS = ("low", "medium", "high")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
 ARTIFACT_FORMS = project_store.EVIDENCE_ARTIFACT_FORMS
 FAILURE_MODES = (
@@ -1208,6 +1209,36 @@ def transition_policy_issues(repo_root: Path, proposal: dict[str, Any]) -> list[
         if not has_transfer:
             issues.append("transferable requires lightly scaffolded transfer in a novel context")
     return issues
+
+
+def state_transition_risk(repo_root: Path, proposal: dict[str, Any]) -> str:
+    """Classify learner-state transitions without granting acceptance authority."""
+    before = proposal["before"]
+    after = proposal["after"]
+    before_rank = MASTERY_STATES.index(before)
+    after_rank = MASTERY_STATES.index(after)
+    issues = transition_policy_issues(repo_root, proposal)
+
+    if (
+        issues
+        or after in ("stable", "transferable")
+        or after_rank < before_rank
+        or after_rank > before_rank + 1
+    ):
+        return "high"
+    if before == "unknown" and after == "exposed":
+        return "low"
+    return "medium"
+
+
+def low_risk_auto_accept_eligible(repo_root: Path, proposal: dict[str, Any]) -> bool:
+    """Only descriptive first exposure may be auto-accepted by Runtime policy."""
+    if state_transition_risk(repo_root, proposal) != "low":
+        return False
+    state = _current_state(repo_root)
+    existing = state["concepts"].get(proposal["concept_id"])
+    current = existing["state"] if existing else "unknown"
+    return current == proposal["before"] and not transition_policy_issues(repo_root, proposal)
 
 
 def _current_state(repo_root: Path) -> dict[str, Any]:

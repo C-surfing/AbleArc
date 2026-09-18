@@ -126,8 +126,37 @@ export async function POST(request: NextRequest) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Expected a state proposal action object." }, { status: 400 });
   }
+
   const payload = body as Record<string, unknown>;
+  const action = payload.action === undefined ? "decide" : payload.action;
   const projectId = typeof payload.projectId === "string" ? payload.projectId : "";
+  const repoRoot = findRepoRoot();
+
+  if (action === "reconcile") {
+    if (!PROJECT_ID.test(projectId)) {
+      return NextResponse.json({ error: "The state proposal reconciliation is invalid." }, { status: 400 });
+    }
+    try {
+      const context = selectedWorkspaceProject(repoRoot);
+      if (context.projectId !== projectId) {
+        throw new ProposalApiError("The selected Project changed. Refresh before reconciling proposals.", true);
+      }
+      await runProposalCommand(repoRoot, ["reconcile"]);
+      const proposals = await readProposals(repoRoot, projectId);
+      return NextResponse.json({ ok: true, proposals }, { headers: { "cache-control": "no-store" } });
+    } catch (error) {
+      const proposalError = error instanceof ProposalApiError ? error : undefined;
+      return NextResponse.json(
+        { error: proposalError?.message || "Could not reconcile low-risk state proposals safely." },
+        { status: proposalError?.conflict ? 409 : 500 },
+      );
+    }
+  }
+
+  if (action !== "decide") {
+    return NextResponse.json({ error: "The state proposal action is invalid." }, { status: 400 });
+  }
+
   const proposalId = typeof payload.proposalId === "string" ? payload.proposalId : "";
   const decision = payload.decision;
   const reason = typeof payload.reason === "string" ? payload.reason.trim() : "";
@@ -144,7 +173,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "The state proposal action is invalid." }, { status: 400 });
   }
 
-  const repoRoot = findRepoRoot();
   try {
     const context = selectedWorkspaceProject(repoRoot);
     if (context.projectId !== projectId) {
