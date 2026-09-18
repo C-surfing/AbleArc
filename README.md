@@ -190,6 +190,7 @@ python tools/learning.py map
 python tools/learning.py completion-status
 python tools/learning.py materials
 python tools/learning.py start-arc probability bayes-base-rate
+python tools/learning.py start-arc procedural linked-list-skill
 python tools/learning.py new-session <arc>
 python tools/vnext_product_dogfood.py --repo . start <arc> --entry-mode workspace
 python tools/vnext_product_dogfood.py --repo . validate <arc>
@@ -238,7 +239,7 @@ The repository has automated CI for the runner and repository invariants. See [`
 - [`evaluation/VNEXT-PRODUCT-DOGFOOD.md`](evaluation/VNEXT-PRODUCT-DOGFOOD.md) — descriptive product-surface checkpoints before Phase 4 promotion.
 - [`evaluation/PRIVACY.md`](evaluation/PRIVACY.md) — local/private learner-evidence boundary and public minimization rules.
 - [`evaluation/PROMOTION.md`](evaluation/PROMOTION.md) — evidence gate before changing general Teach/Study rules.
-- [`evaluation/DOMAINS.md`](evaluation/DOMAINS.md) — probability, mathematics, paper reading, programming/Agent, and conceptual-learning test matrix.
+- [`evaluation/DOMAINS.md`](evaluation/DOMAINS.md) — probability, mathematics, paper reading, programming/Agent, conceptual, and procedural/skill-acquisition test matrix.
 - [`evaluation/REPRESENTATIONS.md`](evaluation/REPRESENTATIONS.md) — evaluate learning value of visual and non-visual representations.
 - [`evaluation/FAILURE-TAXONOMY.md`](evaluation/FAILURE-TAXONOMY.md) — classify failures before modifying the protocol.
 - [`evaluation/SESSION.md`](evaluation/SESSION.md) — template for a meaningful session record.
