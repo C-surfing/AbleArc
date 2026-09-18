@@ -75,13 +75,22 @@ direct references cannot cross Projects, and each learner-action chain stays
 inside one Mission. Project-level decisions may still cite evidence from an
 earlier Mission in the same Project.
 
-Learner-facing clients should normally use the high-level response façade:
+The Workspace binds the submitted response to the Decision rendered in Focus and
+uses `respond-context`. For the free-text Agent CLI path, inspect the unanswered
+Decisions and explicitly confirm attribution before writing:
 
 ```bash
-python tools/runtime.py --repo . respond <decision-id> -
+python tools/runtime.py --repo . open-decisions
+python tools/runtime.py --repo . respond <decision-id> - --confirm-attribution
 ```
 
-It reads response text from stdin and derives concept/action context from the decision. The lower-level `record` commands exist for agents and debugging, not for learners.
+`open-decisions` returns only current-Mission Decisions without a learner
+response, including their target, concept IDs, and `learner_action`. The
+confirmation flag means the Agent has checked that the latest learner message
+actually answers that action; it is not a semantic similarity score performed by
+Runtime. If the message belongs to a different move, do not attach it to an old
+Decision. The lower-level `record` commands exist for controlled integration and
+debugging, not as an attribution shortcut.
 
 Agents can consume the next unanswered response and advance the learning loop without manually assembling receipts:
 
