@@ -1,20 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { readDailyContext, writeDailyContext } from "@/lib/daily-context-store";
+import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
-
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try {
-    const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-    const requestHost = forwardedHost || request.headers.get("host") || request.nextUrl.host;
-    return new URL(origin).host === requestHost;
-  } catch {
-    return false;
-  }
-}
 
 export function GET() {
   try {
