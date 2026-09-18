@@ -214,6 +214,25 @@ The Workspace is different: its composer is already bound to the currently
 rendered structured Decision and therefore continues to use `respond-context`
 without this Agent confirmation flag.
 
+### Explicit late Decision repair
+
+The normal invariant remains **Decision first, learner action second**. If an
+Agent violates that invariant by presenting a move before recording its
+Decision, it must not conceal the ordering error inside a normal rationale or
+reuse an unrelated open Decision. Record the missing Decision through:
+
+```bash
+python tools/runtime.py --repo . late-decision decision.json \
+  "Presented before recording due to an Agent ordering error."
+```
+
+This path is workspace-v0.2 only. It stores the otherwise normal Decision with
+`recorded_after_action=true` and a non-empty `late_record_reason`. The marker
+has no mastery or topology authority; it exists so the trace states that the
+protocol order was repaired after the fact. The learner response can then be
+attached to that returned Decision using the Agent attribution-confirmed
+`respond` command. Legacy receipts remain unchanged.
+
 For a typed interactive artifact, the Workspace uses `respond-context`. Its JSON payload contains the response plus the learner's prediction and explored parameter range. The runtime checks that the artifact belongs to the Decision, the prediction is one of its declared options, and the values are inside its semantic range before adding `artifact_interaction` to the Observation. Interaction context informs assessment but is not automatically Evidence.
 
 Read the next response awaiting assessment:
