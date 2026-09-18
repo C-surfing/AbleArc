@@ -3,6 +3,7 @@ import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveProjectReadContext } from "@/lib/project-store";
 import { parseStateProposalReviews } from "@/lib/state-proposal-review";
+import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
@@ -17,18 +18,6 @@ class ProposalApiError extends Error {
   constructor(message: string, readonly conflict = false) {
     super(message);
     this.name = "ProposalApiError";
-  }
-}
-
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try {
-    const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-    const requestHost = forwardedHost || request.headers.get("host") || request.nextUrl.host;
-    return new URL(origin).host === requestHost;
-  } catch {
-    return false;
   }
 }
 
