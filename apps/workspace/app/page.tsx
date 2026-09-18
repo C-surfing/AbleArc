@@ -10,7 +10,14 @@ export default function HomePage() {
   const repoRoot = findRepoRoot();
   const snapshot = loadWorkspaceSnapshot();
   const dailyContext = readDailyContext(repoRoot);
-  const tomorrowSeed = relevantTomorrowSeed(readSessionClose(repoRoot), snapshot);
+  let tomorrowSeed;
+  if (snapshot.projectId && snapshot.missionId) {
+    try {
+      tomorrowSeed = relevantTomorrowSeed(readSessionClose(repoRoot), snapshot);
+    } catch {
+      tomorrowSeed = undefined;
+    }
+  }
   return (
     <LearningHome
       snapshot={snapshot}
