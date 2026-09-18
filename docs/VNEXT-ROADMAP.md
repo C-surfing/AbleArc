@@ -754,7 +754,7 @@ No mandatory reflection prompts or timing gates. Reflection alone cannot change 
 
 ### Phase 7 — Authority policy refinement
 
-**Status:** active implementation; tracked in Issue #87.
+**Status:** implemented on `main` via Issue #87 / PR #88.
 
 **Goal:** reduce approval fatigue while retaining strict learner-state safety.
 
@@ -772,6 +772,8 @@ Less learner confirmation friction without any client-side direct mastery write.
 
 ### Phase 8 — Capability boundary and first Research Capability
 
+**Status:** next product slice after the architecture-simplification pass in Issue #90; tracked by Issue #89.
+
 **Goal:** let one coherent Teacher invoke specialist workflows.
 
 Deliverables:
@@ -785,6 +787,14 @@ Deliverables:
 Acceptance:
 
 Research may provide source material, but learner interaction and state change still pass through the normal teaching/evidence runtime.
+
+Implementation budget:
+
+- Capability and plugin/host code must live outside `tools/runtime.py` learner-truth authority.
+- Do not add Phase 8 fields to `WorkspaceSnapshot` unless they are genuinely part of the shared read model; capability-local state stays capability-local.
+- Reuse shared request/storage infrastructure instead of adding route-local copies.
+- The host/plugin layer stays thin: translate HostTurn/capability contracts, do not create another learning engine.
+- Prefer one concrete Research capability over a generic capability framework.
 
 ### Phase 9 — Review Suggestions in Today
 
