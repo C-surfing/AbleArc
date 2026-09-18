@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
       const title = typeof payload.title === "string" ? payload.title.trim() : "";
       const goal = typeof payload.goal === "string" ? payload.goal.trim() : "";
       const why = typeof payload.why === "string" ? payload.why.trim() : "";
+      const projectId = typeof payload.projectId === "string" ? payload.projectId.trim() : "";
       if (!title || !goal) {
         return NextResponse.json(
           { error: "Give the Project a title and an observable capability goal." },
@@ -99,10 +100,21 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
       }
+      if (projectId && !PROJECT_ID.test(projectId)) {
+        return NextResponse.json(
+          { error: "The optional Project identifier must be a portable lowercase ASCII slug." },
+          { status: 400 },
+        );
+      }
       const result = await runLearningTool(
         repoRoot,
         ["create-project", "-"],
-        { title, goal, why },
+        {
+          title,
+          goal,
+          why,
+          ...(projectId ? { project_id: projectId } : {}),
+        },
       );
       return NextResponse.json({ ok: true, result });
     }
