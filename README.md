@@ -191,7 +191,7 @@ python tools/learning.py completion-status
 python tools/learning.py materials
 python tools/learning.py start-arc probability bayes-base-rate
 python tools/learning.py new-session <arc>
-python tools/vnext_product_dogfood.py --repo . start <arc>
+python tools/vnext_product_dogfood.py --repo . start <arc> --entry-mode workspace
 python tools/vnext_product_dogfood.py --repo . validate <arc>
 python tools/vnext_product_dogfood.py --repo . summary <arc>
 python tools/learning.py status

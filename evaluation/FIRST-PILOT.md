@@ -170,13 +170,13 @@ Record decisive evidence only:
 Create the product checkpoint for the same numbered session:
 
 ```bash
-python tools/vnext_product_dogfood.py --repo . start <arc>
+python tools/vnext_product_dogfood.py --repo . start <arc> --entry-mode workspace
 ```
 
 If `status` later reveals an older real session without a checkpoint, backfill only the empty template for that existing session:
 
 ```bash
-python tools/vnext_product_dogfood.py --repo . start <arc> --session NNN
+python tools/vnext_product_dogfood.py --repo . start <arc> --entry-mode workspace --session NNN
 ```
 
 Backfill does not authorize reconstruction of observations from memory. Fill only behavior you genuinely observed or recorded contemporaneously.
