@@ -1,6 +1,7 @@
+import type { TomorrowSeed } from "./session-close.ts";
 import type { WorkspaceSnapshot } from "./types";
 
-export type TodayActionKind = "respond" | "resume" | "await-assessment" | "read-only";
+export type TodayActionKind = "respond" | "resume" | "tomorrow-seed" | "await-assessment" | "read-only";
 
 export interface TodayRecommendation {
   kind: TodayActionKind;
@@ -10,7 +11,10 @@ export interface TodayRecommendation {
   cta: string;
 }
 
-export function deriveTodayRecommendation(snapshot: WorkspaceSnapshot): TodayRecommendation {
+export function deriveTodayRecommendation(
+  snapshot: WorkspaceSnapshot,
+  tomorrowSeed?: TomorrowSeed,
+): TodayRecommendation {
   const projectReadOnly = snapshot.projectStatus === "paused"
     || (snapshot.projectStatus === "archived" && snapshot.maintenanceStatus !== "study_active");
 
@@ -33,6 +37,21 @@ export function deriveTodayRecommendation(snapshot: WorkspaceSnapshot): TodayRec
       action: "Review the current turn and continue when the saved response has been assessed.",
       rationale: "Your response is already recorded. AbleArc should not ask you to repeat the same evidence-bearing action.",
       cta: "Open current session",
+    };
+  }
+
+  if (
+    tomorrowSeed
+    && snapshot.decision
+    && !snapshot.decision.hasLearnerResponse
+    && snapshot.decision.id === tomorrowSeed.decisionId
+  ) {
+    return {
+      kind: "tomorrow-seed",
+      eyebrow: "From your last Session Close",
+      action: tomorrowSeed.action,
+      rationale: "This seed still points to the current unanswered Runtime Decision.",
+      cta: "Resume this seed",
     };
   }
 

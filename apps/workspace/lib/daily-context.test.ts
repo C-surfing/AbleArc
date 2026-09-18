@@ -48,6 +48,8 @@ function snapshot(overrides: Partial<WorkspaceSnapshot> = {}): WorkspaceSnapshot
     sessions: [],
     projects: [],
     materials: [],
+    pendingStateProposalCount: 0,
+    pendingMapProposalCount: 0,
     projectId: "bayes",
     projectTitle: "Bayes",
     projectStatus: "active",

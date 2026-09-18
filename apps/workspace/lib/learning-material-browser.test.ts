@@ -18,6 +18,7 @@ function material(
     summary: `Summary for ${title}`,
     whyReturn,
     conceptIds,
+    evidenceIds: ["ev_material_test"],
     evidenceCount: 1,
     sourceCount: 0,
     createdAt: "2026-09-16T12:00:00Z",

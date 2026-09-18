@@ -101,6 +101,8 @@ const DEMO: WorkspaceSnapshot = {
   ],
   projects: [],
   materials: [],
+  pendingStateProposalCount: 0,
+  pendingMapProposalCount: 0,
   sessions: [
     { id: "s1", label: "S1 · Frontier", detail: "Inverse-condition confusion located", kind: "frontier" },
     { id: "s2", label: "S2 · Representation", detail: "Frequency tree supported correct inference", kind: "representation" },
@@ -179,6 +181,50 @@ function readReceiptDirectory(runtimeRoot: string, directory: string): RuntimeRe
     .filter((item): item is RuntimeReceipt => Boolean(item?.id && item?.created_at))
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
 }
+
+function readJsonDirectory(root: string): RuntimeReceipt[] {
+  if (!fs.existsSync(root)) return [];
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) return [];
+    return fs.readdirSync(root, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+      .flatMap((entry) => {
+        const value = readJsonOptional<RuntimeReceipt>(path.join(root, entry.name));
+        return value?.id ? [value] : [];
+      });
+  } catch {
+    return [];
+  }
+}
+
+function pendingStateProposalCount(runtimeRoot: string, missionId: string | undefined): number {
+  if (!missionId) return 0;
+  const proposals = readReceiptDirectory(runtimeRoot, "state-proposals")
+    .filter((item) => item.mission_id === missionId);
+  const decided = new Set(
+    readReceiptDirectory(runtimeRoot, "state-decisions")
+      .filter((item) => item.mission_id === missionId)
+      .map((item) => String(item.proposal_id)),
+  );
+  return proposals.filter((item) => !decided.has(item.id)).length;
+}
+
+function pendingMapProposalCount(
+  learningMapPath: string | undefined,
+  missionId: string | undefined,
+): number {
+  if (!learningMapPath || !missionId) return 0;
+  const mapRoot = path.dirname(learningMapPath);
+  const proposals = readJsonDirectory(path.join(mapRoot, "proposals"))
+    .filter((item) => item.mission_id === missionId);
+  const decided = new Set(
+    readJsonDirectory(path.join(mapRoot, "proposal-decisions"))
+      .filter((item) => item.mission_id === missionId)
+      .map((item) => String(item.proposal_id)),
+  );
+  return proposals.filter((item) => !decided.has(item.id)).length;
+}
+
 
 function readLearningMaterials(
   materialsRoot: string,
@@ -385,9 +431,9 @@ function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefine
     .filter((item) => item.observation_id === observation.id)
     .at(-1);
   const nextDecision = evidence
-    ? readReceiptDirectory(runtimeRoot, "decisions").find((item) => (
+    ? readReceiptDirectory(runtimeRoot, "decisions").filter((item) => (
         Array.isArray(item.evidence_used) && item.evidence_used.includes(evidence.id)
-      ))
+      )).at(-1)
     : undefined;
   const validLevel = ["recognition", "recall", "explanation", "application", "transfer"];
   const validOutcome = ["supports", "contradicts", "inconclusive"];
@@ -396,6 +442,8 @@ function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefine
   return {
     decisionId: String(observation.decision_id),
     observationId: observation.id,
+    evidenceId: evidence?.id,
+    evidenceCreatedAt: evidence?.created_at,
     response: String(observation.observed_result || ""),
     status: evidence ? "assessed" : "awaiting_assessment",
     feedback: evidence ? String(evidence.result_summary || "Assessment recorded.") : undefined,
@@ -431,6 +479,7 @@ function runtimeStateDecision(runtimeRoot: string): StateDecisionTrace | undefin
     decision: decision.decision === "rejected" ? "rejected" : "accepted",
     authority: `${String(authority.type || "unknown")}:${String(authority.id || "unknown")}`,
     reason: String(decision.reason || "No authority rationale recorded."),
+    evidenceIds: Array.isArray(proposal.evidence_ids) ? proposal.evidence_ids.map(String) : [],
     evidenceCount: Array.isArray(proposal.evidence_ids) ? proposal.evidence_ids.length : 0,
     policyOverridden: decision.policy_overridden === true,
   };
@@ -687,6 +736,12 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const materials = context.layout === "workspace-v0.2"
     ? readLearningMaterials(context.materialsRoot, context.workspaceId, context.projectId)
     : [];
+  const stateProposalCount = context.layout === "workspace-v0.2"
+    ? pendingStateProposalCount(runtimeRoot, context.missionId)
+    : 0;
+  const mapProposalCount = context.layout === "workspace-v0.2"
+    ? pendingMapProposalCount(context.learningMapPath, context.missionId)
+    : 0;
 
   if (!state && !roadmap && !mission && !learner && !structuredState) return { ...DEMO, agent };
 
@@ -772,10 +827,13 @@ export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
     latestStateDecision,
     projectId: context.layout === "workspace-v0.2" ? context.projectId : undefined,
     projectTitle: context.projectTitle,
+    missionId: context.layout === "workspace-v0.2" ? context.missionId : undefined,
     projectStatus: context.projectStatus,
     maintenanceStatus: context.maintenanceStatus,
     projects,
     materials,
+    pendingStateProposalCount: stateProposalCount,
+    pendingMapProposalCount: mapProposalCount,
     sessionBrief,
   };
 }

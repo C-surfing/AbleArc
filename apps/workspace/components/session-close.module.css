@@ -1,0 +1,154 @@
+.page {
+  min-height: 100vh;
+  padding: 28px clamp(18px, 5vw, 72px) 48px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header > a {
+  color: var(--muted);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.header > div {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.header span,
+.hero > span,
+.card > span {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header strong {
+  font-size: 12px;
+}
+
+.hero {
+  max-width: 760px;
+  margin: 72px auto 36px;
+}
+
+.hero h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.hero p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.grid {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  min-height: 190px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.card strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 17px;
+}
+
+.card p,
+.card li,
+.card small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.card ul {
+  margin: 12px 0;
+  padding-left: 18px;
+}
+
+.seed {
+  border-color: #d7d5f4;
+  background: var(--accent-soft);
+}
+
+.footer {
+  max-width: 980px;
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.footer p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.footer button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--ink);
+  color: white;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.footer button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px 14px 28px;
+  }
+
+  .hero {
+    margin-top: 48px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

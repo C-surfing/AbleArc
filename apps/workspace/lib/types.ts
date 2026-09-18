@@ -139,6 +139,7 @@ export interface StateDecisionTrace {
   decision: "accepted" | "rejected";
   authority: string;
   reason: string;
+  evidenceIds: string[];
   evidenceCount: number;
   policyOverridden: boolean;
 }
@@ -146,6 +147,8 @@ export interface StateDecisionTrace {
 export interface LearnerExchange {
   decisionId: string;
   observationId: string;
+  evidenceId?: string;
+  evidenceCreatedAt?: string;
   response: string;
   status: "awaiting_assessment" | "assessed";
   feedback?: string;
@@ -195,6 +198,7 @@ export interface LearningMaterialSummary {
   summary: string;
   whyReturn: string;
   conceptIds: string[];
+  evidenceIds: string[];
   evidenceCount: number;
   sourceCount: number;
   createdAt: string;
@@ -231,9 +235,12 @@ export interface WorkspaceSnapshot {
   latestStateDecision?: StateDecisionTrace;
   projectId?: string;
   projectTitle?: string;
+  missionId?: string;
   projectStatus?: ProjectStatus;
   maintenanceStatus?: MaintenanceStatus;
   projects: ProjectSummary[];
   materials: LearningMaterialSummary[];
+  pendingStateProposalCount: number;
+  pendingMapProposalCount: number;
   sessionBrief?: LearningBrief;
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { ContextScale, DailyContext } from "@/lib/daily-context";
 import { deriveDailyRecommendation } from "@/lib/daily-recommendation";
+import type { TomorrowSeed } from "@/lib/session-close";
 import type { WorkspaceSnapshot } from "@/lib/types";
 import { entryProjectTitle } from "@/lib/today";
 import { ProjectSwitcher } from "./project-switcher";
@@ -26,14 +27,16 @@ function Brand() {
 export function LearningHome({
   snapshot,
   dailyContext,
+  tomorrowSeed,
 }: {
   snapshot: WorkspaceSnapshot;
   dailyContext?: DailyContext;
+  tomorrowSeed?: TomorrowSeed;
 }) {
   if (!snapshot.hasMission || !snapshot.projectId) {
     return <Entry />;
   }
-  return <Today snapshot={snapshot} initialContext={dailyContext} />;
+  return <Today snapshot={snapshot} initialContext={dailyContext} tomorrowSeed={tomorrowSeed} />;
 }
 
 function Entry() {
@@ -148,9 +151,11 @@ function Entry() {
 function Today({
   snapshot,
   initialContext,
+  tomorrowSeed,
 }: {
   snapshot: WorkspaceSnapshot;
   initialContext?: DailyContext;
+  tomorrowSeed?: TomorrowSeed;
 }) {
   const [context, setContext] = useState<DailyContext | undefined>(initialContext);
   const [energy, setEnergy] = useState<ContextScale | undefined>(initialContext?.energy);
@@ -162,8 +167,8 @@ function Today({
   const [savingContext, setSavingContext] = useState(false);
   const [contextError, setContextError] = useState<string>();
   const recommendation = useMemo(
-    () => deriveDailyRecommendation(snapshot, context),
-    [snapshot, context],
+    () => deriveDailyRecommendation(snapshot, context, tomorrowSeed),
+    [snapshot, context, tomorrowSeed],
   );
   const primaryHref = recommendation.primary.kind === "read-only" || !snapshot.decision
     ? "/workspace"

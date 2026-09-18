@@ -714,8 +714,11 @@ A learner can complete a meaningful session through ordinary conversation, bring
 
 See `docs/adr/0009-conversation-context-verification.md`, `docs/HOST-INTEGRATION.md`, and `docs/DOGFOOD-2026-09-18-ACTION-PLAN.md`.
 
+**Status:** implemented on `main`; the conversation/host boundary and the dogfooding audit fixes are now baseline behavior.
 
 ### Phase 5 — Session Close and Tomorrow Seed
+
+**Status:** active implementation; tracked in Issue #83.
 
 **Goal:** make leaving and returning part of the product loop.
 
@@ -935,7 +938,7 @@ Provider failure, malformed output, stale state, interrupted Focus Session, or s
 
 ### 15.8 Privacy
 
-DailyContext, Reflection, Capture, learner responses, and evidence are private learner data. Remote transmission must remain explicit and minimized.
+DailyContext, Reflection, Session Close / Tomorrow Seed, learner responses, and evidence are private learner data. Remote transmission must remain explicit and minimized.
 
 ---
 
@@ -948,7 +951,7 @@ The next phase must dogfood the product as a daily learning environment, not onl
 - Does the learner know what to do immediately after opening Today?
 - Does Focus Session reduce navigation and context switching?
 - Do recommended moves match available time and energy well enough to be useful?
-- Does Capture reduce abandonment of the current move?
+- Does natural learner-provided context preserve focus without a dedicated Capture subsystem?
 - Does Session Close improve next-day resumption?
 - Are capability-delta summaries trusted because they match actual Evidence?
 - Which Review Suggestions lead to useful retrieval rather than unnecessary interruption?
@@ -977,7 +980,7 @@ Where instrumentation is justified, prefer:
 - transfer attempts;
 - ignored vs accepted Review Suggestions;
 - Tomorrow Seed continuation rate;
-- Capture return-to-task rate;
+- continuity-friction rate after resuming from a saved Seed;
 - learner override rate for Today recommendation.
 
 Metrics are descriptive and must not automatically become learner-state evidence.

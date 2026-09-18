@@ -99,6 +99,9 @@ export function FocusSession({
               Timer · {initialMinutes}m
             </button>
           )}
+          {snapshot.latestExchange?.status === "assessed" ? (
+            <Link className={styles.workspaceLink} href="/close">Close session</Link>
+          ) : null}
           <Link className={styles.workspaceLink} href="/workspace">Workspace</Link>
         </div>
       </header>
