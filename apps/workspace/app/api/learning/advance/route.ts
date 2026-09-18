@@ -3,6 +3,7 @@ import {
   AgentAdapterError,
   createConfiguredAgentAdapter,
 } from "@/lib/agent-adapter";
+import { latestResearchCapabilityTrace } from "@/lib/capability-store";
 import { generateTeachingAdvance } from "@/lib/learning-orchestrator";
 import {
   RuntimeBridgeError,
@@ -58,7 +59,25 @@ export async function POST(request: NextRequest) {
       );
     }
     const adapter = createConfiguredAgentAdapter();
-    const advance = await generateTeachingAdvance(adapter, pending, request.signal);
+    const research = latestResearchCapabilityTrace(repoRoot, decisionId);
+    const advance = await generateTeachingAdvance(
+      adapter,
+      {
+        ...pending,
+        ...(research ? {
+          research_context: {
+            invocationId: research.invocation.id,
+            result: research.result,
+            sources: research.sources.map((source) => ({
+              id: source.id,
+              label: source.label,
+              ...(source.locator ? { locator: source.locator } : {}),
+            })),
+          },
+        } : {}),
+      },
+      request.signal,
+    );
     const result = await advancePendingLearningTurn(repoRoot, decisionId, advance);
     const next = result.next_decision as Record<string, unknown> | undefined;
     const evidence = result.evidence as Record<string, unknown> | undefined;
