@@ -155,6 +155,12 @@ class LearningRuntimeTests(unittest.TestCase):
             },
         )
 
+    def test_verify_fresh_repo_is_read_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fresh = Path(tmp)
+            self.assertEqual(runtime.verify_runtime(fresh), [])
+            self.assertFalse((fresh / ".learning").exists())
+
     def proposal(self, before, after, evidence_ids):
         return runtime.record_state_proposal(
             self.root,
