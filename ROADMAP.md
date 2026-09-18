@@ -14,21 +14,23 @@ Branding has since completed its separate transition: **AbleArc** is the accepte
 
 ## Current delivery checkpoint
 
-vNext Phases 1–3 are implemented on `main`:
+vNext Phases 1–4 are implemented on `main`:
 
 ```text
 Entry → Today + DailyContext → Focus Session
+                              ↓
+                 natural conversation / host context
                               ↓
                      Learning Runtime
                               ↓
               response → assessment → next Decision
 ```
 
-The current development checkpoint is **Phase 4 conversation-first dogfood correction**. The first real Agent-mode session exposed structural interaction problems that should be repaired before adding optional learner-facing subsystems: protocol leakage into dialogue, weak use of negative/ambiguous evidence, missing learner-provided context/reference semantics, and over-eager verification/tool execution.
+The conversation-first correction is now part of the baseline architecture: host context is non-authoritative, free-text Agent responses require explicit attribution, late Decisions have an auditable recovery path, failure Evidence carries `failure_mode`, concrete performance carries `artifact_form`, and Runtime-derived topology changes remain proposal-first.
 
-Capture Inbox is **not promoted and is removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
+The current development checkpoint is **Phase 5 — Session Close + Tomorrow Seed**, tracked by Issue [#83](https://github.com/C-surfing/AbleArc/issues/83). The slice must close a meaningful session from existing Runtime Evidence/state only and persist a local operational continuation seed that becomes stale as soon as the underlying unanswered Decision changes.
 
-The active correction plan is [`docs/DOGFOOD-2026-09-18-ACTION-PLAN.md`](docs/DOGFOOD-2026-09-18-ACTION-PLAN.md), with the architectural boundary in ADR 0009 and the host contract in [`docs/HOST-INTEGRATION.md`](docs/HOST-INTEGRATION.md).
+Capture Inbox remains **not promoted and removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
 
 The broader runtime still has a separate five-domain longitudinal evidence goal tracked in Issue [#2](https://github.com/C-surfing/AbleArc/issues/2). Product pilot completion and five-domain runtime validation are related but not interchangeable.
 
