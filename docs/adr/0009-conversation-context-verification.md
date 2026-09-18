@@ -11,6 +11,8 @@ The same session showed that learner-supplied references and explicit self-repor
 
 ## Decision
 
+This ADR supersedes the Capture-specific product assumption in ADR 0008 and the original vNext roadmap. **Capture Inbox is not promoted as a product subsystem.** Transient learner thoughts, constraints, and references should enter through the current host conversation by default; a future specialized interaction requires new behavioral evidence.
+
 AbleArc adopts three separable planes:
 
 1. **Conversation Plane** — learner-facing natural interaction, including messages, attachments/references, and explicit self-report.
@@ -59,6 +61,7 @@ AbleArc treats the first-party Web app, external Agents, and future ChatGPT/assi
 - Teach/Study prompts must accept useful self-report and learner references without forcing redundant probes.
 - Tool use becomes policy-governed by verification value rather than domain alone.
 - A host-neutral integration contract is required before building multiple product-specific plugins.
+- The canonical product information architecture no longer reserves a Capture Inbox surface.
 - Runtime v0.3 design should make negative/ambiguous evidence, failure modes, artifact form, and frontier revision representable without weakening mastery authority.
 
 ## Non-goals
