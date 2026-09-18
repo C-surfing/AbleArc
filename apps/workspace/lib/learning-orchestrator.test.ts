@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { AgentAdapter, StructuredGenerationRequest } from "./agent-adapter.ts";
 import {
+  allowedInterventionsForFailureMode,
   generateTeachingAdvance,
   validateTeachingAdvance,
 } from "./learning-orchestrator.ts";
@@ -78,6 +79,32 @@ test("validator requires a concrete diagnosis for contradicting evidence", () =>
   );
 });
 
+test("failure diagnosis constrains the next teaching intervention", () => {
+  assert.deepEqual(allowedInterventionsForFailureMode("slip"), [
+    "practice", "retrieve", "apply", "prediction",
+  ]);
+  assert.ok(allowedInterventionsForFailureMode("missing_prerequisite").includes("establish_intuition"));
+  assert.ok(allowedInterventionsForFailureMode("wrong_causal_model").includes("repair_misconception"));
+  assert.ok(allowedInterventionsForFailureMode("overgeneralization").includes("contrast"));
+  assert.ok(allowedInterventionsForFailureMode("failed_transfer").includes("transfer"));
+
+  const slipReteach = generatedAdvance();
+  (slipReteach.assessment as Record<string, unknown>).outcome = "contradicts";
+  (slipReteach.assessment as Record<string, unknown>).failure_mode = "slip";
+  (slipReteach.next_decision as Record<string, unknown>).move = "worked_example";
+  assert.throws(
+    () => validateTeachingAdvance(slipReteach, "provider:test:model"),
+    /does not match failure_mode=slip/,
+  );
+
+  const causalRepair = generatedAdvance();
+  (causalRepair.assessment as Record<string, unknown>).outcome = "contradicts";
+  (causalRepair.assessment as Record<string, unknown>).failure_mode = "wrong_causal_model";
+  (causalRepair.next_decision as Record<string, unknown>).move = "contrast";
+  const accepted = validateTeachingAdvance(causalRepair, "provider:test:model");
+  assert.equal(accepted.next_decision.move, "contrast");
+});
+
 test("orchestrator treats learner text as untrusted content and validates output", async () => {
   let request: StructuredGenerationRequest | undefined;
   const adapter: AgentAdapter = {
@@ -100,6 +127,10 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
   assert.match(request?.system || "", /failed transfer/);
+  assert.match(request?.system || "", /diagnosis must constrain the next move/);
+  assert.match(request?.system || "", /slip → brief correction/);
+  assert.match(request?.system || "", /Answer before assessing/);
+  assert.match(request?.system || "", /Never block curiosity/);
   assert.match(request?.system || "", /what the learner actually produced/);
   assert.match(request?.system || "", /executed_code/);
   assert.match(request?.system || "", /Prefer direct explanation/);
