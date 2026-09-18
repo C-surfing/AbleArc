@@ -724,6 +724,7 @@ def doctor(repo_root: Path) -> list[str]:
         "schemas/mission-v0.2.json",
         "schemas/runtime-v0.1.json",
         "schemas/runtime-v0.2.json",
+        "schemas/host-turn-input-v0.1.json",
         "schemas/learning-artifact-v0.1.json",
         "schemas/learning-artifact-v0.2.json",
         "schemas/learning-map-v0.1.json",
