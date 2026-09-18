@@ -754,7 +754,7 @@ No mandatory reflection prompts or timing gates. Reflection alone cannot change 
 
 ### Phase 7 — Authority policy refinement
 
-**Status:** active implementation; tracked in Issue #87.
+**Status:** implemented on `main` via Issue #87 / PR #88.
 
 **Goal:** reduce approval fatigue while retaining strict learner-state safety.
 
@@ -772,11 +772,14 @@ Less learner confirmation friction without any client-side direct mastery write.
 
 ### Phase 8 — Capability boundary and first Research Capability
 
-**Goal:** let one coherent Teacher invoke specialist workflows.
+**Status:** active implementation; tracked in Issue #89.
+
+**Goal:** let one coherent Teacher invoke specialist workflows, including through thin ChatGPT/assistant plugins and other host adapters.
 
 Deliverables:
 
 - minimal provider-neutral Capability interface;
+- thin plugin/host adapter mapping into the same Capability interface;
 - Research Capability as first real use case;
 - source retrieval / verification separated from teaching response;
 - provenance surfaced where pedagogically useful;
