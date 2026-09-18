@@ -59,6 +59,7 @@ MOVE_TYPES = (
 )
 RECEIPT_DIRS = {
     "decision": "decisions",
+    "frontier-revision": "frontier-revisions",
     "observation": "observations",
     "evidence": "evidence",
     "state-proposal": "state-proposals",
@@ -67,6 +68,7 @@ RECEIPT_DIRS = {
 }
 ID_PREFIXES = {
     "decision": "dec",
+    "frontier-revision": "fr",
     "observation": "obs",
     "evidence": "ev",
     "state-proposal": "sp",
@@ -638,6 +640,56 @@ def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     return _save(repo_root, "decision", _prepare_decision(repo_root, data))
 
 
+def record_frontier_revision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
+    """Record an evidence-grounded correction to an earlier frontier hypothesis."""
+    receipt = _base(repo_root, "frontier-revision", data)
+    if receipt["schema_version"] != SCOPED_RECEIPT_SCHEMA_VERSION:
+        raise RuntimeContractError("frontier revisions require workspace-v0.2 storage")
+
+    supersedes_id = _required_string(data, "supersedes_decision_id")
+    revised_by_id = _required_string(data, "revised_by_decision_id")
+    if supersedes_id == revised_by_id:
+        raise RuntimeContractError("frontier revision must reference two different decisions")
+    superseded = load_receipt(repo_root, "decision", supersedes_id)
+    revised_by = load_receipt(repo_root, "decision", revised_by_id)
+    _require_compatible_scope(repo_root, receipt, superseded, same_mission=True)
+    _require_compatible_scope(repo_root, receipt, revised_by, same_mission=True)
+
+    previous_hypothesis = _required_string(superseded, "frontier_hypothesis")
+    revised_hypothesis = _required_string(revised_by, "frontier_hypothesis")
+    if previous_hypothesis == revised_hypothesis:
+        raise RuntimeContractError("frontier revision must change the hypothesis")
+
+    evidence_ids = _string_list(data, "evidence_ids", required=True)
+    revised_evidence = set(_string_list(revised_by, "evidence_used"))
+    missing_from_revision = set(evidence_ids) - revised_evidence
+    if missing_from_revision:
+        raise RuntimeContractError(
+            "frontier revision evidence must be used by the revising decision"
+        )
+    for evidence_id in evidence_ids:
+        evidence = load_receipt(repo_root, "evidence", evidence_id)
+        _require_compatible_scope(repo_root, receipt, evidence, same_mission=True)
+
+    receipt.update(
+        {
+            "supersedes_decision_id": supersedes_id,
+            "revised_by_decision_id": revised_by_id,
+            "previous_hypothesis": previous_hypothesis,
+            "revised_hypothesis": revised_hypothesis,
+            "evidence_ids": evidence_ids,
+            "reason": _enum(
+                data,
+                "reason",
+                ("prerequisite_discovered", "hypothesis_refuted", "scope_refined"),
+            ),
+            "rationale": _required_string(data, "rationale"),
+            "recorded_by": _required_string(data, "recorded_by"),
+        }
+    )
+    return _save(repo_root, "frontier-revision", receipt)
+
+
 def _mission_markdown(repo_root: Path) -> str:
     context = _project_context(repo_root)
     path = context.mission_markdown_path if context else repo_root / ".learning" / "MISSION.md"
@@ -1203,6 +1255,7 @@ def rebuild_state(repo_root: Path) -> dict[str, Any]:
 
 RECORDERS: dict[str, Callable[[Path, dict[str, Any]], dict[str, Any]]] = {
     "decision": record_decision,
+    "frontier-revision": record_frontier_revision,
     "observation": record_observation,
     "evidence": record_evidence,
     "state-proposal": record_state_proposal,
@@ -1230,11 +1283,59 @@ def verify_runtime(repo_root: Path) -> list[str]:
             if receipt.get("kind") != kind:
                 problems.append(f"{receipt.get('id', 'unknown')}: kind/path mismatch")
     decisions = {item["id"]: item for item in receipts_by_kind["decision"]}
+    frontier_revisions = receipts_by_kind["frontier-revision"]
     observations = {item["id"]: item for item in receipts_by_kind["observation"]}
     evidence = {item["id"]: item for item in receipts_by_kind["evidence"]}
     proposals = {item["id"]: item for item in receipts_by_kind["state-proposal"]}
     state_decisions = receipts_by_kind["state-decision"]
     turns = receipts_by_kind["turn"]
+    for item in frontier_revisions:
+        supersedes_id = item.get("supersedes_decision_id")
+        revised_by_id = item.get("revised_by_decision_id")
+        evidence_ids = item.get("evidence_ids", [])
+        superseded = decisions.get(supersedes_id)
+        revised_by = decisions.get(revised_by_id)
+        if superseded is None:
+            problems.append(f"{item['id']}: missing decision {supersedes_id}")
+        if revised_by is None:
+            problems.append(f"{item['id']}: missing decision {revised_by_id}")
+        if superseded is not None and item.get("previous_hypothesis") != superseded.get(
+            "frontier_hypothesis"
+        ):
+            problems.append(f"{item['id']}: previous frontier hypothesis snapshot drifted")
+        if revised_by is not None:
+            if item.get("revised_hypothesis") != revised_by.get("frontier_hypothesis"):
+                problems.append(f"{item['id']}: revised frontier hypothesis snapshot drifted")
+            missing_usage = set(evidence_ids) - set(revised_by.get("evidence_used", []))
+            if missing_usage:
+                problems.append(
+                    f"{item['id']}: revision evidence is not used by revising decision"
+                )
+        for referenced in [superseded, revised_by]:
+            if referenced is not None:
+                try:
+                    _require_compatible_scope(
+                        repo_root,
+                        item,
+                        referenced,
+                        same_mission=True,
+                    )
+                except RuntimeContractError as exc:
+                    problems.append(f"{item['id']}: {exc}")
+        for evidence_id in evidence_ids:
+            referenced = evidence.get(evidence_id)
+            if referenced is None:
+                problems.append(f"{item['id']}: missing evidence {evidence_id}")
+                continue
+            try:
+                _require_compatible_scope(
+                    repo_root,
+                    item,
+                    referenced,
+                    same_mission=True,
+                )
+            except RuntimeContractError as exc:
+                problems.append(f"{item['id']}: {exc}")
     for item in observations.values():
         if item.get("decision_id") not in decisions:
             problems.append(f"{item['id']}: missing decision {item.get('decision_id')}")

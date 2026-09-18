@@ -69,6 +69,31 @@ An `Observation` records what happened: the learner's action and result. An `Evi
 
 Raw transcript excerpts are optional. Prefer a minimal result description unless exact wording is necessary for diagnosis; learner data remains local and Git-ignored by default.
 
+## Frontier hypothesis revision
+
+Mastery state and the Teacher's frontier hypothesis are different objects. A
+new observation may reveal that the learner's actual frontier is below, above,
+or differently scoped from the earlier hypothesis without proving any mastery
+regression.
+
+In workspace-v0.2 storage, a `frontier-revision` receipt records that
+correction without mutating either Decision:
+
+```text
+superseded Decision
+        +
+revision Evidence
+        +
+revising Decision
+        ↓
+FrontierRevision
+```
+
+The receipt snapshots the previous and revised hypotheses and classifies the
+reason as `prerequisite_discovered`, `hypothesis_refuted`, or `scope_refined`.
+Its Evidence must already be used by the revising Decision. This makes “the
+Teacher's earlier model was wrong” auditable while leaving mastery unchanged.
+
 ## State authority
 
 Agents may create `StateProposal` receipts. They may not accept their own proposal merely because they produced it. Acceptance requires one of:
@@ -121,6 +146,7 @@ Record an object from a JSON file (or pass `-` to read stdin):
 python tools/runtime.py --repo . record decision decision.json
 python tools/runtime.py --repo . record observation observation.json
 python tools/runtime.py --repo . record evidence evidence.json
+python tools/runtime.py --repo . record frontier-revision frontier-revision.json
 python tools/runtime.py --repo . record state-proposal proposal.json
 python tools/runtime.py --repo . record turn turn.json
 ```
@@ -176,5 +202,10 @@ payload.
 ## Integration rule
 
 When `.learning/runtime/manifest.json` exists, Teach/Study agents should use the runtime for meaningful learning turns. If a learner-explicit Mission has no Decision, call `bootstrap-mission`. Before asking the learner to repeat an answer, call `pending`. When it returns a response, assess it and prefer the high-level `advance` path for feedback plus the next move. Replace the generic `mission-entry` concept with evidence-grounded domain concepts in that next Decision. Propose state changes separately, and only when evidence changes a future teaching decision.
+
+When new Evidence materially refutes the prior Decision's
+`frontier_hypothesis`, issue the corrected next Decision first and then record a
+`frontier-revision` linking the two Decisions and the decisive Evidence. Do not
+encode a Teacher hypothesis correction as mastery regression.
 
 A turn may end as `awaiting_evidence`. This is preferable to fabricating an observation or prematurely updating the learner model.
