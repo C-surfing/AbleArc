@@ -69,6 +69,29 @@ An `Observation` records what happened: the learner's action and result. An `Evi
 
 Raw transcript excerpts are optional. Prefer a minimal result description unless exact wording is necessary for diagnosis; learner data remains local and Git-ignored by default.
 
+## Failure diagnosis is not mastery
+
+Workspace-v0.2 Evidence records a `failure_mode` so a negative result can distinguish
+different causes that require different teaching responses:
+
+- `none`: no diagnosed failure;
+- `slip`: a local execution/attention mistake despite an otherwise usable model;
+- `missing_prerequisite`: an upstream concept or representation is absent;
+- `vocabulary_confusion`: terminology or symbol meaning is the blocker;
+- `local_procedural_gap`: one step of an otherwise appropriate procedure is missing;
+- `wrong_causal_model`: the learner's generative explanation predicts the wrong mechanism;
+- `overgeneralization`: a valid rule is applied outside the structure where it is valid;
+- `failed_transfer`: a known idea is not carried into a new context where the same structure does apply.
+
+Supporting Evidence must use `failure_mode=none`. Contradicting Evidence must name
+a specific failure mode. Inconclusive Evidence may use `none` when the cause is
+not yet known, or a specific mode when the observed failure is clear but its
+implication for the learner-state claim remains uncertain.
+
+The field is diagnostic metadata for the next teaching decision. It does not
+promote, downgrade, or otherwise mutate mastery by itself. Legacy v0.1 receipts
+remain unchanged.
+
 ## Frontier hypothesis revision
 
 Mastery state and the Teacher's frontier hypothesis are different objects. A

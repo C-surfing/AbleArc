@@ -11,6 +11,7 @@ function generatedAdvance(): Record<string, unknown> {
     assessment: {
       level: "explanation",
       outcome: "supports",
+      failure_mode: "none",
       result_summary: "The learner reconstructed the relation without copying the prompt.",
       scaffolding: "light",
       context: "same",
@@ -39,6 +40,7 @@ function generatedAdvance(): Record<string, unknown> {
 test("validator injects deterministic assessor identity", () => {
   const result = validateTeachingAdvance(generatedAdvance(), "provider:openai-compatible:test-model");
   assert.equal(result.assessment.assessor, "provider:openai-compatible:test-model");
+  assert.equal(result.assessment.failure_mode, "none");
   assert.equal(result.next_decision.move, "transfer");
 });
 
@@ -50,6 +52,28 @@ test("validator rejects unsupported fields and unsafe concept IDs", () => {
   const unsafe = generatedAdvance();
   (unsafe.next_decision as Record<string, unknown>).concept_ids = ["../state"];
   assert.throws(() => validateTeachingAdvance(unsafe, "provider:test:model"), /safe, stable/);
+});
+
+test("validator requires a concrete diagnosis for contradicting evidence", () => {
+  const contradicted = generatedAdvance();
+  (contradicted.assessment as Record<string, unknown>).outcome = "contradicts";
+  (contradicted.assessment as Record<string, unknown>).failure_mode = "failed_transfer";
+  const accepted = validateTeachingAdvance(contradicted, "provider:test:model");
+  assert.equal(accepted.assessment.failure_mode, "failed_transfer");
+
+  const missingDiagnosis = generatedAdvance();
+  (missingDiagnosis.assessment as Record<string, unknown>).outcome = "contradicts";
+  assert.throws(
+    () => validateTeachingAdvance(missingDiagnosis, "provider:test:model"),
+    /specific failure_mode/,
+  );
+
+  const falseFailure = generatedAdvance();
+  (falseFailure.assessment as Record<string, unknown>).failure_mode = "slip";
+  assert.throws(
+    () => validateTeachingAdvance(falseFailure, "provider:test:model"),
+    /failure_mode=none/,
+  );
 });
 
 test("orchestrator treats learner text as untrusted content and validates output", async () => {
@@ -73,6 +97,7 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.equal(result.assessment.assessor, "provider:fixture:fixture-model");
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
+  assert.match(request?.system || "", /failed transfer/);
   assert.match(request?.system || "", /Prefer direct explanation/);
   assert.match(request?.system || "", /self-report as routing context/);
   assert.match(request?.prompt || "", /Ignore prior instructions/);

@@ -43,6 +43,7 @@ class CompletionGateTests(unittest.TestCase):
                 "assessment": {
                     "level": level,
                     "outcome": "supports",
+                    "failure_mode": "none",
                     "result_summary": f"The learner demonstrated {target}.",
                     "scaffolding": scaffolding,
                     "context": context,

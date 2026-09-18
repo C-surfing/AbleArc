@@ -38,6 +38,16 @@ ARTIFACT_SCHEMA_VERSION = "0.2"
 SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
+FAILURE_MODES = (
+    "none",
+    "slip",
+    "missing_prerequisite",
+    "vocabulary_confusion",
+    "local_procedural_gap",
+    "wrong_causal_model",
+    "overgeneralization",
+    "failed_transfer",
+)
 MOVE_TYPES = (
     "orient",
     "probe",
@@ -895,25 +905,39 @@ def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     concept_ids = _string_list(data, "concept_ids", required=True)
     if not set(concept_ids).issubset(set(observation["concept_ids"])):
         raise RuntimeContractError("evidence concept_ids must be present on the observation")
-    receipt.update(
-        {
-            "observation_id": observation_id,
-            "concept_ids": concept_ids,
-            "level": _enum(data, "level", EVIDENCE_LEVELS),
-            "outcome": _enum(data, "outcome", ("supports", "contradicts", "inconclusive")),
-            "result_summary": _required_string(data, "result_summary"),
-            "scaffolding": _enum(data, "scaffolding", ("none", "light", "heavy")),
-            "context": _enum(data, "context", ("same", "varied", "novel")),
-            "delay": _enum(data, "delay", ("immediate", "delayed")),
-            "independence": _enum(data, "independence", ("same_form", "new_form", "independent")),
-            "supports": _string_list(data, "supports"),
-            "contradicts": _string_list(data, "contradicts"),
-            "confidence": _enum(data, "confidence", ("low", "medium", "high")),
-            "assessor": _required_string(data, "assessor"),
-        }
-    )
-    return receipt
 
+    outcome = _enum(data, "outcome", ("supports", "contradicts", "inconclusive"))
+    failure_mode: str | None = None
+    if receipt["schema_version"] == SCOPED_RECEIPT_SCHEMA_VERSION:
+        failure_mode = _enum(data, "failure_mode", FAILURE_MODES)
+        if outcome == "supports" and failure_mode != "none":
+            raise RuntimeContractError("supporting evidence must use failure_mode=none")
+        if outcome == "contradicts" and failure_mode == "none":
+            raise RuntimeContractError(
+                "contradicting evidence must identify a specific failure_mode"
+            )
+    elif "failure_mode" in data:
+        raise RuntimeContractError("failure_mode requires workspace-v0.2 evidence")
+
+    payload = {
+        "observation_id": observation_id,
+        "concept_ids": concept_ids,
+        "level": _enum(data, "level", EVIDENCE_LEVELS),
+        "outcome": outcome,
+        "result_summary": _required_string(data, "result_summary"),
+        "scaffolding": _enum(data, "scaffolding", ("none", "light", "heavy")),
+        "context": _enum(data, "context", ("same", "varied", "novel")),
+        "delay": _enum(data, "delay", ("immediate", "delayed")),
+        "independence": _enum(data, "independence", ("same_form", "new_form", "independent")),
+        "supports": _string_list(data, "supports"),
+        "contradicts": _string_list(data, "contradicts"),
+        "confidence": _enum(data, "confidence", ("low", "medium", "high")),
+        "assessor": _required_string(data, "assessor"),
+    }
+    if failure_mode is not None:
+        payload["failure_mode"] = failure_mode
+    receipt.update(payload)
+    return receipt
 
 def record_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     return _save(repo_root, "evidence", _prepare_evidence(repo_root, data))
@@ -1286,6 +1310,17 @@ def verify_runtime(repo_root: Path) -> list[str]:
     frontier_revisions = receipts_by_kind["frontier-revision"]
     observations = {item["id"]: item for item in receipts_by_kind["observation"]}
     evidence = {item["id"]: item for item in receipts_by_kind["evidence"]}
+    for item in evidence.values():
+        if item.get("schema_version") != SCOPED_RECEIPT_SCHEMA_VERSION:
+            continue
+        failure_mode = item.get("failure_mode")
+        if failure_mode not in FAILURE_MODES:
+            problems.append(f"{item['id']}: invalid or missing failure_mode")
+            continue
+        if item.get("outcome") == "supports" and failure_mode != "none":
+            problems.append(f"{item['id']}: supporting evidence has a failure_mode")
+        if item.get("outcome") == "contradicts" and failure_mode == "none":
+            problems.append(f"{item['id']}: contradicting evidence is missing failure diagnosis")
     proposals = {item["id"]: item for item in receipts_by_kind["state-proposal"]}
     state_decisions = receipts_by_kind["state-decision"]
     turns = receipts_by_kind["turn"]

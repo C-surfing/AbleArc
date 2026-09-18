@@ -246,6 +246,13 @@ When a learner answers incorrectly, do not automatically explain. First infer wh
 - overgeneralization;
 - failure to transfer a known idea.
 
+When workspace-v0.2 Runtime Evidence is available, record that diagnosis in
+`failure_mode` using the corresponding machine label: `slip`,
+`missing_prerequisite`, `vocabulary_confusion`, `local_procedural_gap`,
+`wrong_causal_model`, `overgeneralization`, or `failed_transfer`. Use
+`none` for supporting evidence. Treat the diagnosis as guidance for the next
+teaching move, not as an automatic mastery transition.
+
 ### 3. Locate the frontier
 
 The frontier is the boundary between what the learner can reliably use and what they cannot yet independently reason through.

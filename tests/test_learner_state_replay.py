@@ -62,6 +62,7 @@ class LearnerStateReplayTests(unittest.TestCase):
                 "concept_ids": ["bayes-base-rate"],
                 "level": level,
                 "outcome": "supports",
+                "failure_mode": "none",
                 "result_summary": "Usable base-rate reasoning was observed.",
                 "scaffolding": "none",
                 "context": context,
