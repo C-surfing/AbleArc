@@ -58,6 +58,17 @@ class VNextProductDogfoodTests(unittest.TestCase):
         after = vnext_product_dogfood.coverage_status(self.root, self.arc.name)
         self.assertEqual(after["missing_checkpoint_ids"], [])
 
+    def test_start_rejects_untouched_session_template(self):
+        (self.root / "evaluation").mkdir()
+        content = (self.arc / "sessions" / "001.md").read_text(encoding="utf-8")
+        (self.root / "evaluation" / "SESSION.md").write_text(content, encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            vnext_product_dogfood.ProductDogfoodError,
+            "no real numbered session record",
+        ):
+            vnext_product_dogfood.start_checkpoint(self.root, self.arc.name)
+
     def test_start_rejects_backfill_without_a_real_session_record(self):
         with self.assertRaisesRegex(
             vnext_product_dogfood.ProductDogfoodError,
