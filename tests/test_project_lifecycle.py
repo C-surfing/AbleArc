@@ -72,6 +72,21 @@ class ProjectLifecycleTests(unittest.TestCase):
         self.assertEqual(decisions[0]["project_id"], result["project_id"])
         self.assertEqual(runtime.verify_runtime(self.root), [])
 
+    def test_non_ascii_title_can_use_readable_explicit_project_id(self):
+        result = self.create(title="双向链表", project_id="shuang-xiang-lian-biao")
+
+        self.assertEqual(result["project_id"], "shuang-xiang-lian-biao")
+        context = project_store.resolve_project_context(self.root)
+        self.assertEqual(context.project_id, "shuang-xiang-lian-biao")
+        project = self.root / ".learning" / "projects" / "shuang-xiang-lian-biao" / "project.json"
+        self.assertTrue(project.is_file())
+        self.assertEqual(
+            json.loads(project.read_text(encoding="utf-8"))["title"],
+            "双向链表",
+        )
+        receipts = runtime.list_receipts(self.root, "decision")
+        self.assertEqual(receipts[-1]["project_id"], "shuang-xiang-lian-biao")
+
     def test_multiple_projects_preserve_learner_profile_and_isolate_runtime(self):
         first = self.create()
         learner = self.root / ".learning" / "LEARNER.md"
