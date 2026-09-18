@@ -63,6 +63,14 @@ When the current Project is writable, use `.learning/` as persistent state. Read
 
 Use `python tools/learning.py create-project ...` and the lifecycle commands instead of hand-building this tree. The helper resolves the selected Project and enforces lifecycle boundaries.
 
+When you create a Project whose natural title is primarily non-ASCII, explicitly
+provide a short readable portable ASCII `project_id` instead of accepting the
+hash fallback. Use a semantic transliteration or compact English slug that the
+learner can recognize, for example `shuang-xiang-lian-biao` for “双向链表”;
+add a short suffix only when needed for disambiguation. Keep the learner-facing
+title in their language. Runtime validates IDs but does not own language-aware
+transliteration.
+
 ### Structured runtime receipts
 
 When `.learning/runtime/manifest.json` exists, read [`../../docs/RUNTIME-CONTRACT.md`](../../docs/RUNTIME-CONTRACT.md) and use `tools/runtime.py` for meaningful learning turns. This makes the control loop inspectable without exposing it to the learner.
