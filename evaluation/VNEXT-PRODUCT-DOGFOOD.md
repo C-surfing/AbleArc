@@ -29,7 +29,7 @@ Legacy v0.1 checkpoints with `descriptive_only_no_phase4_promotion` remain reada
 
 Dogfooding should record learner-visible behavior before naming a feature that might solve it.
 
-Do not enter a session looking for evidence that a roadmap item such as Capture Inbox is needed. That primes the learner/evaluator and turns the pilot into confirmation of a preselected solution.
+Do not enter a session looking for evidence that any preselected roadmap feature is needed. That primes the learner/evaluator and turns the pilot into confirmation of a solution rather than observation of a problem.
 
 Use this order instead:
 
@@ -158,9 +158,9 @@ For any proposed feature, ask:
 4. What is the smallest sufficient fix?
 5. Does the proposed feature preserve Runtime authority and the local/private boundary?
 
-For the existing Phase 4 Capture Inbox hypothesis specifically, first establish a recurring continuity problem from neutral observations. Only then ask whether fast local capture is the smallest sufficient fix. Do not collect observations by asking the learner to look for a need for Capture.
+The former Capture Inbox hypothesis is now `not_promoted_for_now` and removed from the canonical roadmap. Continue recording continuity friction neutrally because future evidence may reveal a real problem, but do not treat that field as a latent Capture requirement.
 
-If the evidence is insufficient, choose `collect_more_evidence` or `not_promoted_for_now` rather than manufacturing a product requirement.
+If evidence for any new feature is insufficient, choose `collect_more_evidence` or `not_promoted_for_now` rather than manufacturing a product requirement.
 
 ## Privacy
 
