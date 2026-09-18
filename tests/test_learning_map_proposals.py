@@ -116,6 +116,42 @@ class LearningMapProposalTests(unittest.TestCase):
             **self._map_payload(),
         }
 
+    def test_runtime_bridge_derives_reviewable_nodes_without_inventing_edges(self):
+        proposal = learning_map_proposals.derive_runtime_map_proposal(self.root)
+        repeated = learning_map_proposals.derive_runtime_map_proposal(self.root)
+        current = learning_map.load_learning_map(self.root)
+
+        self.assertEqual(repeated, proposal)
+        self.assertEqual(proposal["id"].split("_")[1], "runtime")
+        self.assertEqual(proposal["frontier"], ["bayes-reasoning"])
+        self.assertEqual(proposal["evidence_ids"], [self.evidence_id])
+        self.assertEqual(
+            [item["id"] for item in proposal["nodes"]],
+            ["bayes-reasoning"],
+        )
+        self.assertEqual(proposal["edges"], [])
+        self.assertEqual(current["revision"], 0)
+        self.assertEqual(current["nodes"], [])
+
+    def test_runtime_bridge_reports_no_drift_after_acceptance(self):
+        proposal = learning_map_proposals.derive_runtime_map_proposal(self.root)
+        learning_map_proposals.decide_learning_map_proposal(
+            self.root,
+            proposal["id"],
+            "accepted",
+            "Use the Runtime-grounded frontier as the current reviewed topology.",
+        )
+        drift = learning_map_proposals.runtime_topology_drift(self.root)
+
+        self.assertFalse(drift["needs_proposal"])
+        self.assertEqual(drift["missing_concept_ids"], [])
+        self.assertFalse(drift["frontier_out_of_sync"])
+        with self.assertRaisesRegex(
+            learning_map_proposals.LearningMapProposalError,
+            "already represents",
+        ):
+            learning_map_proposals.derive_runtime_map_proposal(self.root)
+
     def test_proposal_is_immutable_review_input_not_a_map_revision(self):
         proposal = learning_map_proposals.propose_learning_map(
             self.root, self._proposal_payload()

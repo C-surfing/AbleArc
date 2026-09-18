@@ -128,6 +128,24 @@ The adapter runs the same node, edge, frontier, Evidence, lifecycle, and delta
 validation but stores only an immutable proposal bound to the current base
 revision.
 
+For the common Agent path, do not hand-build that payload when Runtime decisions
+have already discovered concepts. Derive a proposal directly:
+
+```bash
+python tools/learning_map_proposals.py --repo . derive
+```
+
+The bridge uses only evidence-grounded Decisions from the selected Mission. It
+preserves the canonical map's existing edges, adds Decision concept IDs that are
+still missing as reviewable nodes, and aligns the proposed frontier to the latest
+evidence-grounded Decision. It deliberately does **not** infer prerequisites or
+other semantic edges from turn order. Repeated derivation at the same Runtime
+frontier is idempotent.
+
+`python tools/learning.py brief` also reports `topology_drift` and the exact
+`topology_action` when evidence-grounded Runtime concepts/frontier have diverged
+from the reviewed LearningMap.
+
 The Workspace Map mode shows the proposal rationale, Evidence count,
 human-readable structural delta, proposed frontier, and stale status. The
 learner must supply a rationale and explicitly accept or reject:

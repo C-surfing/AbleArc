@@ -21,9 +21,11 @@ from typing import Any, Iterator
 
 try:
     from tools import learning_map, project_store
+    from tools import runtime as learning_runtime
 except ImportError:  # Direct execution: python tools/learning_map_proposals.py
     import learning_map
     import project_store
+    import runtime as learning_runtime
 
 
 SCHEMA_VERSION = "0.1"
@@ -275,6 +277,171 @@ def _proposal_semantics(value: dict[str, Any]) -> dict[str, Any]:
     )}
 
 
+def _grounded_runtime_decisions(
+    repo_root: Path,
+    context: project_store.ProjectContext,
+) -> list[tuple[dict[str, Any], list[str]]]:
+    evidence = {
+        item["id"]: item
+        for item in learning_runtime.list_receipts(repo_root, "evidence")
+        if item.get("workspace_id") == context.workspace_id
+        and item.get("project_id") == context.project_id
+        and item.get("mission_id") == context.mission_id
+    }
+    grounded: list[tuple[dict[str, Any], list[str]]] = []
+    for decision in learning_runtime.list_receipts(repo_root, "decision"):
+        if (
+            decision.get("workspace_id") != context.workspace_id
+            or decision.get("project_id") != context.project_id
+            or decision.get("mission_id") != context.mission_id
+        ):
+            continue
+        evidence_ids = [
+            item for item in decision.get("evidence_used", [])
+            if item in evidence
+        ]
+        if evidence_ids:
+            grounded.append((decision, evidence_ids))
+    return grounded
+
+
+def _concept_label(repo_root: Path, context: project_store.ProjectContext, concept_id: str) -> str:
+    proposals = [
+        item
+        for item in learning_runtime.list_receipts(repo_root, "state-proposal")
+        if item.get("workspace_id") == context.workspace_id
+        and item.get("project_id") == context.project_id
+        and item.get("mission_id") == context.mission_id
+        and item.get("concept_id") == concept_id
+        and isinstance(item.get("concept_label"), str)
+        and item["concept_label"].strip()
+    ]
+    if proposals:
+        return proposals[-1]["concept_label"].strip()
+    return " ".join(piece.capitalize() for piece in concept_id.split("-"))
+
+
+def runtime_topology_drift(repo_root: Path) -> dict[str, Any]:
+    repo_root = repo_root.resolve()
+    context = _resolve_context(repo_root)
+    current = learning_map.load_learning_map(repo_root)
+    current_nodes = current["nodes"] if current is not None else []
+    current_frontier = current["frontier"] if current is not None else []
+    grounded = _grounded_runtime_decisions(repo_root, context)
+
+    seen: set[str] = set()
+    runtime_concepts: list[str] = []
+    for decision, _ in grounded:
+        for concept_id in decision.get("concept_ids", []):
+            if concept_id not in seen:
+                seen.add(concept_id)
+                runtime_concepts.append(concept_id)
+
+    map_node_ids = {item["id"] for item in current_nodes}
+    missing = [item for item in runtime_concepts if item not in map_node_ids]
+    latest_frontier = list(grounded[-1][0].get("concept_ids", [])) if grounded else []
+    frontier_out_of_sync = bool(grounded) and current_frontier != latest_frontier
+    decisions = [
+        item
+        for item in learning_runtime.list_receipts(repo_root, "decision")
+        if item.get("workspace_id") == context.workspace_id
+        and item.get("project_id") == context.project_id
+        and item.get("mission_id") == context.mission_id
+    ]
+    return {
+        "decision_count": len(decisions),
+        "evidence_grounded_decision_count": len(grounded),
+        "map_revision": current["revision"] if current is not None else None,
+        "map_node_count": len(current_nodes),
+        "missing_concept_ids": missing,
+        "latest_runtime_frontier": latest_frontier,
+        "frontier_out_of_sync": frontier_out_of_sync,
+        "needs_proposal": bool(missing or frontier_out_of_sync),
+    }
+
+
+def derive_runtime_map_proposal(
+    repo_root: Path,
+    proposed_by: str = "teach-agent:runtime-bridge",
+) -> dict[str, Any]:
+    repo_root = repo_root.resolve()
+    context = _resolve_context(repo_root)
+    grounded = _grounded_runtime_decisions(repo_root, context)
+    if not grounded:
+        raise LearningMapProposalError(
+            "no evidence-grounded Runtime decision is available to derive a topology proposal"
+        )
+
+    current = learning_map.load_learning_map(repo_root)
+    if current is None:
+        current = learning_map._empty_map(context.project_id, learning_map._now())
+    drift = runtime_topology_drift(repo_root)
+    if not drift["needs_proposal"]:
+        raise LearningMapProposalError(
+            "LearningMap already represents the evidence-grounded Runtime concepts and frontier"
+        )
+
+    latest_decision = grounded[-1][0]
+    frontier = list(latest_decision["concept_ids"])
+    missing = set(drift["missing_concept_ids"])
+    nodes = [dict(item) for item in current["nodes"]]
+    existing = {item["id"] for item in nodes}
+    ordered_missing: list[str] = []
+    for decision, _ in grounded:
+        for concept_id in decision["concept_ids"]:
+            if concept_id in missing and concept_id not in ordered_missing:
+                ordered_missing.append(concept_id)
+    for concept_id in ordered_missing:
+        if concept_id in existing:
+            continue
+        nodes.append({
+            "id": concept_id,
+            "label": _concept_label(repo_root, context, concept_id),
+            "kind": "concept",
+            "mission_relevance": "core" if concept_id in frontier else "supporting",
+        })
+        existing.add(concept_id)
+
+    evidence_ids: list[str] = []
+    for decision, used in grounded:
+        contributes_missing = any(item in missing for item in decision["concept_ids"])
+        if contributes_missing or decision["id"] == latest_decision["id"]:
+            for evidence_id in used:
+                if evidence_id not in evidence_ids:
+                    evidence_ids.append(evidence_id)
+    if len(evidence_ids) > 50:
+        raise LearningMapProposalError(
+            "derived topology proposal needs more than 50 Evidence receipts; split the topology update"
+        )
+
+    if missing:
+        rationale = (
+            f"Runtime decisions contain {len(missing)} evidence-grounded concept(s) not yet "
+            "represented in the LearningMap; add those nodes and align the reviewed frontier "
+            "without inferring semantic edges."
+        )
+    else:
+        rationale = (
+            "The latest evidence-grounded Runtime decision moved the active frontier across "
+            "existing LearningMap nodes; align the reviewed frontier without changing edges."
+        )
+
+    suffix = latest_decision["id"].removeprefix("dec_")[:24]
+    proposal_id = f"mp_runtime_r{current['revision']}_{suffix}"
+    return propose_learning_map(
+        repo_root,
+        {
+            "id": proposal_id,
+            "proposed_by": _text(proposed_by, "proposed_by", 200),
+            "rationale": rationale,
+            "evidence_ids": evidence_ids,
+            "frontier": frontier,
+            "nodes": nodes,
+            "edges": [dict(item) for item in current["edges"]],
+        },
+    )
+
+
 def propose_learning_map(repo_root: Path, payload: Any) -> dict[str, Any]:
     repo_root = repo_root.resolve()
     context = _resolve_context(repo_root)
@@ -519,6 +686,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     propose = sub.add_parser("propose", help="record one immutable topology proposal")
     propose.add_argument("payload", type=Path)
+    derive = sub.add_parser(
+        "derive",
+        help="derive one reviewable topology proposal from evidence-grounded Runtime decisions",
+    )
+    derive.add_argument("--proposed-by", default="teach-agent:runtime-bridge")
     sub.add_parser("list", help="list unresolved topology proposals")
     decide = sub.add_parser("decide", help="accept or reject one topology proposal")
     decide.add_argument("proposal_id")
@@ -533,6 +705,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "propose":
             value = propose_learning_map(repo_root, _read_payload(args.payload))
+        elif args.command == "derive":
+            value = derive_runtime_map_proposal(repo_root, args.proposed_by)
         elif args.command == "list":
             value = {"proposals": pending_learning_map_proposals(repo_root)}
         else:
