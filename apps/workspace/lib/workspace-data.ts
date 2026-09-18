@@ -431,9 +431,9 @@ function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefine
     .filter((item) => item.observation_id === observation.id)
     .at(-1);
   const nextDecision = evidence
-    ? readReceiptDirectory(runtimeRoot, "decisions").find((item) => (
+    ? readReceiptDirectory(runtimeRoot, "decisions").filter((item) => (
         Array.isArray(item.evidence_used) && item.evidence_used.includes(evidence.id)
-      ))
+      )).at(-1)
     : undefined;
   const validLevel = ["recognition", "recall", "explanation", "application", "transfer"];
   const validOutcome = ["supports", "contradicts", "inconclusive"];
