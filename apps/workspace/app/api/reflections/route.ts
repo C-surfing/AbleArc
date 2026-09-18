@@ -7,21 +7,10 @@ import {
   readReflection,
   updateReflection,
 } from "@/lib/reflection-store";
+import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot, loadWorkspaceSnapshot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
-
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-  try {
-    const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
-    const requestHost = forwardedHost || request.headers.get("host") || request.nextUrl.host;
-    return new URL(origin).host === requestHost;
-  } catch {
-    return false;
-  }
-}
 
 function objectBody(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
