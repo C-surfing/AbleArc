@@ -155,7 +155,7 @@ Use `evaluation/PROMOTION.md` first. A general protocol change should normally r
 
 For Review automation specifically, first collect delayed-Evidence checkpoints from repeated real sessions. A scheduler trigger must be justified by observed retrieval/transfer patterns, not by the existence of the checkpoint tool itself.
 
-For vNext product phases, use the same evidence discipline. In particular, Capture Inbox should be promoted only after repeated product checkpoints show a real focus/continuity failure and `evaluation/PROMOTION.md` identifies fast capture as the smallest sufficient fix.
+For vNext product phases, use the same evidence discipline. The former Capture Inbox hypothesis is an explicit example of a feature that was not promoted: product checkpoints should continue to record focus/continuity failures neutrally, and any future solution must be justified from the observed behavior rather than inherited from the old roadmap.
 
 ## 9. What counts as a completed dogfood arc
 
