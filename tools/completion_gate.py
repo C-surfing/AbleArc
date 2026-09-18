@@ -34,6 +34,7 @@ CRITERION_FIELDS = {
     "max_scaffolding", "minimum_context", "minimum_delay",
     "minimum_independence", "minimum_evidence", "evidence_ids",
 }
+OPTIONAL_CRITERION_FIELDS = {"artifact_forms"}
 PERFORMANCE_KINDS = {"performance", "application", "transfer"}
 
 
@@ -134,7 +135,12 @@ def _evidence_ids(value: Any, label: str) -> list[str]:
 
 def _criterion(value: Any, index: int) -> dict[str, Any]:
     label = f"criteria[{index}]"
-    if not isinstance(value, dict) or set(value) != CRITERION_FIELDS:
+    fields = set(value) if isinstance(value, dict) else set()
+    if (
+        not isinstance(value, dict)
+        or not CRITERION_FIELDS.issubset(fields)
+        or fields - CRITERION_FIELDS - OPTIONAL_CRITERION_FIELDS
+    ):
         raise CompletionGateError(f"{label} must contain the complete supported criterion fields")
     try:
         criterion_id = project_store.validate_local_id(value["id"], f"{label}.id")
@@ -154,6 +160,16 @@ def _criterion(value: Any, index: int) -> dict[str, Any]:
     ):
         if value[field] not in choices:
             raise CompletionGateError(f"{label}.{field} is invalid")
+    artifact_forms = value.get("artifact_forms", [])
+    if (
+        not isinstance(artifact_forms, list)
+        or len(artifact_forms) > len(learning_runtime.ARTIFACT_FORMS)
+        or any(item not in learning_runtime.ARTIFACT_FORMS for item in artifact_forms)
+        or len(set(artifact_forms)) != len(artifact_forms)
+    ):
+        raise CompletionGateError(
+            f"{label}.artifact_forms must contain unique supported Evidence forms"
+        )
     minimum_evidence = value["minimum_evidence"]
     if (
         isinstance(minimum_evidence, bool)
@@ -206,6 +222,7 @@ def _criterion(value: Any, index: int) -> dict[str, Any]:
         "minimum_delay": value["minimum_delay"],
         "minimum_independence": value["minimum_independence"],
         "minimum_evidence": minimum_evidence,
+        "artifact_forms": artifact_forms,
         "evidence_ids": _evidence_ids(value["evidence_ids"], f"{label}.evidence_ids"),
     }
 
@@ -303,6 +320,10 @@ def _qualifies(criterion: dict[str, Any], evidence: dict[str, Any]) -> bool:
         and CONTEXT_RANK.get(str(evidence.get("context")), -1) >= CONTEXT_RANK[criterion["minimum_context"]]
         and DELAY_RANK.get(str(evidence.get("delay")), -1) >= DELAY_RANK[criterion["minimum_delay"]]
         and INDEPENDENCE_RANK.get(str(evidence.get("independence")), -1) >= INDEPENDENCE_RANK[criterion["minimum_independence"]]
+        and (
+            not criterion["artifact_forms"]
+            or evidence.get("artifact_form") in criterion["artifact_forms"]
+        )
     )
 
 
@@ -328,6 +349,7 @@ def _evaluate(
             "required": criterion["required"],
             "passed": passed,
             "minimum_evidence": criterion["minimum_evidence"],
+            "artifact_forms": criterion["artifact_forms"],
             "qualifying_evidence_ids": qualifying,
             "cited_evidence_ids": criterion["evidence_ids"],
         })
