@@ -486,7 +486,7 @@ When introducing a new node, make clear:
 
 Do not force a canonical textbook order. If the learner has an unusual but productive route, adapt.
 
-When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority. For workspace-v0.2, read the current map with `python tools/learning.py map`; after the Evidence receipt exists, create a topology proposal with `python tools/learning_map_proposals.py --repo . propose <payload>` when topology or frontier actually changed. Let the learner-facing review path accept or reject it. Use direct `map-update` only in an explicitly trusted/headless context, never as a way for the Teach agent to bypass review. A state proposal must never silently rewrite topology.
+When evidence shows the current path is wrong, revise the roadmap explicitly. Treat the roadmap as a model, not authority. For workspace-v0.2, read the current map with `python tools/learning.py map`. After Evidence-grounded Decisions introduce concept IDs or move the frontier, prefer `python tools/learning_map_proposals.py --repo . derive` to create the minimal reviewable node/frontier proposal; use the manual `propose <payload>` path only when you also have an explicit semantic-edge hypothesis to submit. Never infer prerequisite edges merely from turn order. Let the learner-facing review path accept or reject the proposal. Use direct `map-update` only in an explicitly trusted/headless context, never as a way for the Teach agent to bypass review. A state proposal must never silently rewrite topology.
 
 ## Source grounding and factual reliability
 
