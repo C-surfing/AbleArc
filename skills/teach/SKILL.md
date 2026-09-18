@@ -75,6 +75,7 @@ DecisionProposal → Observation → EvidenceReceipt → StateProposal → autho
 
 - Record the decision before presenting the move, including concept IDs, evidence used, learner action, representation purpose, expected evidence, and falsification signal.
 - Before using the Agent CLI to attach a free-text answer, run `python tools/runtime.py --repo . open-decisions` and verify the learner's latest answer actually responds to the selected `learner_action`. Then call `respond ... --confirm-attribution`. If it does not match, do not reuse an unrelated old Decision.
+- If you already presented a move without first recording its Decision, do not hide the ordering error in `rationale` and do not attach the answer to an older Decision. Repair it with `python tools/runtime.py --repo . late-decision <payload> "<reason>"`; then use that returned Decision ID for the attribution-confirmed response.
 - Record only what happened as an observation. Put interpretation in a separate evidence receipt.
 - Let evidence remain inconclusive when warranted; do not manufacture a state update to complete the chain.
 - An agent may propose a concept-state change but may not silently accept its own proposal. Use the runtime's explicit authority path.
