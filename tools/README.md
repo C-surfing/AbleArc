@@ -89,8 +89,19 @@ response, including their target, concept IDs, and `learner_action`. The
 confirmation flag means the Agent has checked that the latest learner message
 actually answers that action; it is not a semantic similarity score performed by
 Runtime. If the message belongs to a different move, do not attach it to an old
-Decision. The lower-level `record` commands exist for controlled integration and
-debugging, not as an attribution shortcut.
+Decision.
+
+If the Agent already presented that different move before recording it, repair
+the ordering explicitly rather than pretending it was recorded first:
+
+```bash
+python tools/runtime.py --repo . late-decision decision.json "Presented before recording due to Agent ordering error."
+```
+
+The resulting workspace-v0.2 Decision carries `recorded_after_action=true` and
+`late_record_reason`. Use its returned ID with the attribution-confirmed
+`respond` path. The lower-level `record` commands exist for controlled
+integration and debugging, not as an attribution or chronology shortcut.
 
 Agents can consume the next unanswered response and advance the learning loop without manually assembling receipts:
 
