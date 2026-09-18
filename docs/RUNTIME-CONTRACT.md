@@ -195,13 +195,24 @@ python tools/runtime.py --repo . record state-proposal proposal.json
 python tools/runtime.py --repo . record turn turn.json
 ```
 
-Capture the normal learner response through the high-level façade:
+For the free-text Agent entry, inspect unanswered Decisions and explicitly
+confirm response attribution:
 
 ```bash
-python tools/runtime.py --repo . respond dec_example -
+python tools/runtime.py --repo . open-decisions
+python tools/runtime.py --repo . respond dec_example - --confirm-attribution
 ```
 
-The response is read from stdin, inherits its concept IDs and expected action from the decision, and becomes one local observation. This is the same path used by the Workspace; the learner never supplies receipt metadata.
+`open-decisions` exposes the current Mission's Decisions that still lack a
+learner response, including their `learner_action` and concept IDs. Runtime does
+not try to guess semantic similarity between arbitrary natural-language answers
+and tasks. Instead, the Agent must confirm that the learner's latest message is
+actually a response to the selected Decision before `respond` will write an
+Observation. A missing confirmation fails without writing anything.
+
+The Workspace is different: its composer is already bound to the currently
+rendered structured Decision and therefore continues to use `respond-context`
+without this Agent confirmation flag.
 
 For a typed interactive artifact, the Workspace uses `respond-context`. Its JSON payload contains the response plus the learner's prediction and explored parameter range. The runtime checks that the artifact belongs to the Decision, the prediction is one of its declared options, and the values are inside its semantic range before adding `artifact_interaction` to the Observation. Interaction context informs assessment but is not automatically Evidence.
 
