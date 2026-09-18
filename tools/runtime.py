@@ -604,8 +604,21 @@ def _prepare_decision(
     data: dict[str, Any],
     *,
     available_evidence_ids: set[str] | None = None,
+    recovered_after_action: bool = False,
+    late_record_reason: str | None = None,
 ) -> dict[str, Any]:
+    if "recorded_after_action" in data or "late_record_reason" in data:
+        raise RuntimeContractError(
+            "late Decision audit fields are Runtime-assigned; use recover-decision"
+        )
     receipt = _base(repo_root, "decision", data)
+    if recovered_after_action:
+        if receipt["schema_version"] != SCOPED_RECEIPT_SCHEMA_VERSION:
+            raise RuntimeContractError(
+                "recover-decision requires workspace-v0.2 storage"
+            )
+        if not isinstance(late_record_reason, str) or not late_record_reason.strip():
+            raise RuntimeContractError("recover-decision requires a late record reason")
     evidence_used = _string_list(data, "evidence_used")
     available = available_evidence_ids or set()
     _require_refs(
@@ -642,6 +655,14 @@ def _prepare_decision(
             },
             "expected_evidence": _required_string(data, "expected_evidence"),
             "falsification_signal": _required_string(data, "falsification_signal"),
+            **(
+                {
+                    "recorded_after_action": True,
+                    "late_record_reason": late_record_reason.strip(),
+                }
+                if recovered_after_action
+                else {}
+            ),
         }
     )
     return receipt
@@ -649,6 +670,24 @@ def _prepare_decision(
 
 def record_decision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     return _save(repo_root, "decision", _prepare_decision(repo_root, data))
+
+
+def record_recovered_decision(
+    repo_root: Path,
+    data: dict[str, Any],
+    reason: str,
+) -> dict[str, Any]:
+    """Record a Decision after the learner action only as an explicit audit recovery."""
+    reason = reason.strip()
+    if not reason:
+        raise RuntimeContractError("recover-decision requires a late record reason")
+    prepared = _prepare_decision(
+        repo_root,
+        data,
+        recovered_after_action=True,
+        late_record_reason=reason,
+    )
+    return _save(repo_root, "decision", prepared)
 
 
 def record_frontier_revision(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
@@ -928,6 +967,9 @@ def unanswered_decisions(repo_root: Path) -> list[dict[str, Any]]:
                 "concept_ids": list(decision["concept_ids"]),
                 "learner_action": decision["learner_action"],
                 "created_at": decision["created_at"],
+                "recorded_after_action": bool(
+                    decision.get("recorded_after_action", False)
+                ),
                 "has_artifact": bool(
                     isinstance(representation, dict)
                     and isinstance(representation.get("artifact_ref"), str)
@@ -1440,6 +1482,15 @@ def verify_runtime(repo_root: Path) -> list[str]:
             except RuntimeContractError as exc:
                 problems.append(f"{item['id']}: {exc}")
     for item in decisions.values():
+        late_flag = item.get("recorded_after_action")
+        late_reason = item.get("late_record_reason")
+        if late_flag is not None or late_reason is not None:
+            if item.get("schema_version") != SCOPED_RECEIPT_SCHEMA_VERSION:
+                problems.append(f"{item['id']}: late Decision audit fields require workspace-v0.2")
+            if late_flag is not True:
+                problems.append(f"{item['id']}: recorded_after_action must be true when present")
+            if not isinstance(late_reason, str) or not late_reason.strip():
+                problems.append(f"{item['id']}: late Decision audit marker requires late_record_reason")
         for evidence_id in item.get("evidence_used", []):
             if evidence_id not in evidence:
                 problems.append(f"{item['id']}: missing evidence {evidence_id}")
@@ -1576,6 +1627,16 @@ def build_parser() -> argparse.ArgumentParser:
         "open-decisions",
         help="list current-Mission Decisions that still have no learner response",
     )
+    recover = sub.add_parser(
+        "recover-decision",
+        help="record a Decision after learner action as an explicit audited recovery",
+    )
+    recover.add_argument("payload", help="Decision JSON file or - for stdin")
+    recover.add_argument(
+        "--reason",
+        required=True,
+        help="why the move was presented before its Decision was recorded",
+    )
     respond_context = sub.add_parser("respond-context", help="record a response with artifact interaction context")
     respond_context.add_argument("decision_id")
     respond_context.add_argument("payload", help="response/context JSON file or - for stdin")
@@ -1626,6 +1687,13 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "open-decisions":
             print(json.dumps({"decisions": unanswered_decisions(repo_root)}, ensure_ascii=False, indent=2))
+        elif args.command == "recover-decision":
+            receipt = record_recovered_decision(
+                repo_root,
+                _load_payload(args.payload),
+                args.reason,
+            )
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "respond-context":
             payload = _load_payload(args.payload)
             receipt = record_learner_response(

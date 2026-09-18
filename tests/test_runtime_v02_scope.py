@@ -46,9 +46,18 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             schema["$defs"]["base"]["properties"]["schema_version"],
             {"const": "0.2"},
         )
+        decision_schema = schema["$defs"]["decision"]["allOf"][1]
         self.assertEqual(
-            tuple(schema["$defs"]["decision"]["allOf"][1]["properties"]["move"]["enum"]),
+            tuple(decision_schema["properties"]["move"]["enum"]),
             runtime.MOVE_TYPES,
+        )
+        self.assertEqual(
+            decision_schema["properties"]["recorded_after_action"],
+            {"const": True},
+        )
+        self.assertEqual(
+            decision_schema["properties"]["late_record_reason"]["minLength"],
+            1,
         )
         self.assertIn("frontierRevision", schema["$defs"])
         self.assertIn(
@@ -166,6 +175,35 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(runtime.RuntimeContractError, "assigned by the active Project"):
             runtime.record_decision(self.root, payload)
+
+    def test_late_decision_recovery_is_explicit_and_auditable(self):
+        payload = {
+            **self.next_decision(),
+            "mode": "teach",
+            "concept_ids": ["bayes-base-rate"],
+        }
+        recovered = runtime.record_recovered_decision(
+            self.root,
+            payload,
+            "The teaching move was shown before the agent committed its Decision.",
+        )
+
+        self.assertTrue(recovered["recorded_after_action"])
+        self.assertIn("shown before", recovered["late_record_reason"])
+        open_decisions = runtime.unanswered_decisions(self.root)
+        matched = next(item for item in open_decisions if item["id"] == recovered["id"])
+        self.assertTrue(matched["recorded_after_action"])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+        with self.assertRaisesRegex(runtime.RuntimeContractError, "use recover-decision"):
+            runtime.record_decision(
+                self.root,
+                {
+                    **payload,
+                    "recorded_after_action": True,
+                    "late_record_reason": "Do not allow the normal path to self-mark.",
+                },
+            )
 
     def test_scoped_evidence_requires_actual_artifact_form_without_changing_mastery(self):
         _, first = self.create_scoped_decision()

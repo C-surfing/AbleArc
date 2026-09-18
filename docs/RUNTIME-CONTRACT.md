@@ -214,6 +214,22 @@ The Workspace is different: its composer is already bound to the currently
 rendered structured Decision and therefore continues to use `respond-context`
 without this Agent confirmation flag.
 
+If the learner has already acted on a move that the Agent failed to record,
+do **not** attach that response to an unrelated open Decision and do not hide
+the ordering error in `rationale`. Recover the intended Decision explicitly:
+
+```bash
+python tools/runtime.py --repo . recover-decision late-decision.json \
+  --reason "The move was presented before its Decision was committed."
+python tools/runtime.py --repo . respond <recovered-decision-id> - --confirm-attribution
+```
+
+The recovered workspace-v0.2 Decision is marked
+`recorded_after_action=true` and carries an immutable `late_record_reason`.
+Those fields are assigned only by the recovery path; normal Decision recording
+and `advance` cannot set them. Recovery preserves the evidence chain while
+making the protocol violation visible to audit and verification.
+
 For a typed interactive artifact, the Workspace uses `respond-context`. Its JSON payload contains the response plus the learner's prediction and explored parameter range. The runtime checks that the artifact belongs to the Decision, the prediction is one of its declared options, and the values are inside its semantic range before adding `artifact_interaction` to the Observation. Interaction context informs assessment but is not automatically Evidence.
 
 Read the next response awaiting assessment:
