@@ -49,7 +49,7 @@ export function deriveSessionClose(snapshot: WorkspaceSnapshot): SessionCloseDra
   if (!snapshot.projectId || !snapshot.missionId) {
     throw new Error("Session Close requires an active workspace-v0.2 Project and Mission");
   }
-  if (!exchange || exchange.status !== "assessed" || !evidenceId) {
+  if (!exchange || exchange.status !== "assessed" || !exchange.evidenceId) {
     throw new Error("Session Close requires an assessed learner response");
   }
   const evidenceId = exchange.evidenceId;
