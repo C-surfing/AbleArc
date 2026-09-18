@@ -1210,7 +1210,9 @@ RECORDERS: dict[str, Callable[[Path, dict[str, Any]], dict[str, Any]]] = {
 
 
 def verify_runtime(repo_root: Path) -> list[str]:
-    """Validate every stored receipt and important cross-receipt invariants."""
+    """Validate stored runtime state without initializing an uninitialized repository."""
+    if project_store.detect_layout(repo_root) == project_store.LAYOUT_UNINITIALIZED:
+        return []
     problems: list[str] = []
     receipts_by_kind: dict[str, list[dict[str, Any]]] = {}
     for kind in RECEIPT_DIRS:
