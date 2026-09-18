@@ -29,7 +29,17 @@ class CompletionGateTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def advance(self, *, level, scaffolding, context, delay, independence, target):
+    def advance(
+        self,
+        *,
+        level,
+        scaffolding,
+        context,
+        delay,
+        independence,
+        target,
+        artifact_form="prose",
+    ):
         decision = runtime.list_receipts(self.root, "decision")[-1]
         runtime.record_learner_response(
             self.root,
@@ -44,6 +54,7 @@ class CompletionGateTests(unittest.TestCase):
                     "level": level,
                     "outcome": "supports",
                     "failure_mode": "none",
+                    "artifact_form": artifact_form,
                     "result_summary": f"The learner demonstrated {target}.",
                     "scaffolding": scaffolding,
                     "context": context,
@@ -159,6 +170,38 @@ class CompletionGateTests(unittest.TestCase):
         self.assertEqual(transfer["qualifying_evidence_ids"], [])
         self.assertFalse(status["ready"])
 
+    def test_gate_can_require_code_artifact_instead_of_prose_application(self):
+        feynman, prose_application = self.evidence_pair()
+        performance = self.criterion("perform", "performance", [prose_application])
+        performance["artifact_forms"] = ["code", "executed_code"]
+        status = completion_gate.set_completion_criteria(self.root, {"criteria": [
+            self.criterion("explain", "feynman", [feynman]),
+            performance,
+        ]})
+
+        criterion = next(item for item in status["criteria"] if item["id"] == "perform")
+        self.assertEqual(criterion["artifact_forms"], ["code", "executed_code"])
+        self.assertEqual(criterion["qualifying_evidence_ids"], [])
+        self.assertFalse(status["ready"])
+
+        code_evidence = self.advance(
+            level="application",
+            scaffolding="none",
+            context="varied",
+            delay="immediate",
+            independence="independent",
+            target="independent code implementation",
+            artifact_form="code",
+        )
+        performance["evidence_ids"] = [prose_application, code_evidence]
+        status = completion_gate.set_completion_criteria(self.root, {"criteria": [
+            self.criterion("explain", "feynman", [feynman]),
+            performance,
+        ]})
+        criterion = next(item for item in status["criteria"] if item["id"] == "perform")
+        self.assertEqual(criterion["qualifying_evidence_ids"], [code_evidence])
+        self.assertTrue(status["ready"])
+
     def test_ready_gate_completes_mission_and_archives_without_deletion(self):
         feynman, performance = self.evidence_pair()
         optional_retrieval = self.criterion("retain", "retrieval", [])
@@ -244,6 +287,10 @@ class CompletionGateTests(unittest.TestCase):
         self.assertNotIn(
             "minItems",
             schema["$defs"]["criterion"]["properties"]["evidence_ids"],
+        )
+        self.assertEqual(
+            schema["$defs"]["criterion"]["properties"]["artifact_forms"]["items"]["enum"],
+            ["prose", "pseudocode", "code", "executed_code", "diagram"],
         )
 
     def test_cli_configures_and_reports_completion_status(self):
