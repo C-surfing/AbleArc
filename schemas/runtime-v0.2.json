@@ -197,6 +197,13 @@
             "falsification_signal": {
               "type": "string",
               "minLength": 1
+            },
+            "recorded_after_action": {
+              "const": true
+            },
+            "late_record_reason": {
+              "type": "string",
+              "minLength": 1
             }
           }
         }
