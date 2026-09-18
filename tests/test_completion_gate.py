@@ -170,6 +170,23 @@ class CompletionGateTests(unittest.TestCase):
         self.assertEqual(transfer["qualifying_evidence_ids"], [])
         self.assertFalse(status["ready"])
 
+    def test_rejects_unknown_or_duplicate_artifact_forms(self):
+        feynman, performance_evidence = self.evidence_pair()
+        performance = self.criterion("perform", "performance", [performance_evidence])
+        performance["artifact_forms"] = ["code", "binary"]
+        with self.assertRaisesRegex(completion_gate.CompletionGateError, "artifact_forms"):
+            completion_gate.set_completion_criteria(self.root, {"criteria": [
+                self.criterion("explain", "feynman", [feynman]),
+                performance,
+            ]})
+
+        performance["artifact_forms"] = ["code", "code"]
+        with self.assertRaisesRegex(completion_gate.CompletionGateError, "artifact_forms"):
+            completion_gate.set_completion_criteria(self.root, {"criteria": [
+                self.criterion("explain", "feynman", [feynman]),
+                performance,
+            ]})
+
     def test_gate_can_require_code_artifact_instead_of_prose_application(self):
         feynman, prose_application = self.evidence_pair()
         performance = self.criterion("perform", "performance", [prose_application])
