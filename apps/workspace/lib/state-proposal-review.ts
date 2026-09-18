@@ -13,6 +13,8 @@ export interface StateProposalReview {
   proposedBy: string;
   evidenceCount: number;
   policyIssues: string[];
+  risk: "low" | "medium" | "high";
+  autoAcceptEligible: boolean;
   stale: boolean;
   createdAt: string;
 }
@@ -65,6 +67,12 @@ export function parseStateProposalReviews(value: unknown, expectedProjectId: str
     if (!Number.isInteger(evidenceCount) || Number(evidenceCount) < 0) {
       throw new Error("State proposal evidence count is invalid");
     }
+    if (!["low", "medium", "high"].includes(String(proposal.risk))) {
+      throw new Error("State proposal risk is invalid");
+    }
+    if (typeof proposal.auto_accept_eligible !== "boolean") {
+      throw new Error("State proposal auto-accept eligibility is invalid");
+    }
     if (typeof proposal.stale !== "boolean") throw new Error("State proposal stale flag is invalid");
 
     return {
@@ -80,6 +88,8 @@ export function parseStateProposalReviews(value: unknown, expectedProjectId: str
       proposedBy: requiredString(proposal.proposed_by, "proposed_by"),
       evidenceCount: Number(evidenceCount),
       policyIssues: policyIssues.map((issue) => String(issue).trim()),
+      risk: proposal.risk as StateProposalReview["risk"],
+      autoAcceptEligible: proposal.auto_accept_eligible,
       stale: proposal.stale,
       createdAt: requiredString(proposal.created_at, "created_at"),
     };
