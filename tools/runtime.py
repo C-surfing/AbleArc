@@ -38,6 +38,7 @@ ARTIFACT_SCHEMA_VERSION = "0.2"
 SUPPORTED_ARTIFACT_SCHEMA_VERSIONS = ("0.1", "0.2")
 MASTERY_STATES = ("unknown", "exposed", "developing", "stable", "transferable")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
+ARTIFACT_FORMS = project_store.EVIDENCE_ARTIFACT_FORMS
 FAILURE_MODES = (
     "none",
     "slip",
@@ -908,16 +909,20 @@ def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
 
     outcome = _enum(data, "outcome", ("supports", "contradicts", "inconclusive"))
     failure_mode: str | None = None
+    artifact_form: str | None = None
     if receipt["schema_version"] == SCOPED_RECEIPT_SCHEMA_VERSION:
         failure_mode = _enum(data, "failure_mode", FAILURE_MODES)
+        artifact_form = _enum(data, "artifact_form", ARTIFACT_FORMS)
         if outcome == "supports" and failure_mode != "none":
             raise RuntimeContractError("supporting evidence must use failure_mode=none")
         if outcome == "contradicts" and failure_mode == "none":
             raise RuntimeContractError(
                 "contradicting evidence must identify a specific failure_mode"
             )
-    elif "failure_mode" in data:
-        raise RuntimeContractError("failure_mode requires workspace-v0.2 evidence")
+    elif "failure_mode" in data or "artifact_form" in data:
+        raise RuntimeContractError(
+            "failure_mode and artifact_form require workspace-v0.2 evidence"
+        )
 
     payload = {
         "observation_id": observation_id,
@@ -936,6 +941,8 @@ def _prepare_evidence(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     }
     if failure_mode is not None:
         payload["failure_mode"] = failure_mode
+    if artifact_form is not None:
+        payload["artifact_form"] = artifact_form
     receipt.update(payload)
     return receipt
 
@@ -1321,6 +1328,8 @@ def verify_runtime(repo_root: Path) -> list[str]:
             problems.append(f"{item['id']}: supporting evidence has a failure_mode")
         if item.get("outcome") == "contradicts" and failure_mode == "none":
             problems.append(f"{item['id']}: contradicting evidence is missing failure diagnosis")
+        if item.get("artifact_form") not in ARTIFACT_FORMS:
+            problems.append(f"{item['id']}: invalid or missing artifact_form")
     proposals = {item["id"]: item for item in receipts_by_kind["state-proposal"]}
     state_decisions = receipts_by_kind["state-decision"]
     turns = receipts_by_kind["turn"]
