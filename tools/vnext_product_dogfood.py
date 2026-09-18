@@ -111,17 +111,23 @@ def _list_sessions(arc_dir: Path) -> list[Path]:
     _assert_real_directory(sessions_dir, "dogfooding sessions directory")
     if not sessions_dir.is_dir():
         raise ProductDogfoodError("dogfooding arc must contain sessions/")
+    repo_root = arc_dir.parent.parent
     return sorted(
         path
         for path in sessions_dir.iterdir()
-        if path.is_file() and not path.is_symlink() and SESSION_FILE.fullmatch(path.name)
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and SESSION_FILE.fullmatch(path.name)
+            and learning.is_real_session_record(repo_root, path)
+        )
     )
 
 
 def _latest_session(arc_dir: Path) -> Path:
     sessions = _list_sessions(arc_dir)
     if not sessions:
-        raise ProductDogfoodError("dogfooding arc has no numbered session record")
+        raise ProductDogfoodError("dogfooding arc has no real numbered session record")
     return sessions[-1]
 
 
