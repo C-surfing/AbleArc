@@ -1,7 +1,11 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { isContextScale, normalizeDailyContextUpdate, type DailyContext } from "./daily-context.ts";
+import {
+  assertNotSymlink,
+  atomicWriteJson,
+  withExclusiveFileLock,
+} from "./local-file-store.ts";
 import { resolveProjectReadContext } from "./project-store.ts";
 
 const MANIFEST_FIELDS = new Set([
@@ -16,16 +20,6 @@ const MANIFEST_FIELDS = new Set([
   "updated_at",
 ]);
 const WORKSPACE_ID = /^ws_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$/;
-
-function assertNotSymlink(targetPath: string, label: string): void {
-  try {
-    if (fs.lstatSync(targetPath).isSymbolicLink()) {
-      throw new Error(`${label} must not be a symbolic link`);
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-}
 
 function workspaceId(repoRoot: string): string | undefined {
   const context = resolveProjectReadContext(repoRoot);
@@ -102,27 +96,11 @@ export function readDailyContext(repoRoot: string): DailyContext | undefined {
 function withContextLock<T>(repoRoot: string, operation: () => T): T {
   const learningRoot = path.join(path.resolve(repoRoot), ".learning");
   assertNotSymlink(learningRoot, ".learning");
-  const lockPath = path.join(learningRoot, ".daily-context.lock");
-  let descriptor: number | undefined;
-  try {
-    descriptor = fs.openSync(lockPath, "wx");
-    fs.writeFileSync(descriptor, `${crypto.randomUUID()}\n`, "utf8");
-    return operation();
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
-      throw new Error("another DailyContext write is already in progress");
-    }
-    throw error;
-  } finally {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-      try {
-        fs.unlinkSync(lockPath);
-      } catch {
-        // Best-effort cleanup after this process acquired the lock.
-      }
-    }
-  }
+  return withExclusiveFileLock(
+    path.join(learningRoot, ".daily-context.lock"),
+    "another DailyContext write is already in progress",
+    operation,
+  );
 }
 
 export function writeDailyContext(repoRoot: string, input: unknown): DailyContext {
@@ -147,31 +125,25 @@ export function writeDailyContext(repoRoot: string, input: unknown): DailyContex
     };
 
     const filePath = dailyContextFilePath(repoRoot);
-    const root = path.dirname(filePath);
-    assertNotSymlink(root, "DailyContext directory");
-    fs.mkdirSync(root, { recursive: true });
-    const temporary = path.join(root, `.daily.${crypto.randomUUID()}.tmp`);
-    const payload = {
-      schema_version: next.schemaVersion,
-      kind: "daily-context",
-      workspace_id: id,
-      revision: next.revision,
-      energy: next.energy,
-      ...(next.availableMinutes ? { available_minutes: next.availableMinutes } : {}),
-      ...(next.focus ? { focus: next.focus } : {}),
-      ...(next.note ? { note: next.note } : {}),
-      updated_at: next.updatedAt,
-    };
-    try {
-      fs.writeFileSync(temporary, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-      fs.renameSync(temporary, filePath);
-    } finally {
-      try {
-        fs.unlinkSync(temporary);
-      } catch {
-        // rename already removed the temporary path on success.
-      }
-    }
+    atomicWriteJson(
+      filePath,
+      {
+        schema_version: next.schemaVersion,
+        kind: "daily-context",
+        workspace_id: id,
+        revision: next.revision,
+        energy: next.energy,
+        ...(next.availableMinutes ? { available_minutes: next.availableMinutes } : {}),
+        ...(next.focus ? { focus: next.focus } : {}),
+        ...(next.note ? { note: next.note } : {}),
+        updated_at: next.updatedAt,
+      },
+      {
+        directoryLabel: "DailyContext directory",
+        targetLabel: "DailyContext manifest",
+        temporaryPrefix: ".daily",
+      },
+    );
     return next;
   });
 }
