@@ -118,6 +118,23 @@ class StateProposalReviewTests(unittest.TestCase):
         self.assertEqual(state_proposals.reconcile_low_risk_state_proposals(self.root), [])
         self.assertEqual(state_proposals.pending_state_proposals(self.root)[0]["id"], second["id"])
 
+    def test_stale_low_risk_proposal_is_not_auto_accepted(self):
+        evidence = self.evidence()
+        first = self.proposal("unknown", "exposed", [evidence["id"]])
+        state_proposals.reconcile_low_risk_state_proposals(self.root)
+        stale = self.proposal("unknown", "exposed", [evidence["id"]])
+
+        pending = state_proposals.pending_state_proposals(self.root)
+        self.assertEqual(pending[0]["id"], stale["id"])
+        self.assertEqual(pending[0]["risk"], "low")
+        self.assertTrue(pending[0]["stale"])
+        self.assertFalse(pending[0]["auto_accept_eligible"])
+        self.assertEqual(state_proposals.reconcile_low_risk_state_proposals(self.root), [])
+        self.assertEqual(
+            runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+
     def test_high_risk_transitions_never_become_auto_accept_eligible(self):
         evidence = self.evidence()
         first = self.proposal("unknown", "exposed", [evidence["id"]])
