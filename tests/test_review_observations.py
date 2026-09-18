@@ -61,6 +61,7 @@ class ReviewObservationTests(unittest.TestCase):
                 "concept_ids": ["bayes-base-rate"],
                 "level": level,
                 "outcome": outcome,
+                "failure_mode": "none" if outcome == "supports" else "wrong_causal_model",
                 "result_summary": "Reference-class reasoning was reconstructed independently.",
                 "scaffolding": "none",
                 "context": context,
