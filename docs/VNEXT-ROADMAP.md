@@ -718,7 +718,7 @@ See `docs/adr/0009-conversation-context-verification.md`, `docs/HOST-INTEGRATION
 
 ### Phase 5 — Session Close and Tomorrow Seed
 
-**Status:** active implementation; tracked in Issue #83.
+**Status:** implemented on `main` via Issue #83 / PR #84.
 
 **Goal:** make leaving and returning part of the product loop.
 
@@ -736,6 +736,8 @@ Acceptance:
 Session Close must not fabricate capability change from conversation quality, time spent, or self-report.
 
 ### Phase 6 — Free-form Reflection
+
+**Status:** active implementation; tracked in Issue #85.
 
 **Goal:** provide a learner-owned thinking space without turning journaling into compliance.
 
