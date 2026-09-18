@@ -513,6 +513,52 @@ class LearningRuntimeTests(unittest.TestCase):
         with self.assertRaises(runtime.RuntimeContractError):
             self.accept(proposal)
 
+    def test_failed_first_attempt_can_record_exposure_without_claiming_mastery(self):
+        evidence = self.evidence(
+            level="recognition",
+            outcome="contradicts",
+            context="same",
+            independence="same_form",
+            result="The learner attempted the concept but used an incorrect causal model.",
+        )
+        proposal = self.proposal("unknown", "exposed", [evidence["id"]])
+
+        self.assertEqual(runtime.transition_policy_issues(self.root, proposal), [])
+        decision = self.accept(proposal)
+        state = runtime._current_state(self.root)
+
+        self.assertEqual(decision["decision"], "accepted")
+        self.assertEqual(state["concepts"]["bayes-base-rate"]["state"], "exposed")
+        self.assertEqual(state["concepts"]["bayes-base-rate"]["evidence_ids"], [evidence["id"]])
+
+    def test_inconclusive_first_attempt_can_record_exposure(self):
+        evidence = self.evidence(
+            level="recognition",
+            outcome="inconclusive",
+            context="same",
+            independence="same_form",
+            result="The learner recognized the term but did not reveal a usable model.",
+        )
+        proposal = self.proposal("unknown", "exposed", [evidence["id"]])
+
+        self.assertEqual(runtime.transition_policy_issues(self.root, proposal), [])
+        self.accept(proposal)
+        self.assertEqual(
+            runtime._current_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+
+    def test_non_supporting_evidence_cannot_promote_beyond_exposed(self):
+        first = self.evidence(level="recognition", context="same", independence="same_form")
+        self.accept(self.proposal("unknown", "exposed", [first["id"]]))
+        failed_application = self.evidence(outcome="contradicts")
+        proposal = self.proposal("exposed", "developing", [failed_application["id"]])
+
+        issues = runtime.transition_policy_issues(self.root, proposal)
+        self.assertIn("mastery promotion requires supporting evidence", issues)
+        with self.assertRaises(runtime.RuntimeContractError):
+            self.accept(proposal)
+
     def test_two_independent_signals_can_be_explicitly_accepted_as_stable(self):
         self.promote_to_developing()
         immediate = self.evidence(level="application", context="varied", independence="new_form")

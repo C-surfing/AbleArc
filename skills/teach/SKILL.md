@@ -423,7 +423,9 @@ Interpretation:
 
 Use evidence to update state conservatively:
 
-- `exposed` means the learner has encountered the idea;
+- `exposed` means the learner has encountered the idea through an
+  evidence-bearing attempt; the attempt may be correct, incorrect, or
+  inconclusive, so this is not a mastery claim;
 - `developing` means partial usable understanding exists but is not robust;
 - `stable` requires independent evidence beyond a single immediate response;
 - `transferable` requires successful use outside the original presentation pattern.

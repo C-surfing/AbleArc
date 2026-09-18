@@ -82,13 +82,22 @@ Policy overrides are allowed only for learner or human authority and are recorde
 The initial policy is intentionally conservative:
 
 - promotion cannot skip mastery states;
-- promotion requires supporting evidence;
+- `unknown → exposed` records first contact and may use supporting,
+  contradicting, or inconclusive evidence;
+- promotion beyond `exposed` requires supporting evidence;
 - downgrade requires contradicting evidence;
 - `stable` requires at least two supporting, meaningfully independent, lightly scaffolded signals;
 - `transferable` requires lightly scaffolded transfer in a novel context;
 - stale proposals cannot overwrite a newer accepted state.
 
 These are guardrails, not a complete theory of learning. Change them only after real longitudinal evidence reveals a repeated failure.
+
+`exposed` is deliberately not a mastery claim. It means the learner has
+encountered the concept through an evidence-bearing attempt. A failed or
+ambiguous first attempt is therefore allowed to move `unknown → exposed`: the
+Runtime preserves what happened without pretending the learner demonstrated
+usable understanding. Contradicting or inconclusive evidence still cannot move
+the concept to `developing`, `stable`, or `transferable`.
 
 ## CLI
 

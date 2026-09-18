@@ -1013,10 +1013,11 @@ def transition_policy_issues(repo_root: Path, proposal: dict[str, Any]) -> list[
     supporting = [item for item in evidence if item["outcome"] == "supports"]
     contradicting = [item for item in evidence if item["outcome"] == "contradicts"]
     issues: list[str] = []
+    records_first_exposure = before == "unknown" and after == "exposed"
 
     if after_rank > before_rank + 1:
         issues.append("mastery promotion cannot skip states")
-    if after_rank > before_rank and not supporting:
+    if after_rank > before_rank and not records_first_exposure and not supporting:
         issues.append("mastery promotion requires supporting evidence")
     if after_rank < before_rank and not contradicting:
         issues.append("mastery downgrade requires contradicting evidence")
