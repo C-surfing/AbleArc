@@ -737,7 +737,7 @@ Session Close must not fabricate capability change from conversation quality, ti
 
 ### Phase 6 — Free-form Reflection
 
-**Status:** active implementation; tracked in Issue #85.
+**Status:** implemented on `main` via Issue #85 / PR #86.
 
 **Goal:** provide a learner-owned thinking space without turning journaling into compliance.
 
@@ -753,6 +753,8 @@ Acceptance:
 No mandatory reflection prompts or timing gates. Reflection alone cannot change mastery.
 
 ### Phase 7 — Authority policy refinement
+
+**Status:** active implementation; tracked in Issue #87.
 
 **Goal:** reduce approval fatigue while retaining strict learner-state safety.
 
