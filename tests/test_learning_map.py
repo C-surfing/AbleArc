@@ -45,6 +45,7 @@ class LearningMapTests(unittest.TestCase):
                 "assessment": {
                     "level": "explanation",
                     "outcome": "supports",
+                    "failure_mode": "none",
                     "result_summary": "The learner used both conditioned populations.",
                     "scaffolding": "light",
                     "context": "same",
