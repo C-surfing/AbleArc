@@ -102,16 +102,24 @@ class StateProposalReviewTests(unittest.TestCase):
         self.assertEqual(runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"], "exposed")
         self.assertEqual(state_proposals.pending_state_proposals(self.root), [])
 
-    def test_policy_issue_requires_explicit_learner_override(self):
+    def test_policy_rejection_is_auditable_and_override_requires_a_new_proposal(self):
         evidence = self.evidence()
         first = self.proposal("unknown", "exposed", [evidence["id"]])
-        state_proposals.decide_state_proposal(self.root, first["id"], "accepted", "Accept first observed state.")
+        state_proposals.decide_state_proposal(
+            self.root,
+            first["id"],
+            "accepted",
+            "Accept first observed state.",
+        )
         second = self.proposal("exposed", "stable", [evidence["id"]])
 
         pending = state_proposals.pending_state_proposals(self.root)
         self.assertEqual(pending[0]["id"], second["id"])
         self.assertTrue(pending[0]["policy_issues"])
-        with self.assertRaisesRegex(runtime.RuntimeContractError, "transition policy rejected acceptance"):
+        with self.assertRaisesRegex(
+            runtime.RuntimeContractError,
+            "transition policy rejected acceptance; rejection recorded as",
+        ):
             state_proposals.decide_state_proposal(
                 self.root,
                 second["id"],
@@ -119,14 +127,33 @@ class StateProposalReviewTests(unittest.TestCase):
                 "Accept without an override.",
             )
 
+        rejected = [
+            item
+            for item in runtime.list_receipts(self.root, "state-decision")
+            if item["proposal_id"] == second["id"]
+        ]
+        self.assertEqual(len(rejected), 1)
+        self.assertEqual(rejected[0]["decision"], "rejected")
+        self.assertTrue(rejected[0]["policy_issues"])
+        self.assertFalse(rejected[0]["policy_overridden"])
+        self.assertNotIn("projection_revision", rejected[0])
+        self.assertEqual(state_proposals.pending_state_proposals(self.root), [])
+        self.assertEqual(
+            runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+        retry = self.proposal("exposed", "stable", [evidence["id"]])
         decision = state_proposals.decide_state_proposal(
             self.root,
-            second["id"],
+            retry["id"],
             "accepted",
             "I explicitly understand and override the conservative transition policy.",
             override_policy=True,
         )
         self.assertTrue(decision["policy_overridden"])
+        self.assertEqual(decision["decision"], "accepted")
 
     def test_rejection_does_not_change_state(self):
         evidence = self.evidence()
