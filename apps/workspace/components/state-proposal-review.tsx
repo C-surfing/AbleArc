@@ -26,6 +26,8 @@ export function StateProposalReview({
   const [overridePolicy, setOverridePolicy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const writable = projectStatus === "active"
+    || (projectStatus === "archived" && maintenanceStatus === "study_active");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -36,6 +38,21 @@ export function StateProposalReview({
         if (!response.ok || !payload.proposals) {
           throw new Error(payload.error || "State proposals are unavailable.");
         }
+        if (writable && payload.proposals.some((item) => item.autoAcceptEligible)) {
+          const reconcileResponse = await fetch("/api/state-proposals", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ action: "reconcile", projectId }),
+            signal: controller.signal,
+          });
+          const reconciled = await reconcileResponse.json() as ProposalResponse;
+          if (!reconcileResponse.ok || !reconciled.proposals) {
+            throw new Error(reconciled.error || "Low-risk state reconciliation failed.");
+          }
+          setProposals(reconciled.proposals);
+          router.refresh();
+          return;
+        }
         setProposals(payload.proposals);
       })
       .catch((requestError) => {
@@ -43,11 +60,9 @@ export function StateProposalReview({
         setError(requestError instanceof Error ? requestError.message : "State proposals are unavailable.");
       });
     return () => controller.abort();
-  }, [projectId]);
+  }, [projectId, router, writable]);
 
   const proposal = proposals?.[0];
-  const writable = projectStatus === "active"
-    || (projectStatus === "archived" && maintenanceStatus === "study_active");
   const hasPolicyIssues = Boolean(proposal?.policyIssues.length);
   const canSubmit = Boolean(proposal && writable && reason.trim() && !submitting);
   const canAccept = Boolean(canSubmit && !proposal?.stale && (!hasPolicyIssues || overridePolicy));
@@ -55,7 +70,8 @@ export function StateProposalReview({
     if (!proposal) return undefined;
     if (proposal.stale) return `Current state is ${proposal.currentState}; this proposal expected ${proposal.before}.`;
     if (hasPolicyIssues) return "The Runtime transition policy does not approve this acceptance without an explicit learner override.";
-    return "This proposal is reviewable. Your decision becomes an immutable learner-authority receipt.";
+    if (proposal.risk === "high") return "High-risk learner-state changes remain explicit learner decisions.";
+    return "This proposal remains reviewable. Your decision becomes an immutable learner-authority receipt.";
   }, [hasPolicyIssues, proposal]);
 
   async function decide(decision: "accepted" | "rejected") {
@@ -107,6 +123,7 @@ export function StateProposalReview({
           <p>{proposal.rationale}</p>
           <div className={styles.meta}>
             <span>{proposal.evidenceCount} evidence receipt(s)</span>
+            <span>{proposal.risk} risk</span>
             <span>proposed by {proposal.proposedBy}</span>
           </div>
           {statusCopy ? <p className={proposal.stale || hasPolicyIssues ? styles.warning : styles.status}>{statusCopy}</p> : null}
