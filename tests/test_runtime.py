@@ -1,3 +1,6 @@
+import io
+import json
+from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import tempfile
 import unittest
@@ -305,6 +308,59 @@ class LearningRuntimeTests(unittest.TestCase):
             runtime.record_learner_response(self.root, decision["id"], "   ")
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.record_learner_response(self.root, decision["id"], "x" * 12001)
+
+    def test_unanswered_decisions_exposes_action_context_until_response(self):
+        decision = self.decision()
+
+        open_decisions = runtime.unanswered_decisions(self.root)
+
+        self.assertEqual(len(open_decisions), 1)
+        self.assertEqual(open_decisions[0]["id"], decision["id"])
+        self.assertEqual(open_decisions[0]["concept_ids"], decision["concept_ids"])
+        self.assertEqual(open_decisions[0]["learner_action"], decision["learner_action"])
+
+        runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "The prior changes the candidate pool.",
+        )
+        self.assertEqual(runtime.unanswered_decisions(self.root), [])
+
+    def test_agent_cli_respond_requires_explicit_attribution_confirmation(self):
+        decision = self.decision()
+        stderr = io.StringIO()
+        with redirect_stderr(stderr):
+            code = runtime.main([
+                "--repo",
+                str(self.root),
+                "respond",
+                decision["id"],
+                "The prior changes the candidate pool.",
+            ])
+        self.assertEqual(code, 2)
+        self.assertIn("--confirm-attribution", stderr.getvalue())
+        self.assertEqual(
+            [
+                item
+                for item in runtime.list_receipts(self.root, "observation")
+                if item.get("source") == "learner"
+            ],
+            [],
+        )
+
+        stdout = io.StringIO()
+        with redirect_stdout(stdout):
+            code = runtime.main([
+                "--repo",
+                str(self.root),
+                "respond",
+                decision["id"],
+                "The prior changes the candidate pool.",
+                "--confirm-attribution",
+            ])
+        self.assertEqual(code, 0)
+        receipt = json.loads(stdout.getvalue())
+        self.assertEqual(receipt["decision_id"], decision["id"])
 
     def test_pending_turn_exposes_response_and_clears_after_agent_advance(self):
         decision = self.decision()
