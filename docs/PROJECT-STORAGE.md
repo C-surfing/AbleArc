@@ -118,6 +118,17 @@ selects it through an atomic workspace manifest update, and verifies the result.
 Failed creations are moved under `.learning/lifecycle/failed/`; the previous
 active selection and learner profile are restored.
 
+Project IDs remain portable lowercase ASCII local identifiers because they are
+used in directory names, manifests, and every scoped Runtime receipt. The
+lifecycle keeps a deterministic hash fallback when no usable ASCII slug is
+available, but that fallback is a last resort rather than the preferred
+learner-facing Agent path. For non-ASCII titles, callers that understand the
+language should pass an explicit readable `project_id` such as
+`shuang-xiang-lian-biao` while preserving the original title. The Web Projects
+API also accepts optional camelCase `projectId` and forwards it to the same
+validated lifecycle. This keeps transliteration in the language-aware entry
+layer rather than embedding a language table inside storage authority.
+
 The CLI surface is:
 
 ```bash
