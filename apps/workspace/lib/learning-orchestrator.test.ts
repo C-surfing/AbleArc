@@ -72,6 +72,9 @@ test("orchestrator treats learner text as untrusted content and validates output
   const result = await generateTeachingAdvance(adapter, pending);
   assert.equal(result.assessment.assessor, "provider:fixture:fixture-model");
   assert.match(request?.system || "", /untrusted learning content/);
+  assert.match(request?.system || "", /learner-facing feedback/);
+  assert.match(request?.system || "", /Prefer direct explanation/);
+  assert.match(request?.system || "", /self-report as routing context/);
   assert.match(request?.prompt || "", /Ignore prior instructions/);
   assert.deepEqual(request?.schema && (request.schema as { required?: string[] }).required, [
     "assessment",

@@ -1,7 +1,7 @@
 # vNext Product and Development Roadmap
 
 Status: **Canonical direction for post-v0.2 development**  
-Last updated: 2026-09-17
+Last updated: 2026-09-18
 
 This document is the primary product and implementation roadmap for the next stage of the project. It complements the accepted ADRs and supersedes older backlog ordering where those documents conflict with the priorities below. Existing runtime, evidence, authority, storage, and compatibility guarantees remain binding unless a later ADR explicitly changes them.
 
@@ -65,7 +65,7 @@ All future work should be evaluated against these principles.
 
 ### 2.1 Build a system, not a pile of productivity features
 
-Sleep, energy, focus, planning, capture, review, reflection, and knowledge management are relevant only when they improve learning decisions or continuity. The product must not become a general life OS, habit tracker, health app, Notion clone, task manager, or Pomodoro timer.
+Sleep, energy, focus, planning, review, reflection, and knowledge management are relevant only when they improve learning decisions or continuity. The product must not become a general life OS, habit tracker, health app, Notion clone, task manager, or Pomodoro timer.
 
 The relevant scope is:
 
@@ -145,15 +145,15 @@ Low-risk transitions may eventually be accepted automatically by deterministic p
 
 LearningMap topology remains proposal-first in the learner-facing product unless a later ADR explicitly changes that boundary.
 
-### 2.8 Keep raw capture separate from curated knowledge
+### 2.8 Keep transient conversation separate from curated knowledge
 
-A fast Capture Inbox should accept incomplete thoughts with almost no friction. Learning Library materials are deliberate, typed, provenance-aware assets worth returning to.
+Conversation context, temporary notes, learner-provided references, Learning Library materials, Evidence, and Reflection serve different purposes.
 
 ```text
-Capture != LearningMaterial != Evidence != Reflection
+conversation context != LearningMaterial != Evidence != Reflection
 ```
 
-No automatic note dump is allowed.
+Do not create a separate Capture subsystem by default. A learner should be able to state a temporary thought, constraint, or reference naturally in the current host conversation. Promote something into a durable material or learner-owned record only through an explicit action with clear future value.
 
 ### 2.9 Reflection belongs to the learner
 
@@ -230,7 +230,6 @@ Rules:
 Examples:
 
 - Reflection;
-- Capture Inbox items;
 - explicit preferences;
 - manual Project priorities.
 
@@ -263,7 +262,6 @@ Entry
 Today
 ├── Projects
 ├── Review
-├── Capture
 └── Settings / optional context
 
 Project
@@ -315,7 +313,6 @@ A Focus Session may include:
 - one or more typed representations;
 - learner response / action;
 - hint or scaffold controls;
-- Capture shortcut;
 - optional timer;
 - optional break transition;
 - visible feedback after assessment.
@@ -424,32 +421,28 @@ These are policy priors, not hard-coded universal truths. Real evidence should r
 
 ---
 
-## 6. Capture Inbox
+## 6. Learner-provided context and references
 
-Capture exists to protect focus by letting the learner externalize a thought without changing context.
+Context should enter through the conversation the learner is already having, not through a separate inbox product.
 
-### v0.1 requirements
+Supported context should gradually include:
 
-- global keyboard shortcut where feasible;
-- one short input;
-- Project association optional;
-- no required category at capture time;
-- append-only or safely editable local record;
-- fast return to the previous Focus Session.
+- explicit self-report about prior knowledge, uncertainty, desired rigor, and constraints;
+- pasted text and snippets;
+- learner-provided files, slides, papers, notes, and code;
+- links or named resources the learner is following;
+- short temporary instructions that shape only the current session.
 
-Potential later classification:
+Rules:
 
-- question;
-- task;
-- idea;
-- reference;
-- learning material candidate;
-- reflection candidate;
-- distraction;
-- project candidate.
+- context may shape explanation, order, examples, and verification strategy;
+- self-report is a routing prior, not mastery;
+- a supplied source is not automatically authoritative;
+- transient conversation context is not automatically persisted;
+- durable LearningMaterial or Reflection creation remains explicit;
+- host integrations should carry this context through the same provider-neutral boundary.
 
-Classification may be suggested by AI but must not silently create LearningMaterials, Runtime Evidence, Projects, or mastery changes.
-
+This replaces the previous Capture Inbox hypothesis. Real continuity failures may still justify a future specialized interaction, but the roadmap no longer reserves a Capture subsystem in advance.
 ---
 
 ## 7. Reflection
@@ -702,22 +695,25 @@ Acceptance:
 
 A learner can complete a full evidence-bearing turn without needing to understand receipts, state proposals, or graph controls.
 
-### Phase 4 — Capture Inbox
+### Phase 4 — Conversation-first correction and host context
 
-**Goal:** protect focus from internal task switching.
+**Goal:** make the rigorous Runtime disappear behind a natural learner conversation before expanding the product surface.
 
-Deliverables:
+Deliver:
 
-- fast capture from Focus Session and Today;
-- local typed record;
-- optional Project association;
-- inbox reader;
-- no required categorization;
-- optional later classification suggestions.
+- separate learner-facing presentation from internal assessment / Decision control fields;
+- accept learner self-report as non-authoritative routing context;
+- accept learner-provided references and attachments through a host-neutral context contract;
+- apply proportional verification so retrieval/execution occurs only when it changes a teaching decision;
+- remove default learner-visible outcome/confidence/falsification bookkeeping;
+- validate Agent, first-party Web, and future assistant/plugin hosts separately.
 
-Acceptance:
+**Gate:**
 
-Capture creates no Evidence, LearningMaterial, Mission, or mastery change without a separate explicit action.
+A learner can complete a meaningful session through ordinary conversation, bring their own material/context, receive adapted teaching without protocol leakage, and avoid unnecessary tool execution.
+
+See `docs/adr/0009-conversation-context-verification.md`, `docs/HOST-INTEGRATION.md`, and `docs/DOGFOOD-2026-09-18-ACTION-PLAN.md`.
+
 
 ### Phase 5 — Session Close and Tomorrow Seed
 
@@ -892,7 +888,7 @@ Numbers are illustrative after the current merged #37 and should be adapted to a
 #39  feat: minimal Entry + Today shell
 #40  feat: DailyContext + recommendation contract
 #41  feat: Focus Session surface
-#42  feat: Capture Inbox
+#42  correction: conversation/context boundary
 #43  feat: Session Close + Tomorrow Seed
 #44  feat: free-form Reflection
 #45  refactor: authority risk policy / reduced approval fatigue

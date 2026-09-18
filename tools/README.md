@@ -245,7 +245,7 @@ python tools/vnext_product_dogfood.py --repo . summary <arc-name>
 
 The records live under `.dogfooding/<arc-name>/product-observations/NNN.json`. They describe Entry, Today, DailyContext, Focus Session, the evidence-bearing turn, lifecycle behavior, and narrow/mobile behavior. Missing observations remain `not_observed` / `null` rather than becoming implicit passes.
 
-This tool is evaluation-only: it never writes `.learning/`, cannot create Evidence or learner-state changes, and cannot emit a Phase-4 promotion verdict. Use repeated real checkpoints plus [`../evaluation/PROMOTION.md`](../evaluation/PROMOTION.md) before promoting Capture Inbox or another product-level change. See [`../evaluation/VNEXT-PRODUCT-DOGFOOD.md`](../evaluation/VNEXT-PRODUCT-DOGFOOD.md).
+This tool is evaluation-only: it never writes `.learning/`, cannot create Evidence or learner-state changes, and cannot emit a feature-promotion verdict. Use repeated real checkpoints plus [`../evaluation/PROMOTION.md`](../evaluation/PROMOTION.md) before promoting any product-level change. The former Capture Inbox hypothesis is not promoted and no longer appears in the canonical roadmap. See [`../evaluation/VNEXT-PRODUCT-DOGFOOD.md`](../evaluation/VNEXT-PRODUCT-DOGFOOD.md).
 
 ## Inspect local status
 

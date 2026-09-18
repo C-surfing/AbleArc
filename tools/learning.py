@@ -40,6 +40,7 @@ DOMAIN_FILES = {
     "paper-reading": "03-paper-reading.md",
     "programming-agent": "04-programming-agent.md",
     "conceptual": "05-conceptual.md",
+    "procedural": "06-procedural.md",
 }
 
 
@@ -662,6 +663,31 @@ def list_arcs(repo_root: Path) -> list[Path]:
     return sorted(path for path in root.iterdir() if path.is_dir())
 
 
+def is_real_session_record(repo_root: Path, path: Path) -> bool:
+    """Return False for an untouched SESSION.md scaffold."""
+    if not path.is_file() or path.is_symlink():
+        return False
+    template = repo_root / "evaluation" / "SESSION.md"
+    if template.is_file():
+        try:
+            if path.read_text(encoding="utf-8") == template.read_text(encoding="utf-8"):
+                return False
+        except OSError:
+            return False
+    return bool(path.read_text(encoding="utf-8").strip())
+
+
+def real_session_records(repo_root: Path, arc_dir: Path) -> list[Path]:
+    sessions_dir = arc_dir / "sessions"
+    if not sessions_dir.is_dir():
+        return []
+    return sorted(
+        path
+        for path in sessions_dir.glob("[0-9][0-9][0-9].md")
+        if is_real_session_record(repo_root, path)
+    )
+
+
 def doctor(repo_root: Path) -> list[str]:
     """Check repository invariants needed by the local runner."""
     problems: list[str] = []
@@ -698,6 +724,7 @@ def doctor(repo_root: Path) -> list[str]:
         "schemas/mission-v0.2.json",
         "schemas/runtime-v0.1.json",
         "schemas/runtime-v0.2.json",
+        "schemas/host-turn-input-v0.1.json",
         "schemas/learning-artifact-v0.1.json",
         "schemas/learning-artifact-v0.2.json",
         "schemas/learning-map-v0.1.json",
@@ -983,8 +1010,8 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             arcs = list_arcs(root)
             print(f"Local arcs: {len(arcs)}")
             for arc in arcs:
-                sessions = len(list((arc / "sessions").glob("[0-9][0-9][0-9].md")))
-                print(f"  {arc.name}: {sessions} session record(s)")
+                sessions = len(real_session_records(root, arc))
+                print(f"  {arc.name}: {sessions} real session record(s)")
             try:
                 runtime_root = project_store.resolve_project_context(root).runtime_root
             except project_store.ProjectStoreError:

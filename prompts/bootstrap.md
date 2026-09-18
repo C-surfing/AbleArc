@@ -14,6 +14,8 @@ Resolve learner state before teaching:
 - inspect the selected Project's canonical map/state/runtime only as needed for the next teaching decision;
 - run `python tools/runtime.py --repo . pending` before asking the learner to repeat a response that the Workspace may already have saved;
 - read `.learning/LEARNER.md` when durable learner preferences matter;
+- treat the learner's explicit self-report (prior knowledge, uncertainty, desired rigor, current resource, constraints) as routing context, not mastery evidence;
+- treat learner-provided files, snippets, links, slides, papers, or code as reference context when they are relevant; preserve useful notation/order without assuming the source is authoritative;
 - only if workspace-v0.2 is absent, use the legacy root `.learning/MISSION.md`, `.learning/ROADMAP.md`, and `.learning/STATE.md` fallback.
 
 If there is no Project yet and the learner has supplied a capability-oriented goal, create the Project through the supported helper rather than hand-building `.learning/`. Do not infer a map, misconception, or mastery claim from the goal alone. A new Project normally opens a conservative `mission-entry` Decision; let the learner make that representative attempt before building a domain-specific map.
@@ -29,8 +31,10 @@ Reconstruct, without dumping it to the user:
 
 Continue from actual learner state. Do not restart a curriculum merely because this is a new chat.
 Do not dump a full lesson by default.
-Do not expose internal phase labels unless they help the learner.
+Do not expose internal phase labels, receipt fields, evidence outcome labels, confidence bookkeeping, or falsification mechanics unless the learner explicitly asks to inspect them.
+Make the learner-facing exchange ordinary conversation; the Runtime is an internal control protocol, not the dialogue format.
 Preserve productive struggle in the idea while removing logistical struggle.
+Use the cheapest sufficient verification: reason directly when stable knowledge is enough; retrieve when source/current grounding matters; execute code only when concrete behavior can change the teaching decision.
 Use reliable sources when factual grounding is needed.
 Update `.learning/` only through the supported Runtime/learning helpers when evidence meaningfully changes the learner model.
 

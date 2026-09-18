@@ -236,6 +236,6 @@ Continue the same longitudinal arc rather than immediately redesigning the produ
 
 A later session should depend on earlier evidence and, when appropriate, include retrieval, reduced scaffolding, representation/context perturbation, or transfer.
 
-Only after observing real friction should you formulate a feature hypothesis. First describe the learner-visible problem, then ask whether it repeats or is structurally severe, and finally use `evaluation/PROMOTION.md` to test whether a proposed feature is the smallest sufficient fix. A roadmap candidate such as Capture Inbox is one possible hypothesis, not something the pilot should try to prove.
+Only after observing real friction should you formulate a feature hypothesis. First describe the learner-visible problem, then ask whether it repeats or is structurally severe, and finally use `evaluation/PROMOTION.md` to test whether a proposed feature is the smallest sufficient fix. Do not preserve a discarded solution as a latent roadmap requirement; the former Capture Inbox hypothesis was explicitly not promoted after the first dogfooding correction.
 
 For Runtime protocol changes, follow the same principle: classify the failure first, collect enough independent evidence, and promote the smallest sufficient change rather than patching one awkward interaction.

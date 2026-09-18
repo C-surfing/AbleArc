@@ -46,6 +46,10 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             schema["$defs"]["base"]["properties"]["schema_version"],
             {"const": "0.2"},
         )
+        self.assertEqual(
+            tuple(schema["$defs"]["decision"]["allOf"][1]["properties"]["move"]["enum"]),
+            runtime.MOVE_TYPES,
+        )
 
     def assessment(self):
         return {
