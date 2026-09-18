@@ -43,6 +43,7 @@ class LearningMapHistoryTests(unittest.TestCase):
                     "level": "explanation",
                     "outcome": "supports",
                     "failure_mode": "none",
+                "artifact_form": "prose",
                     "result_summary": "The learner used both conditioned populations.",
                     "scaffolding": "light",
                     "context": "same",

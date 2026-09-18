@@ -49,7 +49,14 @@ Supported criterion kinds are:
 | `transfer` | transfer in a novel context, independent |
 | `retrieval` | delayed recall, independent |
 
-A criterion may demand stronger dimensions or multiple qualifying receipts.
+A criterion may demand stronger dimensions, multiple qualifying receipts, or
+specific learner-output forms through optional `artifact_forms`. An empty or
+omitted list means the form is unrestricted. For example, a programming
+performance criterion can require `["code", "executed_code"]`, so prose about
+an implementation cannot satisfy “can write code”. Use `["executed_code"]`
+only when actual execution is part of the capability; a code block alone is
+recorded as `code`.
+
 Optional criteria are recorded but do not block completion.
 
 ## Configure and inspect
@@ -83,6 +90,7 @@ Optional criteria are recorded but do not block completion.
       "minimum_delay": "immediate",
       "minimum_independence": "independent",
       "minimum_evidence": 1,
+      "artifact_forms": [],
       "evidence_ids": ["ev_example_application"]
     }
   ]

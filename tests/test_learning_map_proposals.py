@@ -43,6 +43,7 @@ class LearningMapProposalTests(unittest.TestCase):
                     "level": "explanation",
                     "outcome": "supports",
                     "failure_mode": "none",
+                "artifact_form": "prose",
                     "result_summary": "The learner used the base-rate populations correctly.",
                     "scaffolding": "light",
                     "context": "same",

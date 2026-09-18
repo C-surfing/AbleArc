@@ -61,6 +61,11 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             tuple(evidence["properties"]["failure_mode"]["enum"]),
             runtime.FAILURE_MODES,
         )
+        self.assertIn("artifact_form", evidence["required"])
+        self.assertEqual(
+            tuple(evidence["properties"]["artifact_form"]["enum"]),
+            runtime.ARTIFACT_FORMS,
+        )
         self.assertEqual(len(evidence["allOf"]), 2)
 
     def assessment(self):
@@ -68,6 +73,7 @@ class RuntimeV02ScopeTests(unittest.TestCase):
             "level": "explanation",
             "outcome": "supports",
             "failure_mode": "none",
+            "artifact_form": "prose",
             "result_summary": "The learner distinguished the prior from the likelihood.",
             "scaffolding": "light",
             "context": "same",
@@ -160,6 +166,13 @@ class RuntimeV02ScopeTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(runtime.RuntimeContractError, "assigned by the active Project"):
             runtime.record_decision(self.root, payload)
+
+    def test_scoped_evidence_requires_actual_artifact_form_without_changing_mastery(self):
+        _, first = self.create_scoped_decision()
+        evidence = first["evidence"]
+        self.assertEqual(evidence["artifact_form"], "prose")
+        self.assertEqual(runtime._current_state(self.root)["revision"], 0)
+        self.assertEqual(runtime.verify_runtime(self.root), [])
 
     def test_scoped_evidence_records_failure_mode_without_changing_mastery(self):
         _, first = self.create_scoped_decision()

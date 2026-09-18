@@ -29,6 +29,7 @@ WORKSPACE_ID_PATTERN = re.compile(r"^ws_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 EVIDENCE_ID_PATTERN = re.compile(r"^ev_[A-Za-z0-9][A-Za-z0-9_-]{2,127}$")
 COMPLETION_KINDS = ("feynman", "performance", "application", "transfer", "retrieval")
 EVIDENCE_LEVELS = ("recognition", "recall", "explanation", "application", "transfer")
+EVIDENCE_ARTIFACT_FORMS = ("prose", "pseudocode", "code", "executed_code", "diagram")
 SCAFFOLDING_LEVELS = ("none", "light", "heavy")
 EVIDENCE_CONTEXTS = ("same", "varied", "novel")
 EVIDENCE_DELAYS = ("immediate", "delayed")
@@ -266,10 +267,21 @@ def _validate_mission(data: dict[str, Any], project_id: str, mission_id: str) ->
             "kind", "minimum_level", "max_scaffolding", "minimum_context",
             "minimum_delay", "minimum_independence", "minimum_evidence",
         }
-        unknown = set(criterion) - base_fields - gate_fields
+        optional_gate_fields = {"artifact_forms"}
+        unknown = set(criterion) - base_fields - gate_fields - optional_gate_fields
         if unknown:
             raise ProjectStoreError(
                 "mission criterion has unsupported fields: " + ", ".join(sorted(unknown))
+            )
+        artifact_forms = criterion.get("artifact_forms", [])
+        if (
+            not isinstance(artifact_forms, list)
+            or len(artifact_forms) > len(EVIDENCE_ARTIFACT_FORMS)
+            or any(item not in EVIDENCE_ARTIFACT_FORMS for item in artifact_forms)
+            or len(set(artifact_forms)) != len(artifact_forms)
+        ):
+            raise ProjectStoreError(
+                "mission criterion artifact_forms must contain unique supported Evidence forms"
             )
         configured = set(criterion) & gate_fields
         if configured and configured != gate_fields:

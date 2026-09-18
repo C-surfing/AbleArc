@@ -351,6 +351,7 @@
             "level",
             "outcome",
             "failure_mode",
+            "artifact_form",
             "result_summary",
             "scaffolding",
             "context",
@@ -398,6 +399,15 @@
                 "wrong_causal_model",
                 "overgeneralization",
                 "failed_transfer"
+              ]
+            },
+            "artifact_form": {
+              "enum": [
+                "prose",
+                "pseudocode",
+                "code",
+                "executed_code",
+                "diagram"
               ]
             },
             "result_summary": {

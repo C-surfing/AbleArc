@@ -80,6 +80,12 @@
         "minimum_delay": { "enum": ["immediate", "delayed"] },
         "minimum_independence": { "enum": ["same_form", "new_form", "independent"] },
         "minimum_evidence": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "artifact_forms": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "enum": ["prose", "pseudocode", "code", "executed_code", "diagram"] },
+          "uniqueItems": true
+        },
         "evidence_ids": {
           "type": "array",
           "maxItems": 30,

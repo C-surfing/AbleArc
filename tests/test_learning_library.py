@@ -60,6 +60,7 @@ class LearningLibraryTests(unittest.TestCase):
                     "level": "explanation",
                     "outcome": "supports",
                     "failure_mode": "none",
+                    "artifact_form": "prose",
                     "result_summary": "The learner reconstructed the reference-class mechanism.",
                     "scaffolding": "none",
                     "context": "same",

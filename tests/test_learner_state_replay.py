@@ -63,6 +63,7 @@ class LearnerStateReplayTests(unittest.TestCase):
                 "level": level,
                 "outcome": "supports",
                 "failure_mode": "none",
+                "artifact_form": "prose",
                 "result_summary": "Usable base-rate reasoning was observed.",
                 "scaffolding": "none",
                 "context": context,

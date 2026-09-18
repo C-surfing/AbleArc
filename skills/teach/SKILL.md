@@ -253,6 +253,12 @@ When workspace-v0.2 Runtime Evidence is available, record that diagnosis in
 `none` for supporting evidence. Treat the diagnosis as guidance for the next
 teaching move, not as an automatic mastery transition.
 
+Also record what the learner actually produced in `artifact_form`: `prose`,
+`pseudocode`, `code`, `executed_code`, or `diagram`. Classify the
+observed output rather than the requested task. A prose description of code is
+still `prose`; a code block is `code`; use `executed_code` only when
+execution evidence is actually present.
+
 ### 3. Locate the frontier
 
 The frontier is the boundary between what the learner can reliably use and what they cannot yet independently reason through.

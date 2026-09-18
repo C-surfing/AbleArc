@@ -92,6 +92,18 @@ The field is diagnostic metadata for the next teaching decision. It does not
 promote, downgrade, or otherwise mutate mastery by itself. Legacy v0.1 receipts
 remain unchanged.
 
+## Evidence artifact form
+
+Workspace-v0.2 Evidence also records `artifact_form`: `prose`, `pseudocode`,
+`code`, `executed_code`, or `diagram`. This describes what the learner
+actually produced, not the form requested by the Decision. A prose description
+of an algorithm remains `prose` even when the learner was asked to write code.
+
+`executed_code` requires concrete execution evidence in the observation or
+assessment context; a code block by itself is `code`. Artifact form is another
+Evidence dimension, not a mastery state. Completion criteria may later require
+specific forms when the Mission capability itself is form-sensitive.
+
 ## Frontier hypothesis revision
 
 Mastery state and the Teacher's frontier hypothesis are different objects. A
