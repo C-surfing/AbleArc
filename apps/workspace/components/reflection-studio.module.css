@@ -1,0 +1,294 @@
+.page {
+  min-height: 100vh;
+  padding: 24px clamp(16px, 4vw, 56px) 48px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.header a {
+  color: var(--muted);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.header span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.header button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 9px 13px;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.intro {
+  max-width: 760px;
+  margin: 64px auto 28px;
+}
+
+.intro > span,
+.contextCard > div > span {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intro h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.intro p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.layout {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.history,
+.editor {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.history {
+  padding: 12px;
+  align-self: start;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 4px 12px;
+}
+
+.historyHeader strong {
+  font-size: 11px;
+}
+
+.historyHeader small {
+  color: var(--muted);
+}
+
+.historyItem,
+.activeItem {
+  width: 100%;
+  display: grid;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyItem:hover {
+  background: white;
+}
+
+.activeItem {
+  border-color: #d9d7f5;
+  background: var(--accent-soft);
+}
+
+.historyItem strong,
+.activeItem strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyItem span,
+.activeItem span,
+.historyItem small,
+.activeItem small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.editor {
+  padding: 18px;
+}
+
+.editor > textarea {
+  width: 100%;
+  min-height: 340px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.contextCard {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: #f8f8f5;
+}
+
+.contextCard p,
+.currentContext {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.contextCard fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 0;
+  border: 0;
+}
+
+.contextCard legend {
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.contextCard label,
+.contextToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+}
+
+.contextCard details {
+  margin-top: 12px;
+}
+
+.contextCard summary {
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.materialList {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.actions p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.actions > div {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  min-height: 38px;
+  border-radius: 9px;
+  padding: 0 14px;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.saveButton {
+  border: 0;
+  background: var(--ink);
+  color: white;
+}
+
+.deleteButton {
+  border: 1px solid #e0c8c1;
+  background: transparent;
+  color: var(--warning);
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 16px 12px 28px;
+  }
+
+  .intro {
+    margin-top: 44px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .history {
+    max-height: 220px;
+    overflow: auto;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions > div {
+    justify-content: flex-end;
+  }
+}
