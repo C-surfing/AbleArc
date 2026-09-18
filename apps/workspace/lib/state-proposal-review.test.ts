@@ -18,6 +18,8 @@ function payload() {
         proposed_by: "teach-agent:test",
         evidence_count: 2,
         policy_issues: [] as string[],
+        risk: "high",
+        auto_accept_eligible: false,
         stale: false,
         created_at: "2026-09-16T12:00:00Z",
       },
@@ -31,6 +33,8 @@ test("parses scoped pending proposal review metadata", () => {
   assert.equal(reviews[0].id, "sp_bayes_review");
   assert.equal(reviews[0].after, "stable");
   assert.equal(reviews[0].evidenceCount, 2);
+  assert.equal(reviews[0].risk, "high");
+  assert.equal(reviews[0].autoAcceptEligible, false);
 });
 
 test("rejects cross-project proposal projection", () => {
@@ -45,4 +49,8 @@ test("rejects malformed policy and state fields", () => {
   const badState = payload();
   badState.proposals[0].after = "mastered";
   assert.throws(() => parseStateProposalReviews(badState, "bayes"), /after is invalid/);
+
+  const badRisk = payload();
+  badRisk.proposals[0].risk = "automatic";
+  assert.throws(() => parseStateProposalReviews(badRisk, "bayes"), /risk is invalid/);
 });
