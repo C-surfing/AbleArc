@@ -6,17 +6,17 @@ The goal is not to make AI explain more. The goal is to make the learner **more 
 
 > Keep the whole map in view. Teach at the edge of understanding. Make the learner perform the important cognitive move.
 
-AbleArc is evolving as two separable layers: a learner-facing Learning OS for daily use and a provider-neutral, local-first Learning Runtime that remains the source of learner truth.
+AbleArc is organized around a small Learning Kernel that can be hosted by different products while a provider-neutral, local-first Runtime remains the source of learner truth.
 
 ```text
-Learning OS → Entry / Today / Focus Session / Review
-                   ↓
-Learning Runtime → Mission / Map / Model / Move / Evidence
-                   ↓
-Learning Engine → Agent / Skill / CLI / API
+Host / Product → Web / Agent / assistant / future clients
+                         ↓
+Learning Kernel → Mission / Map / Model / Context / Policy / Move / Evidence / Pacing
+                         ↓
+Learning Runtime → authority / receipts / accepted learner state
 ```
 
-The canonical vNext direction is [`ROADMAP.md`](ROADMAP.md), backed by [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) and the accepted ADRs.
+The current canonical direction is [`ROADMAP.md`](ROADMAP.md), backed by [`docs/KERNEL-V1.md`](docs/KERNEL-V1.md), [`docs/KERNEL-FIRST-ROADMAP.md`](docs/KERNEL-FIRST-ROADMAP.md), and the accepted ADRs. [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) remains the product-roadmap reference but is currently subordinate to Kernel-first development ordering.
 
 ```text
 MAP   — Where could we go?
@@ -25,7 +25,7 @@ MOVE  — What is the best next cognitive action?
 EVIDENCE — Did it actually land?
 ```
 
-The internal system is rigorous; the external interaction should feel natural.
+The internal system is rigorous; the external interaction should feel natural. Contextual pedagogy is primarily LLM judgment, while deterministic code is reserved for Evidence, authority, provenance, compatibility, and other learner-truth invariants.
 
 Representations are selected cognitive instruments. HTML is one renderer, not the teaching abstraction.
 
