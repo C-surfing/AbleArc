@@ -574,6 +574,20 @@ Prefer a short retrieval when re-verification has higher learning value than ano
 
 Do not invent a due date, recall probability, or numeric memory score. A future scheduler such as FSRS/SM-2 may decide **when** to surface a Kernel-selected review target, but scheduler output is not learner-state Evidence.
 
+### Session policy
+
+A strong learning turn may end with `continue`, `pause`, or `close`.
+
+Use these as non-authoritative pacing judgments:
+
+- **continue** when another bounded cognitive move still has clear learning value;
+- **pause** when the current cognitive unit has reached a clean boundary or performance is degrading enough that a short break is more useful than immediate continuation;
+- **close** when the unit is complete and delayed retrieval will be more informative than more same-session exposure, or when the learner's explicit time/energy/focus context favors a clean ending.
+
+Do not turn elapsed time, timer expiry, break completion, or number of Pomodoros into Evidence. Timer behavior belongs to the Host. If a timer reaches zero in the middle of an important inference, derivation, explanation, or debug step, let the cognitive unit finish before suggesting a break.
+
+When pausing or closing, preserve a concrete next cognitive move so the learner can resume without reconstructing the whole session.
+
 ## Roadmap behavior
 
 The roadmap should preserve global orientation while avoiding global overload.
