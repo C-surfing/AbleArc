@@ -35,7 +35,7 @@ test("web provider settings persist locally without exposing secrets through met
     assert.equal(env.ABLEARC_PROVIDER_API_KEY, "secret-key");
     assert.equal(env.ABLEARC_PROVIDER_MODEL, "example-model");
 
-    const storedPath = path.join(root, ".learning", "provider-settings.json");
+    const storedPath = path.join(root, ".ablearc-local", "provider-settings.json");
     assert.equal(fs.existsSync(storedPath), true);
 
     removeStoredProviderSettings(root);
