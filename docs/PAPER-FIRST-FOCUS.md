@@ -1,6 +1,6 @@
 # Paper-first Product Focus
 
-Status: **Canonical near-term product focus**  
+Status: **Implementation chain complete; longitudinal paper-first dogfooding active**  
 Date: 2026-09-18  
 Scope: next ~3 months of AbleArc development
 
@@ -84,6 +84,22 @@ longitudinal paper-first dogfooding
 ```
 
 Do not expand Runtime schema merely to keep roadmap velocity.
+
+### Implementation checkpoint — 2026-09-19
+
+The implementation chain through Learner Profile v1 is now on `main`:
+
+- Teacher Policy v1 — Issue #93 / PR #99;
+- Paper Learning entry planner — Issue #94 / PR #100;
+- evidence-gated paper completion profile — Issue #95 implementation slice / PR #101;
+- bounded Research Capability — Issue #89 / PR #102;
+- thin ChatGPT / assistant host — Issue #96 / PR #103;
+- learner-facing LearningMap + Review Suggestions — Issue #97 / PR #104;
+- Learner Profile v1 — Issue #98 / PR #105.
+
+The current phase is **longitudinal paper-first dogfooding**. Issue #95 remains open because its acceptance criterion is behavioral across real sessions. Delayed retrieval, next-session resumption, and transfer cannot be inferred from source parsing, CI, or same-session tests.
+
+Do not fabricate successful sessions or add another subsystem merely to make the roadmap look complete. The next general product changes should come from observed failures or repeated friction in real paper-learning use.
 
 ## A. Teacher Policy v1 — P0
 
