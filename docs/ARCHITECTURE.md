@@ -1,22 +1,50 @@
 # Architecture
 
-`ai4learning` is a small adaptive tutoring protocol. Its architecture is deliberately centered on **learner state and teaching decisions**, not on content generation.
+AbleArc is an evidence-driven learning system centered on **learner capability, learning decisions, and trustworthy state**, not on content generation or product engagement.
+
+The canonical Kernel boundary is defined in [`KERNEL-V1.md`](KERNEL-V1.md) and ADR [`0010`](adr/0010-learning-kernel-boundary.md). Product/UI delivery is currently subordinate to Kernel completion; see [`KERNEL-FIRST-ROADMAP.md`](KERNEL-FIRST-ROADMAP.md).
 
 ## Core abstraction
 
-Every meaningful turn can be reduced to four objects:
+The compact mental model remains:
 
 ```text
-MAP      Where could the learner go?
-MODEL    What does the learner currently understand?
-MOVE     What is the best next cognitive action?
-EVIDENCE Did the move work?
+MAP       Where could the learner go?
+MODEL     What does the learner currently understand?
+MOVE      What is the best next cognitive action?
+EVIDENCE  Did the move work?
 ```
 
-The control problem is:
+Kernel v1 expands that into a complete learning-control loop without requiring a separate subsystem for every box:
 
 ```text
-move* = f(mission, learner_model, knowledge_map, current_evidence, constraints)
+MISSION
+  ↓
+MAP + MODEL
+  ↓
+CONTEXT
+  ↓
+POLICY
+  ↓
+MOVE
+  ↓
+LEARNER ACTION
+  ↓
+OBSERVATION
+  ↓
+EVIDENCE
+  ↓
+MODEL / FRONTIER UPDATE
+  ↓
+PACING: continue / pause / close
+  ↓
+later retrieval / transfer
+```
+
+The control problem remains:
+
+```text
+move* = f(mission, learner_model, knowledge_map, current_evidence, context)
 ```
 
 and after learner action:
@@ -175,7 +203,7 @@ transfer
 compress/reference
 ```
 
-The key invariant is not which move occurs; it is that the move is selected from current learner state and produces evidence useful for the next update.
+The move taxonomy is a vocabulary for LLM judgment, not a deterministic lesson state machine. The important invariant is that learner-truth updates remain evidence-grounded; contextual teaching choices should stay flexible unless a concrete integrity boundary requires hard validation.
 
 ## Probe design
 
@@ -257,11 +285,11 @@ learner-facing explanation
 
 The learner should not pay the switching cost of source navigation unless the source itself is pedagogically valuable.
 
-## Optional future modules
+## Supporting / optional modules
 
-The protocol is designed so these can be added without changing its core semantics:
+These may be added around the Kernel when real use earns them. They must not become necessary for learner-truth semantics:
 
-- spaced-retrieval scheduler;
+- spaced-retrieval scheduler such as FSRS/SM-2 timing over Kernel-selected review targets;
 - richer learning-record schema;
 - concept graph visualization;
 - automatic source/research subagent;
