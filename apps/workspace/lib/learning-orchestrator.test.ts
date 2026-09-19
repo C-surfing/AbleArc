@@ -117,6 +117,18 @@ test("session policy is validated but remains outside Runtime authority", () => 
   );
 });
 
+test("retrieval-before-refresh is a Study default, not a validator gate", () => {
+  const refreshFirst = generatedAdvance();
+  (refreshFirst.next_decision as Record<string, unknown>).mode = "study";
+  (refreshFirst.next_decision as Record<string, unknown>).move = "worked_example";
+  (refreshFirst.next_decision as Record<string, unknown>).rationale =
+    "A missing prerequisite makes immediate retrieval uninformative, so establish one worked relation first.";
+
+  const accepted = validateTeachingAdvance(refreshFirst, "provider:test:model");
+  assert.equal(accepted.next_decision.mode, "study");
+  assert.equal(accepted.next_decision.move, "worked_example");
+});
+
 test("validator rejects unsupported fields and unsafe concept IDs", () => {
   const withExtra = generatedAdvance();
   (withExtra.assessment as Record<string, unknown>).mastery = "stable";
