@@ -204,7 +204,7 @@ python tools/runtime.py --repo . verify
 
 For workspace-v0.2, the roadmap is a canonical typed LearningMap with explicit semantic edges and append-only, Evidence-grounded revisions. Learner mastery remains in the Runtime state projection; the Workspace joins it onto the map and uses ELK for deterministic layout. See [`docs/LEARNING-MAP.md`](docs/LEARNING-MAP.md).
 
-The official Workspace exposes the same Project lifecycle and a concise session-start brief. Paused and archived Projects become read-only in both the UI and Runtime; archived maintenance must be opened explicitly before new evidence can be recorded.
+The official Workspace exposes the same Project lifecycle and a concise session-start brief. First-run Web use now begins with graphical Model Setup; learners can configure an OpenAI-compatible Provider without editing `.env.local`, while environment variables remain an optional deployment override. Paused and archived Projects become read-only in both the UI and Runtime; archived maintenance must be opened explicitly before new evidence can be recorded.
 
 The Workspace also projects the headless Completion Gate and can request the guarded Complete + Archive transition. React never decides that learning is complete: the Python gate revalidates Mission scope, pending responses, criteria thresholds, and distinct Feynman/performance Evidence before commit.
 
