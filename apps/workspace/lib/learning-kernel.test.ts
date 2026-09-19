@@ -73,7 +73,7 @@ test("Kernel advance projection exposes policy while keeping Runtime result deta
   assert.equal("turn" in projected, false);
 });
 
-test("Kernel inspection composes existing snapshot and routing context without creating state", () => {
+test("Kernel inspection reads the existing snapshot without creating state", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "ablearc-kernel-inspect-"));
   const before = fs.readdirSync(root);
   const snapshot = inspectLearningKernel(root);
