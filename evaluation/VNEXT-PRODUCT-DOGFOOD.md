@@ -1,6 +1,6 @@
-# vNext Product Dogfooding
+# Learner-facing Product Dogfooding
 
-This protocol evaluates the learner-facing AbleArc product loop before promoting later vNext phases.
+This protocol evaluates AbleArc's learner-facing product loop during longitudinal validation. It records observed product behavior without deciding feature promotion.
 
 It complements the longitudinal runtime evaluation in `RUNBOOK.md`; it does not replace `SESSION.md`, Runtime Evidence, or the promotion process in `PROMOTION.md`.
 
@@ -26,7 +26,7 @@ interpretation marker:
 descriptive_only_no_feature_promotion
 ```
 
-Legacy v0.1 checkpoints with `descriptive_only_no_phase4_promotion` remain readable for compatibility.
+Legacy v0.1 checkpoints with `descriptive_only_no_phase4_promotion` remain readable for compatibility; that marker is historical and does not define the current roadmap phase.
 
 ## Observation before solution
 
