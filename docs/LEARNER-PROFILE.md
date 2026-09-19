@@ -99,3 +99,16 @@ The Teacher should use the profile as a routing prior:
 - treat reported weak areas as hypotheses to route around or verify when consequential.
 
 Behavioral Evidence remains the only path to accepted capability state.
+
+## Metacognitive calibration
+
+When explicit self-report is materially relevant to a current learning turn, the Teacher may compare it with observed performance and derive one ephemeral routing interpretation:
+
+```text
+aligned
+possible_overestimate
+possible_underestimate
+unknown
+```
+
+This interpretation belongs to Teacher policy for the current turn. It is not written back into `.learning/LEARNER.md`, does not become mastery, and must not become a permanent learner label. If no explicit relevant self-report exists, use `unknown` rather than inferring confidence from conversational style.
