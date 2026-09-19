@@ -44,12 +44,14 @@ Do not add a universal difficulty score or target error percentage.
 
 ## K3 — Evidence Freshness + Review Policy — Issue #113
 
+Status: implementation in this phase derives deterministic freshness facts from Runtime Evidence and leaves review-worthiness to non-authoritative Teacher policy.
+
 Goal: distinguish old evidence from current verification without automatic mastery decay.
 
 Deliver:
 
-- freshness derived from accepted Evidence history;
-- review-worthiness based on freshness + dependency importance + uncertainty + evidence strength + transfer relevance;
+- freshness facts derived from accepted Evidence history without hidden due dates;
+- review-worthiness judged from freshness + dependency importance + uncertainty + evidence strength + transfer relevance;
 - no automatic state demotion from elapsed time;
 - clean boundary for later FSRS/SM-2 scheduling outside learner truth.
 
