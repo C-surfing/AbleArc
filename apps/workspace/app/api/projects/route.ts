@@ -1,6 +1,5 @@
-import { spawn } from "node:child_process";
-import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
+import { runLocalLearningTool } from "@/lib/local-learning-tool";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
@@ -14,44 +13,6 @@ const ACTION_COMMANDS = {
   archive: "archive-project",
   "maintenance-start": "maintenance-start",
 } as const;
-
-function runLearningTool(
-  repoRoot: string,
-  args: string[],
-  input?: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  const python = process.env.AI4LEARNING_PYTHON
-    || (process.platform === "win32" ? "python" : "python3");
-  const script = path.join(repoRoot, "tools", "learning.py");
-  return new Promise((resolve, reject) => {
-    const child = spawn(
-      /* turbopackIgnore: true */ python,
-      [script, ...args],
-      { cwd: repoRoot, stdio: ["pipe", "pipe", "pipe"] },
-    );
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
-    });
-    child.stderr.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString("utf8");
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code !== 0) {
-        reject(new Error(stderr.trim() || `learning tool exited with code ${code}`));
-        return;
-      }
-      try {
-        resolve(JSON.parse(stdout) as Record<string, unknown>);
-      } catch {
-        reject(new Error("learning tool returned invalid JSON"));
-      }
-    });
-    child.stdin.end(input ? JSON.stringify(input) : undefined, "utf8");
-  });
-}
 
 export async function POST(request: NextRequest) {
   if (!sameOrigin(request)) {
@@ -95,7 +56,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
       }
-      const result = await runLearningTool(
+      const result = await runLocalLearningTool(
         repoRoot,
         ["create-project", "-"],
         {
@@ -117,7 +78,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unsupported Project action." }, { status: 400 });
     }
     const command = ACTION_COMMANDS[action as keyof typeof ACTION_COMMANDS];
-    const result = await runLearningTool(repoRoot, [command, projectId]);
+    const result = await runLocalLearningTool(repoRoot, [command, projectId]);
     return NextResponse.json({ ok: true, result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";

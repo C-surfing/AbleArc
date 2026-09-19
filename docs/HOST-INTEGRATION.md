@@ -1,6 +1,6 @@
 # Host Integration Contract
 
-Status: **v0.1 contract implemented; host mappings pending**
+Status: **v0.1 contract + thin external assistant mapping implemented**
 
 AbleArc should work inside the conversational product the learner already prefers. The first-party Web app remains important, but it is one host over the Learning Engine rather than the only natural interaction surface.
 
@@ -120,7 +120,9 @@ The first slice now includes:
 - no mastery writes from the adapter;
 - contract tests.
 
-The next slice is to map the existing Web composer onto this envelope and add one external-assistant fixture proving both hosts preserve identical Runtime semantics.
+The first external-assistant mapping is now implemented through `POST /api/host/learning` and documented in `ASSISTANT-HOST.md`. It exposes only `start_or_continue_learning`, `provide_learning_context`, and `get_learning_state`; state comes from the same Workspace/Runtime read model used by Web.
+
+Turn context is intentionally non-persistent at this transport layer. The host keeps its transcript; AbleArc keeps canonical learning state through existing Project/Runtime/Library paths. Durable learner-context promotion belongs to Learner Profile v1 rather than the connector.
 
 Streaming, rich generative UI, cloud sync, and broad attachment ingestion are later concerns.
 
@@ -142,3 +144,16 @@ opaque locator only
 AbleArc must not claim to have read an opaque attachment merely because the host supplied a file handle.
 
 The first Paper Learning planner is documented in `PAPER-LEARNING.md`. It returns source-grounded paper structure plus non-authoritative prerequisite hypotheses and a first teaching move. It does not create learner Evidence or accepted LearningMap topology.
+
+
+## 9. External assistant endpoint
+
+The thin assistant endpoint is:
+
+```text
+POST /api/host/learning
+```
+
+Same-origin browser requests are accepted. External assistant calls require `Authorization: Bearer <ABLEARC_HOST_TOKEN>`.
+
+The endpoint returns a learner-facing state projection and never exposes receipt ids, raw learner notes, state-proposal mechanics, or source excerpt bodies. See `docs/ASSISTANT-HOST.md` and `schemas/assistant-host-operation-v0.1.json`.

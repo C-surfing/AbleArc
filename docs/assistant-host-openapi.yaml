@@ -1,0 +1,50 @@
+openapi: 3.1.0
+info:
+  title: AbleArc Assistant Host
+  version: 0.1.0
+  description: Thin external assistant transport over AbleArc's existing learning engine.
+paths:
+  /api/host/learning:
+    post:
+      operationId: ablearcLearning
+      summary: Start/continue learning, provide current context, or read bounded learning state.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/assistant-host-operation-v0.1.json
+      responses:
+        "200":
+          description: Operation completed.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                required: [ok, operation]
+                properties:
+                  ok:
+                    const: true
+                  operation:
+                    type: string
+                    enum:
+                      - start_or_continue_learning
+                      - provide_learning_context
+                      - get_learning_state
+        "400":
+          description: Invalid host operation or context.
+        "401":
+          description: Missing or invalid external host authorization.
+        "409":
+          description: Project/Mission lifecycle or scope conflict.
+        "500":
+          description: Safe local operation failed.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
