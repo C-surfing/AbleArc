@@ -596,3 +596,11 @@ button.primaryButton:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+
+.entryHeaderLinks {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
