@@ -75,15 +75,19 @@ A later session must depend on earlier evidence. If the same script could be run
 
 ### Observing future Review semantics
 
-Do not invent a scheduler from intuition. Once a real arc contains delayed Evidence, export the descriptive observations locally:
+Do not invent a scheduler from intuition. Two existing tools serve different evaluation purposes:
 
 ```bash
+# live read-only report from current Runtime history
 python tools/review_observations.py --repo .
+
+# immutable session-bound snapshot for one real dogfooding arc
+python tools/review_checkpoints.py --repo . <arc-name>
 ```
 
-The export joins each delayed Evidence receipt to the learner's accepted state immediately before that attempt, its Evidence dimensions, optional Turn context, and any later accepted state transition that explicitly cites the Evidence. It does **not** output a priority, score, due time, or queue membership.
+The live export joins delayed Evidence to the learner's accepted state immediately before that attempt, its Evidence dimensions, optional Turn context, and later accepted transitions that explicitly cite the Evidence. The checkpoint freezes that descriptive view for the current numbered session so later evidence cannot rewrite what was observable then.
 
-Use repeated observations to formulate and falsify review-trigger hypotheses. A pattern seen once is not a scheduling rule.
+Neither tool outputs a priority, score, due time, or queue membership. Use repeated checkpoints/observations to formulate and falsify review-trigger hypotheses. A pattern seen once is not a scheduling rule.
 
 ## Recommended execution order
 
