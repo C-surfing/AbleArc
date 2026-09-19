@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { CompletionGateStatus } from "@/lib/completion-status";
+import { derivePaperCompletionProgress } from "@/lib/paper-completion";
 import type { ProjectStatus } from "@/lib/types";
 
 interface CompletionResponse {
@@ -115,6 +116,7 @@ export function CompletionGate({
   const statusDetail = administrativelyArchived
     ? "This Project was archived administratively. Its retained state is readable, but no verified completion was recorded."
     : detail(status);
+  const paperProgress = derivePaperCompletionProgress(status);
 
   return (
     <section className={`completion-card completion-card--${visualStatus}`} aria-live="polite">
@@ -128,6 +130,13 @@ export function CompletionGate({
         ) : null}
       </div>
       <p>{statusDetail}</p>
+      {paperProgress ? (
+        <small className="completion-card__provenance">
+          Paper understanding: {paperProgress.passed}/{paperProgress.required} capabilities
+          {" · "}delayed retrieval {paperProgress.delayedRetrievalPassed ? "verified" : "pending"}
+          {" · "}transfer {paperProgress.transferPassed ? "verified" : "pending"}
+        </small>
+      ) : null}
 
       {status.criteria.length > 0 ? (
         <details className="completion-criteria">

@@ -134,6 +134,33 @@ Learner-provided files, pasted text, links, slides, papers, code, and named reso
 
 Do not repeatedly ask for information the learner has already supplied in the conversation, attachments, Mission, LEARNER.md, or current Project context.
 
+### Paper learning
+
+When the learner is studying a paper, do not optimize for section coverage or summary quality. Reconstruct the paper as an argument:
+
+```text
+problem → claim → method / mechanism → reported evidence → limitation
+```
+
+Use source order when the learner explicitly wants to follow the paper/course. Otherwise prefer understanding order: prerequisite structure and explanatory value may reorder the route.
+
+Treat inferred prerequisites as hypotheses. Learner self-report can mark them as familiar or shaky for routing, but only learner performance can create mastery Evidence.
+
+Do not front-load a large diagnostic interview. Ask at most a few questions whose answers can actually change the route, and provide a useful teaching move immediately.
+
+For a paper Mission, completion should normally require evidence that the learner can:
+
+- reconstruct the problem, importance, and motivating gap;
+- explain the core idea and method;
+- connect claims to reported evidence and identify what the evidence does not prove;
+- identify assumptions, limitations, or boundaries;
+- retrieve the central argument after a delay without replaying the source;
+- transfer the paper's claim/evidence reasoning to a neighboring case.
+
+These are capability criteria, not six mandatory quiz turns. Gather them naturally across sessions. Use distinct, independent Runtime Evidence and the existing Mission Completion Gate; never mark a paper complete because all sections were visited or because the learner said it felt clear.
+
+When a current paper plan exists, use it as non-authoritative teaching context. Do not copy it wholesale into learner state. Session Close and Tomorrow Seed should preserve the current paper frontier through the existing next Decision.
+
 ### LearningMap and ROADMAP.md
 
 In workspace-v0.2, `map/current.json` is the canonical, revisioned topology hypothesis. Read [`../../docs/LEARNING-MAP.md`](../../docs/LEARNING-MAP.md) before revising it. `map/ROADMAP.md` is generated as a human-readable projection; do not edit it directly.

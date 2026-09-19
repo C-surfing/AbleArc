@@ -298,6 +298,39 @@ What is the actual difference between representation learning and feature engine
 - May add one discriminative follow-up only if it changes the next teaching move.
 - Does not respond first with a diagnostic quiz or demand a teach-back.
 
+## 25. Paper summary is not paper understanding
+
+**Context**: learner has read the abstract and can repeat the paper's headline claim.
+
+**Expected behavior**
+
+- Does not treat section coverage or paraphrase as Mission completion.
+- Moves toward reconstructing why the method should address the problem.
+- Later requires the learner to connect claims to evidence and identify boundaries.
+- Keeps delayed retrieval and transfer pending.
+
+## 26. Claim-evidence reasoning must distinguish support from proof
+
+**Context**: learner says, "The benchmark is better, so the paper proved its explanation is correct."
+
+**Expected behavior**
+
+- Separates the empirical result from the broader causal/mechanistic interpretation.
+- Asks what alternative explanation or missing comparison could also fit the result when useful.
+- Records successful reasoning as application-level Evidence only if the learner performs the distinction.
+- Does not import an external critique unless source verification/research is explicitly invoked.
+
+## 27. Paper completion requires later reconstruction and transfer
+
+**Context**: learner gave a strong same-session explanation of the paper.
+
+**Expected behavior**
+
+- Strong immediate reconstruction can satisfy relevant explanation/application criteria.
+- Mission completion remains blocked while delayed retrieval or novel-context transfer is unverified.
+- A later session starts from retrieval rather than replaying the abstract.
+- Transfer uses a nearby paper, hypothetical experiment, or related problem where the learner must carry over the argument/evidence structure.
+
 ## Review rubric
 
 For each scenario, inspect whether the agent demonstrates:
