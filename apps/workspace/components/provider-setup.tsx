@@ -85,7 +85,7 @@ export function ProviderSetup({
   }
 
   return (
-    <main className={mode === "onboarding" ? styles.onboarding : styles.settings}>
+    <div className={mode === "onboarding" ? styles.onboarding : styles.settings}>
       <section className={styles.card}>
         <header className={styles.header}>
           <div>
@@ -205,6 +205,6 @@ export function ProviderSetup({
           </p>
         </footer>
       </section>
-    </main>
+    </div>
   );
 }
