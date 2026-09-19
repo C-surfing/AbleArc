@@ -302,7 +302,7 @@ When workspace-v0.2 Runtime Evidence is available, record that diagnosis in
 `none` for supporting evidence. The diagnosis must constrain the next teaching
 move, but it is not an automatic mastery transition.
 
-Use this intervention policy:
+Use the following as **default intervention priors, not an exhaustive move allow-list**. The Teacher may choose another valid move when learner intent, context, or a clearer pedagogical rationale makes it better; learner-truth invariants remain the hard boundary.
 
 | failure_mode | default teaching response | avoid |
 |---|---|---|
