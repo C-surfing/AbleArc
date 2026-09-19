@@ -1,10 +1,8 @@
 import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
-import {
-  AgentAdapterError,
-  createConfiguredAgentAdapter,
-} from "@/lib/agent-adapter";
+import { AgentAdapterError } from "@/lib/agent-adapter";
+import { createWorkspaceAgentAdapter } from "@/lib/workspace-provider";
 import { parseHostTurnInput } from "@/lib/host-turn";
 import { resolveProjectReadContext } from "@/lib/project-store";
 import {
@@ -102,7 +100,7 @@ export async function POST(request: NextRequest) {
       ...(claim ? { claim } : {}),
     });
     const hasResolvedSource = turn.references.some((reference) => Boolean(reference.excerpt));
-    const adapter = hasResolvedSource ? createConfiguredAgentAdapter() : undefined;
+    const adapter = hasResolvedSource ? createWorkspaceAgentAdapter(repoRoot) : undefined;
     const result = await runResearchCapability(adapter, invocation, request.signal);
 
     const audit = createResearchAuditRecord(invocation, result);
