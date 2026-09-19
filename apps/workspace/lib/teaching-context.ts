@@ -1,7 +1,7 @@
-import { readLearnerProfile, type LearnerProfile } from "./learner-profile";
-import { readPaperLearningContext } from "./paper-session";
-import { resolveProjectReadContext } from "./project-store";
-import type { PaperLearningPlan } from "./paper-learning";
+import { readLearnerProfile, type LearnerProfile } from "./learner-profile.ts";
+import { readPaperLearningContext } from "./paper-session.ts";
+import { resolveProjectReadContext } from "./project-store.ts";
+import type { PaperLearningPlan } from "./paper-learning.ts";
 
 export interface TeachingRoutingContext {
   learnerProfile?: Omit<LearnerProfile, "revision" | "updatedAt">;
