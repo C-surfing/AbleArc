@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { CompletionGateStatus } from "./completion-status";
-import { parseCompletionGateStatus } from "./completion-status";
+import type { CompletionGateStatus } from "./completion-status.ts";
+import { parseCompletionGateStatus } from "./completion-status.ts";
 import {
   PAPER_COMPLETION_CRITERION_IDS,
   createPaperCompletionCriteria,
   type PaperCompletionCriterionId,
-} from "./paper-completion";
-import type { PaperLearningPlan } from "./paper-learning";
-import type { ProjectReadContext } from "./project-store";
-import { runLocalLearningTool } from "./local-learning-tool";
+} from "./paper-completion.ts";
+import type { PaperLearningPlan } from "./paper-learning.ts";
+import type { ProjectReadContext } from "./project-store.ts";
+import { runLocalLearningTool } from "./local-learning-tool.ts";
 
 const MAX_CONTEXT_BYTES = 128 * 1024;
 
