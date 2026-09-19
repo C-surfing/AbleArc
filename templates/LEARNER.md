@@ -22,13 +22,19 @@ This file should help the tutor make better decisions across many sessions witho
 ## Background
 
 - Relevant prior knowledge:
+- Self-reported strengths:
+- Self-reported weaknesses:
+- Long-term learning goals:
+- Courses / source context:
 - Mathematical maturity:
 - Programming / technical background:
+- Tools / programming languages:
 - Domain experience:
 
 ## Constraints
 
 - Typical study session length:
+- Recurring learning constraints:
 - Course / exam / project constraints:
 - Accessibility or tooling constraints:
 

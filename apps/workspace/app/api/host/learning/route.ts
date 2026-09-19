@@ -1,3 +1,4 @@
+import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/lib/assistant-host";
 import { parseHostTurnInput } from "@/lib/host-turn";
 import { runLocalLearningTool } from "@/lib/local-learning-tool";
+import { readLearnerProfile } from "@/lib/learner-profile";
 import { resolveProjectReadContext } from "@/lib/project-store";
 import {
   findRepoRoot,
@@ -73,13 +75,14 @@ export async function POST(request: NextRequest) {
   }
 
   const repoRoot = findRepoRoot();
+  const profile = readLearnerProfile(path.join(repoRoot, ".learning", "LEARNER.md"));
 
   try {
     if (operation === "get_learning_state") {
       return NextResponse.json({
         ok: true,
         operation,
-        state: projectAssistantLearningState(loadWorkspaceSnapshot()),
+        state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
       });
     }
 
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
         ok: true,
         operation,
         context: normalizeAssistantLearningContext(turn),
-        state: projectAssistantLearningState(loadWorkspaceSnapshot()),
+        state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
       });
     }
 
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
       created,
       switched,
       ...(normalizedContext ? { context: normalizedContext } : {}),
-      state: projectAssistantLearningState(loadWorkspaceSnapshot()),
+      state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Assistant host operation failed.";

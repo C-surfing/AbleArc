@@ -228,6 +228,7 @@ The repository has automated CI for the runner and repository invariants. See [`
 - [`docs/RESEARCH-CAPABILITY.md`](docs/RESEARCH-CAPABILITY.md) — bounded Teacher-invoked source verification with provenance, minimized audit, and no learner-state authority.
 - [`docs/ASSISTANT-HOST.md`](docs/ASSISTANT-HOST.md) — token-protected thin ChatGPT/assistant transport over the same Project, HostTurn, and learner-state read model.
 - [`docs/LEARNER-MAP-REVIEW.md`](docs/LEARNER-MAP-REVIEW.md) — learner-facing map projection and optional descriptive review suggestions without scheduling authority.
+- [`docs/LEARNER-PROFILE.md`](docs/LEARNER-PROFILE.md) — editable workspace-scoped teaching context that stays separate from mastery and transcripts.
 - [`docs/AGENT-ADAPTER.md`](docs/AGENT-ADAPTER.md) — Provider configuration, strict turn contract, failure handling, and authority boundary.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
