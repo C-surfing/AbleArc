@@ -1,4 +1,5 @@
 import type { HostReference, HostTurnInput, LearnerSelfReport } from "./host-turn";
+import type { LearnerProfile } from "./learner-profile";
 import type { WorkspaceSnapshot } from "./types";
 
 export const ASSISTANT_HOST_OPERATIONS = [
@@ -52,6 +53,7 @@ export interface AssistantLearningState {
     result: string;
     implication: string;
   }>;
+  profile?: Omit<LearnerProfile, "revision" | "updatedAt">;
 }
 
 export interface AssistantLearningContext {
@@ -75,6 +77,7 @@ export interface AssistantLearningContext {
 
 export function projectAssistantLearningState(
   snapshot: WorkspaceSnapshot,
+  profile?: LearnerProfile,
 ): AssistantLearningState {
   return {
     schemaVersion: "0.1",
@@ -127,6 +130,24 @@ export function projectAssistantLearningState(
       result: item.result,
       implication: item.implication,
     })),
+    ...(profile ? {
+      profile: {
+        ...(profile.preferredLanguage ? { preferredLanguage: profile.preferredLanguage } : {}),
+        ...(profile.detailLevel ? { detailLevel: profile.detailLevel } : {}),
+        ...(profile.intuitionFormalism ? { intuitionFormalism: profile.intuitionFormalism } : {}),
+        ...(profile.socraticTolerance ? { socraticTolerance: profile.socraticTolerance } : {}),
+        ...(profile.preferredPace ? { preferredPace: profile.preferredPace } : {}),
+        ...(profile.priorExposure ? { priorExposure: profile.priorExposure } : {}),
+        ...(profile.reportedStrengths ? { reportedStrengths: profile.reportedStrengths } : {}),
+        ...(profile.reportedWeaknesses ? { reportedWeaknesses: profile.reportedWeaknesses } : {}),
+        ...(profile.longTermGoals ? { longTermGoals: profile.longTermGoals } : {}),
+        ...(profile.sourceContext ? { sourceContext: profile.sourceContext } : {}),
+        ...(profile.technicalBackground ? { technicalBackground: profile.technicalBackground } : {}),
+        ...(profile.toolsAndLanguages ? { toolsAndLanguages: profile.toolsAndLanguages } : {}),
+        ...(profile.typicalSessionLength ? { typicalSessionLength: profile.typicalSessionLength } : {}),
+        ...(profile.recurringConstraints ? { recurringConstraints: profile.recurringConstraints } : {}),
+      },
+    } : {}),
   };
 }
 
