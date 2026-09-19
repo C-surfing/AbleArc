@@ -214,6 +214,7 @@ function Today({
         <Brand />
         <nav className={styles.productNav} aria-label="AbleArc product navigation">
           <span className={styles.activeNav}>Today</span>
+          <Link href="/paper">Paper</Link>
           <Link href="/reflection">Reflection</Link>
           <Link href="/profile">Profile</Link>
           <Link href="/workspace">Workspace</Link>
