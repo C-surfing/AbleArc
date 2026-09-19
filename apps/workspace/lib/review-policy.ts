@@ -207,12 +207,15 @@ export function deriveEvidenceFreshness(
   if (concepts.length === 0) return undefined;
 
   concepts.sort((left, right) => {
-    const importance = (item: EvidenceFreshnessFact) =>
-      Number(item.isFrontier) * 8
-      + Number(item.prerequisiteToFrontier) * 4
-      + (item.missionRelevance === "core" ? 2 : item.missionRelevance === "supporting" ? 1 : 0);
-    return importance(right) - importance(left)
-      || (right.daysSinceLatestSupporting ?? -1) - (left.daysSinceLatestSupporting ?? -1)
+    if (left.isFrontier !== right.isFrontier) return left.isFrontier ? -1 : 1;
+    if (left.prerequisiteToFrontier !== right.prerequisiteToFrontier) {
+      return left.prerequisiteToFrontier ? -1 : 1;
+    }
+    const relevance = { core: 0, supporting: 1, optional: 2 } as const;
+    if (left.missionRelevance !== right.missionRelevance) {
+      return relevance[left.missionRelevance] - relevance[right.missionRelevance];
+    }
+    return (right.daysSinceLatestSupporting ?? -1) - (left.daysSinceLatestSupporting ?? -1)
       || left.conceptId.localeCompare(right.conceptId);
   });
 
