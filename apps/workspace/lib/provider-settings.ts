@@ -38,7 +38,7 @@ type Environment = Readonly<Record<string, string | undefined>>;
 const MAX_SETTINGS_BYTES = 16 * 1024;
 
 function settingsPath(repoRoot: string): string {
-  return path.join(repoRoot, ".learning", "provider-settings.json");
+  return path.join(repoRoot, ".ablearc-local", "provider-settings.json");
 }
 
 function text(value: unknown, label: string, maximum: number): string {
@@ -128,7 +128,7 @@ export function writeStoredProviderSettings(
   now = new Date().toISOString(),
 ): StoredProviderSettings {
   const normalized = normalizeSettings(input);
-  const root = path.join(repoRoot, ".learning");
+  const root = path.join(repoRoot, ".ablearc-local");
   fs.mkdirSync(root, { recursive: true });
   const target = settingsPath(repoRoot);
   if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) {
