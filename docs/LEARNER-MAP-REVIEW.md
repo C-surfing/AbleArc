@@ -43,7 +43,11 @@ These interactions are deliberately ephemeral in v1. They do not:
 - alter the LearningMap;
 - send notifications.
 
-A future scheduling system requires separate evidence that descriptive review is useful but insufficient.
+K3 adds a Kernel-level **freshness context** beneath these suggestions. It derives descriptive facts from Runtime Evidence history: latest supporting verification, elapsed days, delayed/independent support, novel transfer support, newer contradiction, Mission relevance, and direct prerequisite relation to the frontier.
+
+Those facts do not contain a due date and do not decay mastery. The Teacher/Policy uses them to judge whether review should happen now, later, or not interrupt the current frontier.
+
+A future scheduling system may use FSRS, SM-2, or another timing strategy to decide **when** to surface an already worthwhile review target. Scheduling remains separate from learner-truth authority.
 
 ## Authority
 

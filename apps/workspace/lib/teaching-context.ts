@@ -1,6 +1,7 @@
 import { readLearnerProfile, type LearnerProfile } from "./learner-profile.ts";
 import { readPaperLearningContext } from "./paper-session.ts";
 import { resolveProjectReadContext } from "./project-store.ts";
+import { readReviewPolicyContext, type ReviewPolicyContext } from "./review-policy.ts";
 import type { PaperLearningPlan } from "./paper-learning.ts";
 
 export interface TeachingRoutingContext {
@@ -9,6 +10,7 @@ export interface TeachingRoutingContext {
     generatedAt: string;
     plan: PaperLearningPlan;
   };
+  reviewPolicy?: ReviewPolicyContext;
 }
 
 export function readTeachingRoutingContext(repoRoot: string): TeachingRoutingContext {
@@ -20,6 +22,7 @@ export function readTeachingRoutingContext(repoRoot: string): TeachingRoutingCon
   const hasProfile = Object.values(profile).some((value) => Boolean(value));
 
   const paper = readPaperLearningContext(context);
+  const reviewPolicy = readReviewPolicyContext(repoRoot);
   return {
     ...(hasProfile ? { learnerProfile: profile } : {}),
     ...(paper ? {
@@ -28,5 +31,6 @@ export function readTeachingRoutingContext(repoRoot: string): TeachingRoutingCon
         plan: paper.plan,
       },
     } : {}),
+    ...(reviewPolicy ? { reviewPolicy } : {}),
   };
 }
