@@ -129,3 +129,16 @@ It should not require publishing the private arc records that produced the concl
 ## Explicit opt-in
 
 A learner may intentionally choose to version their own `.learning/` or evaluation records. That is an explicit repository/user decision, not the default behavior of AbleArc.
+
+
+## Provider credentials
+
+Web-configured Provider credentials are operational secrets, not learner evidence. They are stored separately from `.learning/` under the Git-ignored:
+
+```text
+.ablearc-local/provider-settings.json
+```
+
+The browser receives Provider metadata but never receives the persisted API key after save. Environment-based deployment credentials remain outside this file and take precedence when configured.
+
+Do not include `.ablearc-local/` in learner-state exports, dogfooding evidence, bug reports, or shared archives.

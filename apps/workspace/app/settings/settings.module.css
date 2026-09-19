@@ -1,0 +1,33 @@
+.page {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 38px 0 64px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.top span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.top h1 {
+  margin: 7px 0 0;
+  font-size: 34px;
+  letter-spacing: -.04em;
+}
+
+.top a {
+  color: var(--muted);
+  font-size: 11px;
+  text-decoration: none;
+}

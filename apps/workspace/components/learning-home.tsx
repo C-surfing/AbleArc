@@ -79,7 +79,7 @@ function Entry() {
     <div className={styles.entryPage}>
       <header className={styles.entryHeader}>
         <Brand />
-        <Link className={styles.quietLink} href="/workspace">Open Workspace</Link>
+        <span className={styles.entryHeaderLinks}><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></span>
       </header>
 
       <main className={styles.entryMain}>
@@ -217,6 +217,7 @@ function Today({
           <Link href="/paper">Paper</Link>
           <Link href="/reflection">Reflection</Link>
           <Link href="/profile">Profile</Link>
+          <Link href="/settings">Settings</Link>
           <Link href="/workspace">Workspace</Link>
         </nav>
         <div className={styles.headerTools}>

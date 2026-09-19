@@ -15,10 +15,13 @@ Open the local Next.js URL printed by the dev server.
 
 For the first real learner-facing vNext trial, use [`../../evaluation/FIRST-PILOT.md`](../../evaluation/FIRST-PILOT.md). It connects Web startup, Project/arc creation, Today + DailyContext, Focus Session, one assessed Runtime turn, and the private product-dogfood checkpoint workflow without fabricating evidence.
 
-To let the official Workspace assess a saved response and generate the next
-move, copy `.env.example` to `.env.local`, set the server-only API key and
-model, then restart the dev server. The configured endpoint must support the
-OpenAI-compatible Chat Completions strict JSON Schema contract. See
+To let the official Workspace assess a saved response and generate the next move,
+start the Web app and use the graphical Model Setup shown on first open. The same
+configuration is available later at `/settings`. The API key stays server-side
+and the saved local settings live separately from learner state under the Git-ignored `.ablearc-local/` directory.
+
+`.env.local` / `ABLEARC_PROVIDER_*` remains an optional deployment/developer
+override, not the normal learner setup path. See
 [`../../docs/AGENT-ADAPTER.md`](../../docs/AGENT-ADAPTER.md).
 
 If the repository contains `.learning/`, the workspace resolves either the
@@ -63,7 +66,7 @@ Implemented:
 - learner-visible feedback joined to the previous response;
 - automatic composer reset when an evidence-grounded next decision arrives;
 - agent inbox/advance CLI bridge without provider coupling;
-- first OpenAI-compatible `AgentAdapter` with server-only configuration;
+- first OpenAI-compatible `AgentAdapter` with server-only graphical Web configuration and optional environment override;
 - strict structured assessment + next-move generation after response capture;
 - Runtime-mediated validated advance, stale-turn protection, and retryable Provider failures;
 - typed `frequency_tree_v1` LearningArtifact renderer with an adjustable base rate;

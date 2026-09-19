@@ -65,3 +65,10 @@ A phase still blocks later work when there is a real dependency: the later behav
 Promotion evidence is qualitative and behavioral rather than a fixed mechanical session count. Repeated independent observations are normally stronger than one anecdote, but a single clearly structural high-consequence failure may justify repair. The deciding questions remain: did the problem actually occur, did it materially harm learning/continuity, and is the proposed feature the smallest sufficient fix?
 
 Older roadmap and product documents remain useful architectural history and detailed subsystem references, but when delivery priority conflicts, `docs/VNEXT-ROADMAP.md` is the source of truth unless a later accepted ADR or roadmap revision explicitly supersedes it.
+
+
+### Web usability checkpoint — 2026-09-19
+
+Normal learner-facing Web use must not require AbleArc CLI knowledge. Provider/BYOM setup is now a graphical first-run step and remains editable from `/settings`. Environment variables are a deployment/developer override, not the normal learner workflow.
+
+The remaining source-checkout startup commands (`npm install`, `npm run dev`) are development/distribution concerns rather than learning interactions. A future packaged/deployed distribution may remove even that startup requirement without changing Learning Runtime semantics.

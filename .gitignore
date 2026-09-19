@@ -6,6 +6,9 @@
 # Public contributions should use anonymized/minimized cases, not raw learner records.
 .dogfooding/
 
+# Local server/provider secrets and operational settings. Keep separate from learner state.
+.ablearc-local/
+
 # Web workspace build/dependency output
 node_modules/
 .next/

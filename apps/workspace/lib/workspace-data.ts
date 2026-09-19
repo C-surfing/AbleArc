@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { getAgentProviderStatus } from "./agent-adapter";
 import { parseCanonicalLearningMap } from "./learning-map-data";
+import { getWorkspaceProviderStatus } from "./workspace-provider";
 import { parseLearningMaterialSummary } from "./learning-material-data";
 import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
 import type {
@@ -713,7 +713,7 @@ function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
 
 export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
   const repoRoot = findRepoRoot();
-  const agent = getAgentProviderStatus();
+  const agent = getWorkspaceProviderStatus(repoRoot);
   const context = resolveProjectReadContext(repoRoot);
   if (!context) return { ...DEMO, agent };
   const projects = context.layout === "workspace-v0.2"

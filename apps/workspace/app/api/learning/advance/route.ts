@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  AgentAdapterError,
-  createConfiguredAgentAdapter,
-} from "@/lib/agent-adapter";
+import { AgentAdapterError } from "@/lib/agent-adapter";
+import { createWorkspaceAgentAdapter } from "@/lib/workspace-provider";
 import { generateTeachingAdvance } from "@/lib/learning-orchestrator";
 import { readTeachingRoutingContext } from "@/lib/teaching-context";
 import {
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
     const enrichedPending = Object.keys(teachingContext).length
       ? { ...pending, teaching_context: teachingContext as unknown as Record<string, unknown> }
       : pending;
-    const adapter = createConfiguredAgentAdapter();
+    const adapter = createWorkspaceAgentAdapter(repoRoot);
     const advance = await generateTeachingAdvance(adapter, enrichedPending, request.signal);
     const result = await advancePendingLearningTurn(repoRoot, decisionId, advance);
     const next = result.next_decision as Record<string, unknown> | undefined;
