@@ -792,7 +792,7 @@ Less learner confirmation friction without any client-side direct mastery write.
 
 ### Phase 8 — Capability boundary and first Research Capability
 
-**Status:** active implementation slice in Issue #89 after Teacher Policy v1 and the first Paper Learning slices established the source-verification boundary.
+**Status:** implemented on `main` via Issue #89 / PR #102 as a bounded Teacher-invoked Research Capability with host source resolution, strict provenance, minimized local audit, and no learner-state authority.
 
 **Goal:** let one coherent Teacher invoke specialist workflows.
 
