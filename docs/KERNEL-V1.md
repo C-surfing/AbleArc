@@ -352,7 +352,7 @@ Six rules govern future architecture:
 
 Prefer a small number of stable domain modules, pure policy functions, and explicit schemas over forests of managers, registries, factories, services, and plugins.
 
-A top-level `LearningKernel` facade may compose existing modules, but it must not become a monolithic second Runtime.
+The implemented `apps/workspace/lib/learning-kernel.ts` facade deliberately stays thin. It exposes state inspection and one-turn advance by composing existing snapshot, teaching-context, Teacher-policy, and Runtime modules. It owns no persistence and is not a second Runtime.
 
 ## 11. Kernel completion / freeze criterion
 
