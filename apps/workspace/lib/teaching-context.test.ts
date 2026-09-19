@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { writeDailyContext } from "./daily-context-store.ts";
 import type { PaperLearningPlan } from "./paper-learning.ts";
 import { writePaperLearningContext } from "./paper-session.ts";
 import { resolveProjectReadContext } from "./project-store.ts";
@@ -68,10 +69,25 @@ test("Teacher routing context joins durable profile and Mission paper plan witho
   const context = resolveProjectReadContext(root);
   assert.ok(context);
   writePaperLearningContext(context, plan, "2026-09-19T00:00:00Z");
+  writeDailyContext(root, {
+    expectedRevision: 0,
+    energy: 2,
+    focus: 3,
+    availableMinutes: 20,
+    note: "Short session today",
+  });
 
   const routing = readTeachingRoutingContext(root);
   assert.equal(routing.learnerProfile?.preferredLanguage, "Chinese");
   assert.equal(routing.learnerProfile?.reportedWeaknesses, "eigenvalues");
   assert.equal(routing.paperLearning?.plan.sourceTitle, "Paper A");
   assert.equal(routing.paperLearning?.generatedAt, "2026-09-19T00:00:00Z");
+  assert.deepEqual(routing.dailyContext, {
+    energy: 2,
+    focus: 3,
+    availableMinutes: 20,
+    note: "Short session today",
+  });
+  assert.equal("revision" in (routing.dailyContext || {}), false);
+  assert.equal("updatedAt" in (routing.dailyContext || {}), false);
 });
