@@ -1,10 +1,12 @@
 # Paper-first Product Focus
 
-Status: **Implementation chain complete; longitudinal paper-first dogfooding active**  
-Date: 2026-09-18  
-Scope: next ~3 months of AbleArc development
+Status: **Implementation chain complete; proving scenario retained under K8**  
+Date: 2026-09-19  
+Scope: paper-learning proving scenario and historical product-focus rationale
 
-This document narrows the broad vNext roadmap into the next product proving loop. It does not replace Runtime authority, storage, compatibility, or accepted ADR boundaries. Where the older Phase 8+ ordering conflicts with this document, this document controls near-term delivery priority.
+This document records the paper-first proving strategy that shaped the implemented product chain. It does not control current delivery priority. The canonical current order is now `docs/KERNEL-FIRST-ROADMAP.md`: K1–K7 are complete, K8 real longitudinal dogfooding is active, and K9 is the freeze gate.
+
+Runtime authority, storage, compatibility, and accepted ADR boundaries remain binding.
 
 ## Product question
 
@@ -65,7 +67,7 @@ The success condition is not "generated a summary" or "covered every section." A
 
 Paper learning is useful because it exercises source handling, prerequisites, LearningMap, explanation, equations/figures, Evidence, transfer, session continuity, and review in one coherent scenario.
 
-## Canonical near-term priority
+## Implemented paper-first chain
 
 ```text
 Teacher Policy v1
@@ -97,7 +99,7 @@ The implementation chain through Learner Profile v1 is now on `main`:
 - learner-facing LearningMap + Review Suggestions — Issue #97 / PR #104;
 - Learner Profile v1 — Issue #98 / PR #105.
 
-The current phase is **longitudinal paper-first dogfooding**. Issue #95 remains open because its acceptance criterion is behavioral across real sessions. Delayed retrieval, next-session resumption, and transfer cannot be inferred from source parsing, CI, or same-session tests.
+Paper learning remains the first deep K8 proving path. Issue #95 stays open because its acceptance criterion is behavioral across real sessions. Delayed retrieval, next-session resumption, and transfer cannot be inferred from source parsing, CI, or same-session tests. Broader K8 validation is tracked by #2 and #117.
 
 Do not fabricate successful sessions or add another subsystem merely to make the roadmap look complete. The next general product changes should come from observed failures or repeated friction in real paper-learning use.
 
