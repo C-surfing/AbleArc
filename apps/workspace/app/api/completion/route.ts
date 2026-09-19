@@ -2,6 +2,11 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { parseCompletionGateStatus } from "@/lib/completion-status";
+import {
+  PAPER_COMPLETION_CRITERION_IDS,
+  createPaperCompletionCriteria,
+  type PaperCompletionCriterionId,
+} from "@/lib/paper-completion";
 import { resolveProjectReadContext } from "@/lib/project-store";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
@@ -19,7 +24,11 @@ class CompletionApiError extends Error {
     this.name = "CompletionApiError";
   }
 }
-function runCompletionCommand(repoRoot: string, args: string[]): Promise<unknown> {
+function runCompletionCommand(
+  repoRoot: string,
+  args: string[],
+  input?: unknown,
+): Promise<unknown> {
   const python = process.env.AI4LEARNING_PYTHON
     || (process.platform === "win32" ? "python" : "python3");
   const script = path.join(repoRoot, "tools", "learning.py");
@@ -27,7 +36,7 @@ function runCompletionCommand(repoRoot: string, args: string[]): Promise<unknown
     const child = spawn(
       /* turbopackIgnore: true */ python,
       [script, ...args],
-      { cwd: repoRoot, stdio: ["ignore", "pipe", "pipe"] },
+      { cwd: repoRoot, stdio: ["pipe", "pipe", "pipe"] },
     );
     let stdout = "";
     let stderr = "";
@@ -72,6 +81,7 @@ function runCompletionCommand(repoRoot: string, args: string[]): Promise<unknown
         reject(new CompletionApiError("The local Completion Gate returned invalid JSON."));
       }
     });
+    child.stdin.end(input === undefined ? undefined : JSON.stringify(input), "utf8");
   });
 }
 
@@ -117,7 +127,11 @@ export async function POST(request: NextRequest) {
   }
   const payload = body as Record<string, unknown>;
   const projectId = typeof payload.projectId === "string" ? payload.projectId : "";
-  if (payload.action !== "complete" || !PROJECT_ID.test(projectId)) {
+  const action = payload.action;
+  if (
+    (action !== "complete" && action !== "configure-paper")
+    || !PROJECT_ID.test(projectId)
+  ) {
     return NextResponse.json({ error: "The completion action is invalid." }, { status: 400 });
   }
 
@@ -125,8 +139,41 @@ export async function POST(request: NextRequest) {
   try {
     const context = selectedWorkspaceProject(repoRoot);
     if (context.projectId !== projectId) {
-      throw new CompletionApiError("The selected Project changed. Refresh before completing it.", true);
+      throw new CompletionApiError(
+        "The selected Project changed. Refresh before changing its completion contract.",
+        true,
+      );
     }
+
+    if (action === "configure-paper") {
+      const rawLinks = payload.evidenceByCriterion;
+      if (
+        rawLinks !== undefined
+        && (!rawLinks || typeof rawLinks !== "object" || Array.isArray(rawLinks))
+      ) {
+        return NextResponse.json(
+          { error: "Paper Evidence links must be an object keyed by paper criterion id." },
+          { status: 400 },
+        );
+      }
+
+      const current = await readStatus(repoRoot, projectId);
+      const existingLinks: Partial<Record<PaperCompletionCriterionId, string[]>> = {};
+      for (const criterion of current.criteria) {
+        if (PAPER_COMPLETION_CRITERION_IDS.includes(criterion.id as PaperCompletionCriterionId)) {
+          existingLinks[criterion.id as PaperCompletionCriterionId] = criterion.citedEvidenceIds;
+        }
+      }
+      const suppliedLinks = (rawLinks ?? {}) as Partial<Record<PaperCompletionCriterionId, string[]>>;
+      const criteria = createPaperCompletionCriteria({
+        ...existingLinks,
+        ...suppliedLinks,
+      });
+      await runCompletionCommand(repoRoot, ["criteria-set", "-"], criteria);
+      const completion = await readStatus(repoRoot, projectId);
+      return NextResponse.json({ ok: true, completion });
+    }
+
     await runCompletionCommand(repoRoot, ["complete-project", projectId]);
     const completion = await readStatus(repoRoot, projectId);
     return NextResponse.json({ ok: true, completion });
