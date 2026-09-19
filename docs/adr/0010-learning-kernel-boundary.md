@@ -113,7 +113,7 @@ A subsystem must identify the learner-visible failure it solves and remain in th
 - The current product surfaces remain valid but product/UI expansion is temporarily subordinate to Kernel v1 work.
 - Existing Runtime receipt and authority semantics remain intact.
 - Teaching code should become less mechanically restrictive where no learner-truth invariant is at stake.
-- A future `LearningKernel` facade may compose the system, but it must not duplicate Runtime or become a monolithic service.
+- A thin `LearningKernel` facade composes state inspection and one-turn advance over existing modules; it does not duplicate Runtime or own persistence.
 - Product integrations can evolve independently as Hosts over the same Kernel.
 - Kernel v1 should eventually be frozen after longitudinal evidence shows no missing first-class abstraction.
 
