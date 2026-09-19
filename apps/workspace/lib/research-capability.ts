@@ -279,7 +279,7 @@ export function validateResearchOutput(
 }
 
 export async function runResearchCapability(
-  adapter: AgentAdapter,
+  adapter: AgentAdapter | undefined,
   invocation: ResearchInvocation,
   signal?: AbortSignal,
 ): Promise<ResearchResult> {
@@ -304,6 +304,10 @@ export async function runResearchCapability(
       ],
       ...(requestedHostCapability ? { requestedHostCapability } : {}),
     };
+  }
+
+  if (!adapter) {
+    throw new Error("Resolved Research sources require a configured Provider.");
   }
 
   const generated = await adapter.generateStructured({
