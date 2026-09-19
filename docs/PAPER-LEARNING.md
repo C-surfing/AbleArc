@@ -1,6 +1,6 @@
 # Paper Learning v1
 
-Status: **entry-planning slice implemented in Workspace server contracts**
+Status: **entry planning + evidence-gated completion profile implemented**
 
 Paper Learning is the first product scenario used to prove that AbleArc can turn source material into a personalized learning route rather than a generic summary.
 
@@ -169,18 +169,59 @@ with a body shaped approximately as:
 
 The route performs no learner-state write.
 
-## Next slice
+## Evidence-bearing learning loop
 
-Issue #95 should use this plan as context for the actual learning loop:
+Paper Learning reuses the normal Runtime turn path:
 
 ```text
 plan
 → natural Teacher turn
 → learner action
-→ Runtime Evidence
+→ Observation / Runtime Evidence
 → repair / advance
-→ Session Close
+→ Session Close / Tomorrow Seed
 → later retrieval / transfer
 ```
 
-Paper completion must remain capability-based rather than section-coverage-based.
+The paper layer does not introduce a second assessment protocol. Existing Teacher Policy, failure-mode diagnosis, state authority, and Session Close behavior remain in force.
+
+## Paper completion profile
+
+`apps/workspace/lib/paper-completion.ts` maps the paper Mission onto six required capabilities:
+
+1. reconstruct the paper's problem, importance, and motivating gap;
+2. explain the core idea and method/mechanism;
+3. connect claims to reported evidence and state what that evidence does not establish;
+4. identify assumptions, limitations, and meaningful boundaries;
+5. reconstruct the central argument after a delay without replaying the paper;
+6. transfer the paper's argument/evidence reasoning to a neighboring paper, experiment, or problem.
+
+The last two requirements prevent "I just read it and can paraphrase it" from counting as verified completion.
+
+These capabilities are ordinary Mission Completion criteria. They reuse existing Runtime dimensions such as explanation/application/transfer level, scaffolding, context, delay, and independence.
+
+The first-party Completion API accepts:
+
+```text
+action: configure-paper
+```
+
+to install or refresh this profile through the existing `criteria-set` authority path. Evidence links may be attached explicitly to the relevant paper criterion; existing cited links are preserved when the profile is refreshed.
+
+The ordinary Completion Gate remains authoritative. Paper completion does not add a parallel mastery score.
+
+## User-visible progress
+
+When the selected Mission uses the complete paper profile, the existing Completion Gate additionally summarizes:
+
+```text
+Paper understanding: passed / required
+delayed retrieval: verified | pending
+transfer: verified | pending
+```
+
+This is a projection of accepted Runtime Evidence, not section coverage or model confidence.
+
+## Next slice
+
+The remaining product work is primarily interaction wiring: let the first-party Paper Learning flow configure this profile automatically when a paper Mission starts, route paper-plan context into the Teacher without turning it into a transcript, and dogfood real papers across multiple sessions.
