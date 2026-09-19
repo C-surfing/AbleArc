@@ -123,3 +123,22 @@ The first slice now includes:
 The next slice is to map the existing Web composer onto this envelope and add one external-assistant fixture proving both hosts preserve identical Runtime semantics.
 
 Streaming, rich generative UI, cloud sync, and broad attachment ingestion are later concerns.
+
+
+## 8. Paper Learning source resolution
+
+Paper Learning reuses the same HostTurn reference boundary.
+
+A paper/file reference may arrive in two states:
+
+```text
+resolved excerpt/text
+→ Paper Learning may analyze it
+
+opaque locator only
+→ request read_attachment / retrieve_source when the host exposes that capability
+```
+
+AbleArc must not claim to have read an opaque attachment merely because the host supplied a file handle.
+
+The first Paper Learning planner is documented in `PAPER-LEARNING.md`. It returns source-grounded paper structure plus non-authoritative prerequisite hypotheses and a first teaching move. It does not create learner Evidence or accepted LearningMap topology.
