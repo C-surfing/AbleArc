@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { sameOrigin, type SameOriginRequest } from "./server-request";
+import { sameOrigin, type SameOriginRequest } from "./server-request.ts";
 
 export interface ExternalHostRequest extends SameOriginRequest {
   headers: Headers;
