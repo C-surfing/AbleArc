@@ -18,7 +18,7 @@ For the first real learner-facing vNext trial, use [`../../evaluation/FIRST-PILO
 To let the official Workspace assess a saved response and generate the next move,
 start the Web app and use the graphical Model Setup shown on first open. The same
 configuration is available later at `/settings`. The API key stays server-side
-and the saved local settings are Git-ignored.
+and the saved local settings live separately from learner state under the Git-ignored `.ablearc-local/` directory.
 
 `.env.local` / `ABLEARC_PROVIDER_*` remains an optional deployment/developer
 override, not the normal learner setup path. See
