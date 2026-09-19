@@ -4,6 +4,7 @@ import {
   createConfiguredAgentAdapter,
 } from "@/lib/agent-adapter";
 import { generateTeachingAdvance } from "@/lib/learning-orchestrator";
+import { readTeachingRoutingContext } from "@/lib/teaching-context";
 import {
   RuntimeBridgeError,
   advancePendingLearningTurn,
@@ -46,8 +47,12 @@ export async function POST(request: NextRequest) {
         { status: 409 },
       );
     }
+    const teachingContext = readTeachingRoutingContext(repoRoot);
+    const enrichedPending = Object.keys(teachingContext).length
+      ? { ...pending, teaching_context: teachingContext as unknown as Record<string, unknown> }
+      : pending;
     const adapter = createConfiguredAgentAdapter();
-    const advance = await generateTeachingAdvance(adapter, pending, request.signal);
+    const advance = await generateTeachingAdvance(adapter, enrichedPending, request.signal);
     const result = await advancePendingLearningTurn(repoRoot, decisionId, advance);
     const next = result.next_decision as Record<string, unknown> | undefined;
     const evidence = result.evidence as Record<string, unknown> | undefined;
