@@ -711,8 +711,7 @@ function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
   });
 }
 
-export function loadWorkspaceSnapshot(): WorkspaceSnapshot {
-  const repoRoot = findRepoRoot();
+export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): WorkspaceSnapshot {
   const agent = getWorkspaceProviderStatus(repoRoot);
   const context = resolveProjectReadContext(repoRoot);
   if (!context) return { ...DEMO, agent };
