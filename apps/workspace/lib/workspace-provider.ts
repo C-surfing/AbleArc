@@ -10,7 +10,17 @@ import {
 import type { AgentProviderStatus } from "./types";
 
 export function getWorkspaceProviderStatus(repoRoot: string): AgentProviderStatus {
-  const metadata = providerSettingsMetadata(repoRoot);
+  let metadata;
+  try {
+    metadata = providerSettingsMetadata(repoRoot);
+  } catch {
+    return {
+      configured: false,
+      adapter: "openai-compatible",
+      source: "web",
+      error: "Local Provider settings are invalid. Open Settings and save them again.",
+    };
+  }
   const status = getAgentProviderStatus(effectiveProviderEnvironment(repoRoot));
   return {
     ...status,
