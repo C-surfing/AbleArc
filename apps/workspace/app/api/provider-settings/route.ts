@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
   providerSettingsMetadata,
+  readStoredProviderSettings,
   removeStoredProviderSettings,
   writeStoredProviderSettings,
   type ProviderSettingsInput,
@@ -59,8 +60,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Provider settings action is invalid." }, { status: 400 });
     }
 
+    const existing = readStoredProviderSettings(repoRoot);
+    const submittedKey = typeof payload.apiKey === "string" ? payload.apiKey.trim() : "";
     const settings = writeStoredProviderSettings(repoRoot, {
-      apiKey: payload.apiKey as string,
+      apiKey: submittedKey || existing?.apiKey || "",
       model: payload.model as string,
       baseUrl: payload.baseUrl as string,
       structuredOutput: payload.structuredOutput as ProviderSettingsInput["structuredOutput"],
