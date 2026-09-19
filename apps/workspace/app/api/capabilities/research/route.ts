@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     || typeof mode !== "string"
     || !RESEARCH_MODES.includes(mode as ResearchMode)
     || (payload.claim !== undefined && !claim)
+    || (mode === "verify_claim" && !claim)
   ) {
     return NextResponse.json({ error: "Research purpose, mode, query, or claim is invalid." }, { status: 400 });
   }
