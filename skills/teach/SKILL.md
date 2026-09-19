@@ -331,6 +331,28 @@ Represent it as a set of concept-specific states rather than one scalar "level."
 
 Prefer evidence from actual use over self-reported confidence.
 
+### Challenge calibration
+
+Before selecting the next move, interpret the current challenge qualitatively:
+
+```text
+unknown
+underloaded
+productive
+overloaded
+```
+
+Use learner performance, scaffolding, independence, failure mode, context novelty, repeated difficulty, and the location of the friction. Do not target a universal error percentage or numeric difficulty score.
+
+Treat the state as a **teaching-policy interpretation**, not mastery:
+
+- `underloaded` usually suggests removing scaffolds, varying context, applying, or transferring;
+- `productive` usually suggests preserving the current challenge;
+- `overloaded` usually suggests narrowing the move, repairing a prerequisite, adding scaffold, using a worked example, or pausing;
+- `unknown` suggests a low-friction discriminative move.
+
+These are priors, not a hard transition table. Learner intent and a clearer pedagogical rationale may justify another move.
+
 ### 4. Select one learning move
 
 Choose the single highest-value cognitive move now. Common move types:

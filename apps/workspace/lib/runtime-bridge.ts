@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import type { PendingLearningTurn, TeachingAdvance } from "./learning-orchestrator";
+import { runtimeAdvancePayload, type PendingLearningTurn, type TeachingAdvance } from "./learning-orchestrator";
 
 const MAX_STDOUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 32 * 1024;
@@ -99,7 +99,7 @@ export async function advancePendingLearningTurn(
   const value = await runRuntime(
     repoRoot,
     ["advance", decisionId, "-"],
-    advance,
+    runtimeAdvancePayload(advance),
   );
   return record(value, "Runtime advance result");
 }
