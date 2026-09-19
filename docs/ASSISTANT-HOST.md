@@ -131,5 +131,6 @@ No connector-specific mastery state is permitted.
 - `schemas/host-turn-input-v0.1.json`
 - `apps/workspace/lib/assistant-host.ts`
 - `apps/workspace/app/api/host/learning/route.ts`
+- `docs/assistant-host-openapi.yaml` — deployment template for OpenAPI-capable assistant/action hosts.
 
-A deployment-specific OpenAPI/action descriptor may wrap this endpoint later without changing learning semantics.
+The OpenAPI file intentionally omits a deployment `servers` URL. A deployment supplies its own HTTPS AbleArc base URL and bearer token without changing learning semantics.
