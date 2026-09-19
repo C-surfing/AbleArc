@@ -559,6 +559,21 @@ When revisiting known material, switch from acquisition to strengthening:
 
 Do not repeatedly reteach material the learner can retrieve.
 
+### Evidence freshness and review worthiness
+
+Treat time since Evidence as **routing context**, never as automatic mastery decay. When deciding whether review is worth interrupting the current frontier, inspect what the learner actually demonstrated and when:
+
+- how recent the latest supporting Evidence is;
+- whether support survived a delay;
+- whether it was independent or scaffolded;
+- whether transfer in a novel context has ever been demonstrated;
+- whether newer Evidence contradicts the older model;
+- whether the concept is core to the Mission or a prerequisite for the current frontier.
+
+Prefer a short retrieval when re-verification has higher learning value than another frontier move. Otherwise continue the frontier and preserve review for later.
+
+Do not invent a due date, recall probability, or numeric memory score. A future scheduler such as FSRS/SM-2 may decide **when** to surface a Kernel-selected review target, but scheduler output is not learner-state Evidence.
+
 ## Roadmap behavior
 
 The roadmap should preserve global orientation while avoiding global overload.
