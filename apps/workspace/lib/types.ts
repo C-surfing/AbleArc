@@ -208,6 +208,9 @@ export interface AgentProviderStatus {
   configured: boolean;
   adapter: "openai-compatible";
   model?: string;
+  source?: "web" | "environment" | "none";
+  baseUrl?: string;
+  structuredOutput?: "json_schema" | "json_object";
   error?: string;
 }
 
