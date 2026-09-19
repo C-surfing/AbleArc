@@ -185,7 +185,7 @@ test("Research audit is local, immutable, and excludes source excerpt bodies", a
     assert.match(stored, /paper-main/);
     assert.match(stored, /causal claim/);
     assert.doesNotMatch(stored, /architecture removes recurrence and permits more parallel computation/);
-    assert.doesNotMatch(stored, /Ablation excerpt/);
+    assert.doesNotMatch(stored, /supplied ablation excerpt compares model variants/);
 
     assert.equal(writeResearchAuditRecord(tmp, audit), target);
     assert.throws(
