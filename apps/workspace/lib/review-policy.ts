@@ -104,7 +104,7 @@ function evidenceReceipts(runtimeRoot: string): RuntimeEvidenceReceipt[] {
         context: (["same", "varied", "novel"].includes(String(receipt.context))
           ? receipt.context
           : "same") as RuntimeEvidenceReceipt["context"],
-        delay: receipt.delay === "delayed" ? "delayed" : "immediate",
+        delay: (receipt.delay === "delayed" ? "delayed" : "immediate") as RuntimeEvidenceReceipt["delay"],
         independence: (["same_form", "new_form", "independent"].includes(String(receipt.independence))
           ? receipt.independence
           : "same_form") as RuntimeEvidenceReceipt["independence"],
