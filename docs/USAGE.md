@@ -172,7 +172,7 @@ On first open, AbleArc shows **Model Setup** before Entry. Fill in:
 - base URL;
 - optional structured-output compatibility mode.
 
-Choose **Save and enter AbleArc**. The key is stored server-side in the local Git-ignored `.learning/provider-settings.json`; it is not returned to the browser after saving.
+Choose **Save and enter AbleArc**. The key is stored server-side in the local Git-ignored `.ablearc-local/provider-settings.json`; it is not returned to the browser after saving.
 
 You can change the configuration later from **Settings** or `/settings`.
 
