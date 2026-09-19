@@ -1,11 +1,11 @@
 import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
+import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
 import {
   readLearnerProfile,
   writeLearnerProfile,
   type LearnerProfilePatch,
 } from "@/lib/learner-profile";
-import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
@@ -15,7 +15,10 @@ function learnerPath(): string {
   return path.join(findRepoRoot(), ".learning", "LEARNER.md");
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!authorizeAssistantHostRequest(request)) {
+    return NextResponse.json({ error: "Learner Profile authorization is required." }, { status: 401 });
+  }
   try {
     return NextResponse.json({ ok: true, profile: readLearnerProfile(learnerPath()) });
   } catch {
@@ -24,8 +27,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) {
-    return NextResponse.json({ error: "Cross-site submissions are not allowed." }, { status: 403 });
+  if (!authorizeAssistantHostRequest(request)) {
+    return NextResponse.json({ error: "Learner Profile authorization is required." }, { status: 401 });
   }
 
   let body: unknown;
