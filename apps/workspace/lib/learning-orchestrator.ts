@@ -23,6 +23,7 @@ const UNCERTAINTY = ["low", "medium", "high"] as const;
 const CHALLENGE_STATES = ["unknown", "underloaded", "productive", "overloaded"] as const;
 const REVIEW_DISPOSITIONS = ["continue_frontier", "review_now", "review_later", "unknown"] as const;
 const SESSION_DISPOSITIONS = ["continue", "pause", "close"] as const;
+const CALIBRATION_STATES = ["aligned", "possible_overestimate", "possible_underestimate", "unknown"] as const;
 const MOVES = [
   "orient",
   "probe",
@@ -76,6 +77,10 @@ export interface TeachingAdvance {
     };
     session: {
       disposition: typeof SESSION_DISPOSITIONS[number];
+      rationale: string;
+    };
+    calibration: {
+      state: typeof CALIBRATION_STATES[number];
       rationale: string;
     };
   };
@@ -148,8 +153,17 @@ export const TEACHING_ADVANCE_SCHEMA: Record<string, unknown> = {
           },
           required: ["disposition", "rationale"],
         },
+        calibration: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            state: { type: "string", enum: CALIBRATION_STATES },
+            rationale: { type: "string", minLength: 1, maxLength: 1200 },
+          },
+          required: ["state", "rationale"],
+        },
       },
-      required: ["challenge", "rationale", "review", "session"],
+      required: ["challenge", "rationale", "review", "session", "calibration"],
     },
     assessment: {
       type: "object",
@@ -250,11 +264,13 @@ export function validateTeachingAdvance(value: unknown, assessor: string): Teach
   const root = object(value, "Teaching advance");
   exactKeys(root, ["policy", "assessment", "next_decision"], "Teaching advance");
   const policy = object(root.policy, "Policy");
-  exactKeys(policy, ["challenge", "rationale", "review", "session"], "Policy");
+  exactKeys(policy, ["challenge", "rationale", "review", "session", "calibration"], "Policy");
   const review = object(policy.review, "Policy review");
   exactKeys(review, ["disposition", "concept_ids", "rationale"], "Policy review");
   const session = object(policy.session, "Policy session");
   exactKeys(session, ["disposition", "rationale"], "Policy session");
+  const calibration = object(policy.calibration, "Policy calibration");
+  exactKeys(calibration, ["state", "rationale"], "Policy calibration");
   const assessment = object(root.assessment, "Assessment");
   exactKeys(assessment, [
     "level", "outcome", "failure_mode", "artifact_form", "result_summary", "scaffolding", "context", "delay",
@@ -304,6 +320,10 @@ export function validateTeachingAdvance(value: unknown, assessor: string): Teach
       session: {
         disposition: member(session.disposition, SESSION_DISPOSITIONS, "policy.session.disposition"),
         rationale: text(session.rationale, "policy.session.rationale", 1200),
+      },
+      calibration: {
+        state: member(calibration.state, CALIBRATION_STATES, "policy.calibration.state"),
+        rationale: text(calibration.rationale, "policy.calibration.rationale", 1200),
       },
     },
     assessment: {
@@ -367,6 +387,7 @@ export async function generateTeachingAdvance(
       "When teaching_context.reviewPolicy is present, use its descriptive Evidence freshness facts to decide policy.review. Elapsed time never lowers mastery by itself. Prefer review_now only when retrieval now has higher learning value than continuing the frontier; use review_later when re-verification is worthwhile but should not interrupt the current cognitive unit; use continue_frontier when review would add little decision value; use unknown when the context is insufficient. Consider Mission relevance, prerequisite relation to the frontier, recency of supporting Evidence, delayed/independent verification, contradictions, and whether transfer remains unverified. Do not invent a due date or hidden recall score.",
       "Set policy.session to continue, pause, or close as a non-authoritative pacing recommendation. Continue when another cognitive move has clear marginal learning value. Pause when a completed cognitive unit or degraded performance makes a short break useful before resuming. Close when the current unit is complete and later retrieval is more informative than immediate continuation, or when explicit DailyContext time/energy/focus makes a clean ending preferable. Do not infer pacing from a timer or create time-spent Evidence. If pause or close is recommended, next_decision should still preserve the best concrete move for resumption.",
       "In Study mode or when revisiting previously evidenced material after a meaningful delay, prefer retrieval/reconstruction before replaying the prior explanation. This is a strong default, not a hard invariant: learner intent, a missing prerequisite, or a concrete pedagogical reason may justify a concise refresh first. Do not force a quiz when direct explanation better serves the current learning decision.",
+      "Set policy.calibration by comparing only explicit learner self-report that is materially relevant to this target with observed performance. Use aligned when explicit self-report and the current Evidence agree; possible_overestimate when the learner explicitly reports strength/familiarity but observed performance materially contradicts that report; possible_underestimate when the learner explicitly reports weakness/uncertainty yet produces strong independent performance; unknown when no relevant explicit self-report exists or the current observation is too weak/ambiguous to compare. Do not infer a stable personality trait, global confidence level, intelligence, or mastery from calibration. Do not create a numeric confidence score. Calibration is current routing context only.",
       "Diagnose incorrect responses before choosing the next move: distinguish slips, missing prerequisites, vocabulary confusion, local procedural gaps, wrong causal models, overgeneralization, and failed transfer. Overgeneralization means applying a valid rule outside the structure where it is valid; failed transfer means not carrying a known idea into a new context where the same structure does apply. Use failure_mode=none for supporting evidence; contradicting evidence requires a specific diagnosis.",
       failureInterventionPolicyText(),
       "These are default pedagogical priors, not validator rules. You may choose another valid move when learner intent, context, or a clearer pedagogical rationale makes it better; explain that rationale in next_decision.rationale.",
