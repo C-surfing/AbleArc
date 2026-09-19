@@ -22,22 +22,14 @@ export class LearningKernelConflictError extends Error {
   }
 }
 
-export interface LearningKernelInspection {
-  snapshot: WorkspaceSnapshot;
-  teachingContext: TeachingRoutingContext;
-}
-
 export interface LearningKernelAdvanceResult {
   policy: TeachingAdvance["policy"];
   evidenceId?: string;
   nextDecisionId?: string;
 }
 
-export function inspectLearningKernel(repoRoot: string): LearningKernelInspection {
-  return {
-    snapshot: loadWorkspaceSnapshot(repoRoot),
-    teachingContext: readTeachingRoutingContext(repoRoot),
-  };
+export function inspectLearningKernel(repoRoot: string): WorkspaceSnapshot {
+  return loadWorkspaceSnapshot(repoRoot);
 }
 
 function enrichPendingTurn(
