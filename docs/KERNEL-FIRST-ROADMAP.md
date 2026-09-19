@@ -97,22 +97,25 @@ Deliver:
 
 ## K7 — Kernel facade + code cleanup — Issue #116
 
+Status: implemented in this phase as a two-operation composition boundary over existing modules: inspect current learning state and advance one evidence-grounded turn. No new learner state or Runtime authority was introduced.
+
 Goal: expose one coherent integration boundary without creating a monolith.
 
-Preferred shape:
+Implemented shape:
 
 ```text
 Host
   ↓
 LearningKernel facade
-  ├── inspect learning state
-  ├── choose/propose next move
-  ├── assess observation
-  ├── derive review recommendation
-  └── derive pacing recommendation
-  ↓
-existing Runtime authority + persistence
+  ├── inspectLearningKernel(repoRoot)
+  └── advanceLearningKernelTurn(repoRoot, decisionId, adapter)
+          ├── pending Observation + learner state
+          ├── teaching/review/session/calibration context
+          ├── Teacher assessment + next Move + policy
+          └── existing Runtime authority commit
 ```
+
+Review-worthiness, challenge, pacing, and metacognitive calibration remain fields of the non-authoritative Teacher policy returned to the Host; learner-truth writes still pass through Runtime.
 
 Rules:
 

@@ -1,13 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AgentAdapterError } from "@/lib/agent-adapter";
 import { createWorkspaceAgentAdapter } from "@/lib/workspace-provider";
-import { generateTeachingAdvance } from "@/lib/learning-orchestrator";
-import { readTeachingRoutingContext } from "@/lib/teaching-context";
 import {
-  RuntimeBridgeError,
-  advancePendingLearningTurn,
-  readPendingLearningTurn,
-} from "@/lib/runtime-bridge";
+  LearningKernelConflictError,
+  advanceLearningKernelTurn,
+} from "@/lib/learning-kernel";
+import { RuntimeBridgeError } from "@/lib/runtime-bridge";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
@@ -35,32 +33,18 @@ export async function POST(request: NextRequest) {
 
   const repoRoot = findRepoRoot();
   try {
-    const pending = await readPendingLearningTurn(repoRoot);
-    if (!pending) {
-      return NextResponse.json({ error: "No learner response is awaiting assessment." }, { status: 409 });
-    }
-    if (pending.decision.id !== decisionId) {
-      return NextResponse.json(
-        { error: "The pending learning move changed. Refresh before assessing it." },
-        { status: 409 },
-      );
-    }
-    const teachingContext = readTeachingRoutingContext(repoRoot);
-    const enrichedPending = Object.keys(teachingContext).length
-      ? { ...pending, teaching_context: teachingContext as unknown as Record<string, unknown> }
-      : pending;
     const adapter = createWorkspaceAgentAdapter(repoRoot);
-    const advance = await generateTeachingAdvance(adapter, enrichedPending, request.signal);
-    const result = await advancePendingLearningTurn(repoRoot, decisionId, advance);
-    const next = result.next_decision as Record<string, unknown> | undefined;
-    const evidence = result.evidence as Record<string, unknown> | undefined;
-    return NextResponse.json({
-      ok: true,
-      evidenceId: typeof evidence?.id === "string" ? evidence.id : undefined,
-      nextDecisionId: typeof next?.id === "string" ? next.id : undefined,
-      policy: advance.policy,
-    });
+    const result = await advanceLearningKernelTurn(
+      repoRoot,
+      decisionId,
+      adapter,
+      request.signal,
+    );
+    return NextResponse.json({ ok: true, ...result });
   } catch (error) {
+    if (error instanceof LearningKernelConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     if (error instanceof AgentAdapterError) {
       const status = error.code === "configuration"
         ? 503

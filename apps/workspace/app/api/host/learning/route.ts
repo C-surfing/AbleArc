@@ -8,13 +8,11 @@ import {
   type AssistantHostOperation,
 } from "@/lib/assistant-host";
 import { parseHostTurnInput } from "@/lib/host-turn";
+import { inspectLearningKernel } from "@/lib/learning-kernel";
 import { runLocalLearningTool } from "@/lib/local-learning-tool";
 import { readLearnerProfile } from "@/lib/learner-profile";
 import { resolveProjectReadContext } from "@/lib/project-store";
-import {
-  findRepoRoot,
-  loadWorkspaceSnapshot,
-} from "@/lib/workspace-data";
+import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -82,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ok: true,
         operation,
-        state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
+        state: projectAssistantLearningState(inspectLearningKernel(repoRoot), profile),
       });
     }
 
@@ -93,7 +91,7 @@ export async function POST(request: NextRequest) {
         ok: true,
         operation,
         context: normalizeAssistantLearningContext(turn),
-        state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
+        state: projectAssistantLearningState(inspectLearningKernel(repoRoot), profile),
       });
     }
 
@@ -151,7 +149,7 @@ export async function POST(request: NextRequest) {
       created,
       switched,
       ...(normalizedContext ? { context: normalizedContext } : {}),
-      state: projectAssistantLearningState(loadWorkspaceSnapshot(), profile),
+      state: projectAssistantLearningState(inspectLearningKernel(repoRoot), profile),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Assistant host operation failed.";
