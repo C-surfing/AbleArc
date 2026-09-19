@@ -161,3 +161,14 @@ Examples:
 - "Which reported result supports this claim, and what remains untested?"
 
 Do not invoke Research merely because the topic is a paper or because source tools are available.
+
+
+## External assistant access
+
+The Research route accepts either same-origin Web requests or the same bearer token used by the thin assistant host:
+
+```http
+Authorization: Bearer <ABLEARC_HOST_TOKEN>
+```
+
+This does not move Research into the host adapter. Research remains a bounded capability with its own request contract and audit record; the shared token only provides transport authorization.
