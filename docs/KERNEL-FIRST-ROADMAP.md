@@ -84,6 +84,8 @@ Deliver:
 
 ## K6 — Metacognitive Calibration — Issue #115
 
+Status: implemented in this phase as ephemeral, non-authoritative Teacher policy. It is not persisted and never enters Runtime learner truth.
+
 Goal: compare learner self-report with observed capability without building a psychometric profile.
 
 Deliver:
