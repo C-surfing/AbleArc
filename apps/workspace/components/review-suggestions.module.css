@@ -1,0 +1,107 @@
+.panel {
+  margin-top: 18px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 7px 0 0;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.header small,
+.boundary,
+.card small,
+.empty {
+  color: var(--faint);
+  font-size: 10px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  background: var(--surface-strong);
+}
+
+.card strong {
+  font-size: 14px;
+}
+
+.card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.prompt {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.prompt span {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.card footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card button {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.card button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.boundary {
+  margin: 14px 0 0;
+  line-height: 1.45;
+}
+
+.empty {
+  margin: 0;
+}

@@ -150,7 +150,7 @@ export function LearningMap({
   return (
     <div className={`learning-map-shell ${expanded ? styles.expandedShell : ""}`}>
       <div className="learning-map__meta">
-        <span>{map.source === "structured" ? `MAP REVISION ${map.revision}` : "LEGACY MAP PROJECTION"}</span>
+        <span>{expanded ? "YOUR LEARNING MAP" : map.source === "structured" ? `MAP REVISION ${map.revision}` : "LEGACY MAP PROJECTION"}</span>
         {map.rationale ? <p title={map.rationale}>{map.rationale}</p> : null}
       </div>
       <div className={`learning-map ${expanded ? styles.expandedMap : ""}`} aria-label="Learning roadmap">
@@ -180,7 +180,7 @@ export function LearningMap({
             <>
               <div className={styles.inspectorHeader}>
                 <div>
-                  <span className="section-kicker">Selected node</span>
+                  <span className="section-kicker">Learning point</span>
                   <h2>{inspection.label}</h2>
                 </div>
                 <span className={`state-pill state-pill--${inspection.state}`}>
@@ -193,24 +193,24 @@ export function LearningMap({
                 {inspection.frontier ? <strong>Current frontier</strong> : null}
               </div>
               <section>
-                <strong>Accepted learner overlay</strong>
-                <p>{inspection.evidence || "No accepted Evidence is attached to this node yet."}</p>
+                <strong>Current status</strong>
+                <p>{inspection.evidence || "No accepted learning evidence is attached to this point yet."}</p>
               </section>
               <section>
-                <strong>Depends on</strong>
+                <strong>Prerequisites</strong>
                 {inspection.dependencies.length ? inspection.dependencies.map((item) => (
                   <button type="button" key={item.edgeId} onClick={() => setSelectedNodeId(item.nodeId)}>
                     <span>{item.label}</span>
-                    <small>{item.relation.replaceAll("_", " ")} · {item.confidence} confidence</small>
+                    <small>{item.relation.replaceAll("_", " ")}</small>
                   </button>
                 )) : <p>No incoming semantic dependency is recorded.</p>}
               </section>
               <section>
-                <strong>What this unlocks</strong>
+                <strong>Possible next directions</strong>
                 {inspection.unlocks.length ? inspection.unlocks.map((item) => (
                   <button type="button" key={item.edgeId} onClick={() => setSelectedNodeId(item.nodeId)}>
                     <span>{item.label}</span>
-                    <small>{item.relation.replaceAll("_", " ")} · {item.confidence} confidence</small>
+                    <small>{item.relation.replaceAll("_", " ")}</small>
                   </button>
                 )) : <p>No outgoing semantic dependency is recorded.</p>}
               </section>
@@ -218,10 +218,10 @@ export function LearningMap({
                 <MapNodeHistory projectId={projectId} nodeId={selectedNodeId} />
               ) : null}
               <p className={styles.boundary}>
-                Dependencies and revision history describe the topology hypothesis. Mastery is the accepted Runtime overlay; inspecting either changes neither authority.
+                The map is a working model of dependencies. Status comes from accepted learning evidence; opening this view changes neither.
               </p>
             </>
-          ) : <p>Select a node to inspect its dependencies and accepted learner overlay.</p>}
+          ) : <p>Select a point to see its status, prerequisites, and possible next directions.</p>}
         </aside>
       ) : null}
     </div>
