@@ -220,9 +220,9 @@ export const PAPER_LEARNING_PLAN_SCHEMA: Record<string, unknown> = {
         kind: { type: "string", enum: FIRST_MOVE_KINDS },
         target: { type: "string", minLength: 1, maxLength: 500 },
         message: { type: "string", minLength: 1, maxLength: 2400 },
-        learner_action: { type: "string", minLength: 1, maxLength: 1200 },
+        learner_action: { type: "string", minLength: 0, maxLength: 1200 },
       },
-      required: ["kind", "target", "message"],
+      required: ["kind", "target", "message", "learner_action"],
     },
   },
   required: [
@@ -540,8 +540,12 @@ export function validatePaperLearningPlan(
   });
 
   const firstMoveRaw = record(root.first_move, "first_move");
-  exactKeys(firstMoveRaw, ["kind", "target", "message"], ["learner_action"], "first_move");
-  const learnerAction = optionalText(firstMoveRaw.learner_action, "first_move.learner_action", 1200);
+  exactKeys(firstMoveRaw, ["kind", "target", "message", "learner_action"], [], "first_move");
+  if (
+    typeof firstMoveRaw.learner_action !== "string"
+    || firstMoveRaw.learner_action.length > 1200
+  ) throw new Error("first_move.learner_action must be a string of at most 1200 characters.");
+  const learnerAction = firstMoveRaw.learner_action.trim();
   const firstMove = {
     kind: member(firstMoveRaw.kind, FIRST_MOVE_KINDS, "first_move.kind"),
     target: text(firstMoveRaw.target, "first_move.target", 500),
