@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { ContextScale, DailyContext } from "@/lib/daily-context";
 import { deriveDailyRecommendation } from "@/lib/daily-recommendation";
+import { deriveLearnerMapSummary } from "@/lib/learner-map-review";
 import type { TomorrowSeed } from "@/lib/session-close";
 import type { WorkspaceSnapshot } from "@/lib/types";
 import { entryProjectTitle } from "@/lib/today";
 import { ProjectSwitcher } from "./project-switcher";
+import { ReviewSuggestions } from "./review-suggestions";
 import contextStyles from "./daily-context.module.css";
 import styles from "./learning-home.module.css";
 
@@ -176,6 +178,7 @@ function Today({
   const evidenceLabel = snapshot.evidence.length === 1
     ? "1 accepted evidence item"
     : `${snapshot.evidence.length} accepted evidence items`;
+  const learnerMap = useMemo(() => deriveLearnerMapSummary(snapshot.map), [snapshot.map]);
 
   async function saveContext() {
     if (!energy || savingContext) return;
@@ -330,6 +333,44 @@ function Today({
             <Link className={styles.secondaryButton} href="/workspace">Inspect map and evidence</Link>
           </div>
         </section>
+
+        <section className={styles.mapSummary} aria-label="Learning map summary">
+          <header>
+            <div>
+              <span className={styles.cardLabel}>Your learning map</span>
+              <h2>Where you are and what it opens next.</h2>
+            </div>
+            <Link href="/workspace">Open full map →</Link>
+          </header>
+          <div className={styles.mapSummaryGrid}>
+            <article>
+              <span>Current frontier</span>
+              <strong>{learnerMap.frontier.join(", ") || snapshot.frontier}</strong>
+              <p>{snapshot.frontierReason}</p>
+            </article>
+            <article>
+              <span>Already holding</span>
+              <strong>{learnerMap.stable.length || 0}</strong>
+              <p>{learnerMap.stable.slice(0, 4).join(" · ") || "No knowledge is marked stable yet."}</p>
+            </article>
+            <article>
+              <span>Still forming</span>
+              <strong>{learnerMap.developing.length || 0}</strong>
+              <p>{learnerMap.developing.slice(0, 4).join(" · ") || "No developing nodes are currently visible."}</p>
+            </article>
+            <article>
+              <span>{learnerMap.blockers.length ? "Prerequisite blocker" : "Plausible next direction"}</span>
+              <strong>{learnerMap.blockers[0] || learnerMap.nextDirections[0] || "Keep working the frontier"}</strong>
+              <p>{learnerMap.blockers.length
+                ? "This prerequisite is not yet solid enough for the current frontier."
+                : learnerMap.nextDirections.length
+                  ? "This becomes more reachable as the current frontier strengthens."
+                  : "The map does not need to invent a next branch yet."}</p>
+            </article>
+          </div>
+        </section>
+
+        <ReviewSuggestions snapshot={snapshot} />
 
         <section className={styles.contextGrid} aria-label="Current learning context">
           <article>
