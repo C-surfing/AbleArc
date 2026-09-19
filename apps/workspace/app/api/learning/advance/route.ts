@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       evidenceId: typeof evidence?.id === "string" ? evidence.id : undefined,
       nextDecisionId: typeof next?.id === "string" ? next.id : undefined,
+      policy: advance.policy,
     });
   } catch (error) {
     if (error instanceof AgentAdapterError) {
