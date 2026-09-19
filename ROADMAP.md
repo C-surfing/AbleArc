@@ -2,7 +2,7 @@
 
 ## Canonical current direction
 
-AbleArc is now in a **Kernel-first consolidation phase**.
+AbleArc has completed **Kernel v1 implementation phases K1–K7** and is now in the **K8 longitudinal validation phase**.
 
 Current sources of truth:
 
@@ -12,7 +12,7 @@ Current sources of truth:
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture;
 - [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) — implemented/product roadmap history and future product reference, subordinate when its delivery ordering conflicts with the Kernel-first roadmap.
 
-The previous paper-first chain is implemented and remains valuable as a proving scenario. Product/UI expansion is temporarily deferred while the Kernel is completed and simplified.
+The paper-first implementation chain is complete and remains the deepest proving scenario. Product/UI expansion stays subordinate while real multi-session use tests whether the current Kernel is expressively complete and stable enough to freeze.
 
 ## Current system shape
 
@@ -39,21 +39,17 @@ Supporting capabilities such as Research and LearningMaterial sit beside the Ker
 
 Implemented baseline includes Mission/Project lifecycle, typed LearningMap, learner-state overlay, Runtime Evidence/authority, evidence-gated completion, Teach/Study policies, conversation-first Host context, DailyContext, Focus, Session Close/Tomorrow Seed, Reflection, Research, Paper Learning, learner-facing Map/Review, Learner Profile, assistant host, and graphical Web Provider setup.
 
-The active architectural work is now:
+Implementation status:
 
 ```text
-K1 Kernel boundary consolidation
-→ K2 Challenge Calibration
-→ K3 Evidence Freshness + Review Policy
-→ K4 Session Policy
-→ K5 Retrieval-before-refresh consolidation
-→ K6 Metacognitive Calibration
-→ K7 Kernel facade + cleanup
-→ K8 longitudinal kernel dogfooding
-→ K9 Kernel v1 freeze
+K1–K7  complete
+   ↓
+K8  real longitudinal kernel dogfooding   ← active gate
+   ↓
+K9  Kernel v1 freeze
 ```
 
-Do not insert unrelated product features into this sequence.
+During K8, do not add a new Kernel abstraction merely because it is conceivable or because a checklist has an empty box. Change Kernel semantics only when real use reveals a repeated failure or a clearly structural high-consequence gap.
 
 ## Existing evidence gates remain open
 
