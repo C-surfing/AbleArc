@@ -35,7 +35,7 @@ UPDATE STATE
 
 ## Rules
 
-1. Give the learner a chance to retrieve before showing the answer.
+1. After a meaningful delay or cross-session return, **default to retrieval before refresh**. This is a strong policy prior, not a hard gate: if the learner explicitly asks for a recap, a missing prerequisite makes retrieval uninformative, or direct explanation is clearly the better teaching move, refresh only what is needed and say why.
 2. Use cues sparingly; excessive cueing converts recall into recognition.
 3. Diagnose *why* retrieval failed before reteaching.
 4. Re-explain only the missing mechanism, relation, or prerequisite.
@@ -54,10 +54,10 @@ Prioritize material that is:
 - prerequisite to the current frontier;
 - previously shaky;
 - vulnerable to confusion with nearby concepts;
-- due for retrieval after prior learning;
+- worth re-verifying because prior Evidence is old, immediate-only, scaffolded, contradicted, or still lacks delayed/transfer support;
 - high leverage for future topics.
 
-Do not spend equal time on every roadmap node.
+Do not spend equal time on every roadmap node. Evidence freshness is routing context, not a due-date system and not mastery decay.
 
 ## Retrieval formats
 
