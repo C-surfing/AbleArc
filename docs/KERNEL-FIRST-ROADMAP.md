@@ -57,6 +57,8 @@ Deliver:
 
 ## K4 — Session Policy — Issue #114
 
+Status: implemented in this phase as non-authoritative Teacher policy; the Host may consume it, while Runtime receives no pacing field.
+
 Goal: make `continue / pause / close` an explicit learning-policy output.
 
 Deliver:
@@ -69,6 +71,8 @@ Deliver:
 Product timer presets remain deferred to Issue #110.
 
 ## K5 — Retrieval-before-refresh consolidation — Issue #114
+
+Status: implemented as an overridable Study/Teacher policy default rather than a validator rule or forced quiz state machine.
 
 Goal: make delayed reconstruction the default strengthening behavior while preserving Teacher judgment.
 

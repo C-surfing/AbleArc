@@ -22,6 +22,7 @@ const MODES = ["teach", "study"] as const;
 const UNCERTAINTY = ["low", "medium", "high"] as const;
 const CHALLENGE_STATES = ["unknown", "underloaded", "productive", "overloaded"] as const;
 const REVIEW_DISPOSITIONS = ["continue_frontier", "review_now", "review_later", "unknown"] as const;
+const SESSION_DISPOSITIONS = ["continue", "pause", "close"] as const;
 const MOVES = [
   "orient",
   "probe",
@@ -71,6 +72,10 @@ export interface TeachingAdvance {
     review: {
       disposition: typeof REVIEW_DISPOSITIONS[number];
       concept_ids: string[];
+      rationale: string;
+    };
+    session: {
+      disposition: typeof SESSION_DISPOSITIONS[number];
       rationale: string;
     };
   };
@@ -134,8 +139,17 @@ export const TEACHING_ADVANCE_SCHEMA: Record<string, unknown> = {
           },
           required: ["disposition", "concept_ids", "rationale"],
         },
+        session: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            disposition: { type: "string", enum: SESSION_DISPOSITIONS },
+            rationale: { type: "string", minLength: 1, maxLength: 1200 },
+          },
+          required: ["disposition", "rationale"],
+        },
       },
-      required: ["challenge", "rationale", "review"],
+      required: ["challenge", "rationale", "review", "session"],
     },
     assessment: {
       type: "object",
@@ -236,9 +250,11 @@ export function validateTeachingAdvance(value: unknown, assessor: string): Teach
   const root = object(value, "Teaching advance");
   exactKeys(root, ["policy", "assessment", "next_decision"], "Teaching advance");
   const policy = object(root.policy, "Policy");
-  exactKeys(policy, ["challenge", "rationale", "review"], "Policy");
+  exactKeys(policy, ["challenge", "rationale", "review", "session"], "Policy");
   const review = object(policy.review, "Policy review");
   exactKeys(review, ["disposition", "concept_ids", "rationale"], "Policy review");
+  const session = object(policy.session, "Policy session");
+  exactKeys(session, ["disposition", "rationale"], "Policy session");
   const assessment = object(root.assessment, "Assessment");
   exactKeys(assessment, [
     "level", "outcome", "failure_mode", "artifact_form", "result_summary", "scaffolding", "context", "delay",
@@ -284,6 +300,10 @@ export function validateTeachingAdvance(value: unknown, assessor: string): Teach
         disposition: reviewDisposition,
         concept_ids: reviewConceptIds,
         rationale: text(review.rationale, "policy.review.rationale", 1200),
+      },
+      session: {
+        disposition: member(session.disposition, SESSION_DISPOSITIONS, "policy.session.disposition"),
+        rationale: text(session.rationale, "policy.session.rationale", 1200),
       },
     },
     assessment: {
@@ -345,6 +365,8 @@ export async function generateTeachingAdvance(
       "Classify policy.challenge as unknown, underloaded, productive, or overloaded. This is a non-authoritative teaching-policy interpretation, not mastery. Judge it from the quality and independence of the learner action, scaffolding, failure mode, context novelty, repeated difficulty visible in the supplied state/context, and whether the difficulty is in the target reasoning rather than incidental friction. Do not use a fixed error-rate or numeric difficulty threshold.",
       "Use challenge as a teaching prior: underloaded usually calls for less scaffold, varied context, application, or transfer; productive usually preserves the current challenge; overloaded usually calls for a narrower move, prerequisite repair, scaffold, worked example, or pause; unknown calls for a discriminative next move. These are not validator rules.",
       "When teaching_context.reviewPolicy is present, use its descriptive Evidence freshness facts to decide policy.review. Elapsed time never lowers mastery by itself. Prefer review_now only when retrieval now has higher learning value than continuing the frontier; use review_later when re-verification is worthwhile but should not interrupt the current cognitive unit; use continue_frontier when review would add little decision value; use unknown when the context is insufficient. Consider Mission relevance, prerequisite relation to the frontier, recency of supporting Evidence, delayed/independent verification, contradictions, and whether transfer remains unverified. Do not invent a due date or hidden recall score.",
+      "Set policy.session to continue, pause, or close as a non-authoritative pacing recommendation. Continue when another cognitive move has clear marginal learning value. Pause when a completed cognitive unit or degraded performance makes a short break useful before resuming. Close when the current unit is complete and later retrieval is more informative than immediate continuation, or when explicit DailyContext time/energy/focus makes a clean ending preferable. Do not infer pacing from a timer or create time-spent Evidence. If pause or close is recommended, next_decision should still preserve the best concrete move for resumption.",
+      "In Study mode or when revisiting previously evidenced material after a meaningful delay, prefer retrieval/reconstruction before replaying the prior explanation. This is a strong default, not a hard invariant: learner intent, a missing prerequisite, or a concrete pedagogical reason may justify a concise refresh first. Do not force a quiz when direct explanation better serves the current learning decision.",
       "Diagnose incorrect responses before choosing the next move: distinguish slips, missing prerequisites, vocabulary confusion, local procedural gaps, wrong causal models, overgeneralization, and failed transfer. Overgeneralization means applying a valid rule outside the structure where it is valid; failed transfer means not carrying a known idea into a new context where the same structure does apply. Use failure_mode=none for supporting evidence; contradicting evidence requires a specific diagnosis.",
       failureInterventionPolicyText(),
       "These are default pedagogical priors, not validator rules. You may choose another valid move when learner intent, context, or a clearer pedagogical rationale makes it better; explain that rationale in next_decision.rationale.",
