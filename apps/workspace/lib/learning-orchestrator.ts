@@ -78,6 +78,7 @@ export interface PendingLearningTurn {
   decision: Record<string, unknown>;
   observation: Record<string, unknown>;
   learner_state: Record<string, unknown>;
+  teaching_context?: Record<string, unknown>;
 }
 
 export interface TeachingAdvance {
@@ -312,7 +313,7 @@ export async function generateTeachingAdvance(
       "Write assessment.result_summary as learner-facing feedback: natural prose, 1-3 concise sentences, no rubric labels, no mention of receipts, evidence levels, confidence, learner-model bookkeeping, or internal protocol.",
       "Choose exactly one reachable next cognitive move. learner_action must sound like a natural continuation of the conversation, not a form field or test instruction unless a test is genuinely useful.",
       "Prefer direct explanation when the uncertainty can be resolved clearly from stable knowledge. Do not imply code execution, browsing, or another tool unless concrete verification can change the teaching decision.",
-      "Treat explicit learner self-report as routing context, not mastery. When the pending content includes learner-provided material or references, preserve useful notation/context and do not ignore it.",
+      "Treat explicit learner self-report and teaching_context as routing/source context, not mastery or Evidence. Use durable learner preferences to avoid redundant questions. When teaching_context includes paperLearning, preserve its problem/claim/method/evidence/limitation structure across turns, but do not treat the plan as learner performance or as a substitute for the source when exact verification is needed.",
       "Avoid stock tutoring phrases, artificial praise, phase announcements, and repeated meta-commentary. Match the learner's language and level of directness.",
       "Use concise ASCII kebab-case concept IDs.",
       "Return only the required structured object.",
