@@ -125,3 +125,36 @@ and can operate through the same Runtime boundary.
 
 Additional providers should implement `AgentAdapter.generateStructured`
 without changing the Runtime contract or browser-facing API.
+
+
+## Web graphical configuration
+
+The first-party Web no longer requires a learner to edit `.env.local` to select a model.
+
+When no effective Provider exists, `/` renders Model Setup before Entry. The same form remains available at:
+
+```text
+/settings
+```
+
+Web configuration is persisted server-side under:
+
+```text
+.learning/provider-settings.json
+```
+
+The file is Git-ignored with the rest of local learner/runtime state and is written with restrictive file permissions where the platform supports them. The browser never receives the saved API key after submission.
+
+Resolution order is:
+
+```text
+explicit ABLEARC_PROVIDER_* / legacy environment credentials
+        ↓
+Web-saved local Provider settings
+        ↓
+not configured
+```
+
+Environment configuration therefore remains useful for deployments and automated environments, but it is no longer the normal learner onboarding path.
+
+The Web settings UI currently targets OpenAI-compatible Chat Completions transports. It provides OpenAI-compatible and DeepSeek-compatible presets plus a custom endpoint option. Provider transport remains outside Runtime learner-truth authority.
