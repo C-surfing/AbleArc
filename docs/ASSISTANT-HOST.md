@@ -105,7 +105,15 @@ A connector/action only needs to map its native message and attachment conventio
 
 - `HostTurnInput`;
 - one of the three assistant operations;
-- existing Paper Learning / Research endpoints when those specialized capabilities are requested.
+- the authenticated Paper Learning / Research endpoints when those specialized capabilities are requested.
+
+The same `ABLEARC_HOST_TOKEN` authorizes all three host-facing surfaces:
+
+- `POST /api/host/learning`
+- `POST /api/learning/paper-plan`
+- `POST /api/capabilities/research`
+
+This keeps specialized source work outside the generic host operation while avoiding a separate authentication model.
 
 Example flow:
 

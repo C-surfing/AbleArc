@@ -1,5 +1,6 @@
 import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
+import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
 import {
   AgentAdapterError,
   createConfiguredAgentAdapter,
@@ -16,7 +17,6 @@ import {
   runResearchCapability,
   type ResearchMode,
 } from "@/lib/research-capability";
-import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
@@ -28,8 +28,8 @@ function text(value: unknown, maximum: number): string | undefined {
 }
 
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) {
-    return NextResponse.json({ error: "Cross-site submissions are not allowed." }, { status: 403 });
+  if (!authorizeAssistantHostRequest(request)) {
+    return NextResponse.json({ error: "Research authorization is required." }, { status: 401 });
   }
 
   let body: unknown;

@@ -35,6 +35,7 @@ be read twice.
     ├── missions/<mission-id>/
     │   ├── mission.json
     │   ├── MISSION.md
+    │   ├── paper-learning.json  # optional non-authoritative Paper Learning context
     │   └── completion.json  # present only after verified completion
     ├── map/
     │   ├── current.json
@@ -68,6 +69,8 @@ revisions preserve provenance; `ROADMAP.md` is regenerated as a human-readable
 projection. Accepted mastery remains in `runtime/state.json` and is joined by
 readers, not copied into the topology. See
 [`LEARNING-MAP.md`](LEARNING-MAP.md).
+
+`paper-learning.json` is optional Mission-scoped teaching context produced only after a grounded Paper Learning plan succeeds. It stores the validated structured plan and source-reference IDs, not the full host transcript or resolved paper text. It has no Evidence, mastery, Map, or Completion authority; the Teacher may reuse it as routing/source context across sessions.
 
 `materials/*.json` contains immutable typed LearningMaterials rather than raw
 chat summaries. Every material records its originating Mission and Evidence or

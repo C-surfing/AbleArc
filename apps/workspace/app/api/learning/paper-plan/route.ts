@@ -1,21 +1,24 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
 import {
   AgentAdapterError,
   createConfiguredAgentAdapter,
 } from "@/lib/agent-adapter";
 import { parseHostTurnInput } from "@/lib/host-turn";
+import { resolveProjectReadContext } from "@/lib/project-store";
 import {
   PaperSourceContextError,
   generatePaperLearningPlan,
   parsePaperRequestedMode,
 } from "@/lib/paper-learning";
-import { sameOrigin } from "@/lib/server-request";
+import { ensurePaperCompletionProfile, writePaperLearningContext } from "@/lib/paper-session";
+import { findRepoRoot } from "@/lib/workspace-data";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) {
-    return NextResponse.json({ error: "Cross-site submissions are not allowed." }, { status: 403 });
+  if (!authorizeAssistantHostRequest(request)) {
+    return NextResponse.json({ error: "Paper Learning authorization is required." }, { status: 401 });
   }
 
   let body: unknown;
@@ -41,6 +44,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const repoRoot = findRepoRoot();
+  const context = resolveProjectReadContext(repoRoot);
+  if (
+    !context
+    || context.layout !== "workspace-v0.2"
+    || !context.missionId
+    || context.projectStatus !== "active"
+  ) {
+    return NextResponse.json(
+      { error: "Paper Learning requires an active workspace Project and Mission." },
+      { status: 409 },
+    );
+  }
+  if (
+    (turn.projectId && turn.projectId !== context.projectId)
+    || (turn.missionId && turn.missionId !== context.missionId)
+  ) {
+    return NextResponse.json(
+      { error: "The host turn does not match the selected Project and Mission." },
+      { status: 409 },
+    );
+  }
+
   try {
     const adapter = createConfiguredAgentAdapter();
     const plan = await generatePaperLearningPlan(
@@ -48,7 +74,18 @@ export async function POST(request: NextRequest) {
       { turn, requestedMode },
       request.signal,
     );
-    return NextResponse.json({ ok: true, plan });
+    const completionProfile = await ensurePaperCompletionProfile(repoRoot, context);
+    const persisted = writePaperLearningContext(context, plan);
+    return NextResponse.json({
+      ok: true,
+      plan,
+      context: {
+        projectId: persisted.projectId,
+        missionId: persisted.missionId,
+        generatedAt: persisted.generatedAt,
+      },
+      completionProfile: completionProfile.status,
+    });
   } catch (error) {
     if (error instanceof PaperSourceContextError) {
       return NextResponse.json(

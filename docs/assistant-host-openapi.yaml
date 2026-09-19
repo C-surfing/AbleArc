@@ -42,6 +42,77 @@ paths:
           description: Project/Mission lifecycle or scope conflict.
         "500":
           description: Safe local operation failed.
+  /api/learning/paper-plan:
+    post:
+      operationId: ablearcPaperPlan
+      summary: Build and persist a source-grounded paper-learning plan for the selected Mission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [turn]
+              properties:
+                turn:
+                  $ref: ../schemas/host-turn-input-v0.1.json
+                mode:
+                  type: string
+                  enum: [auto, follow_source, understanding_first]
+      responses:
+        "200":
+          description: Paper plan generated, persisted as Mission context, and completion profile checked.
+        "400":
+          description: Invalid Paper Learning request or unresolved source without a usable host capability.
+        "401":
+          description: Missing or invalid external host authorization.
+        "409":
+          description: Project/Mission scope conflict or source requires host action.
+        "503":
+          description: No compatible Provider is configured.
+  /api/capabilities/research:
+    post:
+      operationId: ablearcResearch
+      summary: Run bounded source verification or comparison for a selected teaching need.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [turn, purpose, mode, query]
+              properties:
+                turn:
+                  $ref: ../schemas/host-turn-input-v0.1.json
+                purpose:
+                  type: string
+                  maxLength: 1200
+                mode:
+                  type: string
+                  enum: [verify_claim, clarify_source, compare_sources]
+                query:
+                  type: string
+                  maxLength: 1600
+                claim:
+                  type: string
+                  maxLength: 1800
+      responses:
+        "200":
+          description: Research completed or returned a bounded host-capability request.
+        "400":
+          description: Invalid Research request.
+        "401":
+          description: Missing or invalid external host authorization.
+        "409":
+          description: Project/Mission scope conflict.
+        "503":
+          description: No compatible Provider is configured when resolved sources require synthesis.
 components:
   securitySchemes:
     bearerAuth:

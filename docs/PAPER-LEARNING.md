@@ -1,6 +1,6 @@
 # Paper Learning v1
 
-Status: **entry planning + evidence-gated completion profile implemented**
+Status: **entry planning + Mission context wiring + evidence-gated completion profile implemented**
 
 Paper Learning is the first product scenario used to prove that AbleArc can turn source material into a personalized learning route rather than a generic summary.
 
@@ -169,6 +169,15 @@ with a body shaped approximately as:
 
 The route performs no learner-state write.
 
+After a successful grounded plan, the server now:
+
+1. verifies that the HostTurn matches the selected active Project/Mission;
+2. persists only the validated structured plan to the Mission as `paper-learning.json` — not the full transcript or resolved source text;
+3. installs the standard paper completion profile when the Mission has no conflicting custom completion contract;
+4. preserves a pre-existing custom completion contract instead of silently replacing it.
+
+The persisted plan is non-authoritative teaching context. It can shape later Teacher turns but cannot create Evidence or mastery.
+
 ## Evidence-bearing learning loop
 
 Paper Learning reuses the normal Runtime turn path:
@@ -222,6 +231,12 @@ transfer: verified | pending
 
 This is a projection of accepted Runtime Evidence, not section coverage or model confidence.
 
+## Teacher continuity
+
+The Workspace Teacher advance path reads the same Mission-scoped paper context together with the workspace Learner Profile. This lets later turns retain the paper's problem → claim → method → evidence → limitation structure without replaying the full source or storing the host transcript.
+
+Exact source verification still requires the original resolved reference or Research Capability; a persisted plan is not a substitute for checking source text.
+
 ## Next slice
 
-The remaining product work is primarily interaction wiring: let the first-party Paper Learning flow configure this profile automatically when a paper Mission starts, route paper-plan context into the Teacher without turning it into a transcript, and dogfood real papers across multiple sessions.
+The implementation wiring is complete. The remaining gate is real longitudinal paper-first dogfooding across multiple sessions, including resumption, delayed retrieval, and transfer.
