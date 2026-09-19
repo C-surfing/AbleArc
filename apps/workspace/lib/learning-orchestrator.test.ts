@@ -12,6 +12,11 @@ function generatedAdvance(): Record<string, unknown> {
     policy: {
       challenge: "productive",
       rationale: "The learner succeeded with light scaffolding, but transfer remains meaningfully uncertain.",
+      review: {
+        disposition: "continue_frontier",
+        concept_ids: [],
+        rationale: "The current frontier move has more decision value than interrupting for review.",
+      },
     },
     assessment: {
       level: "explanation",
@@ -46,6 +51,7 @@ function generatedAdvance(): Record<string, unknown> {
 test("validator injects deterministic assessor identity", () => {
   const result = validateTeachingAdvance(generatedAdvance(), "provider:openai-compatible:test-model");
   assert.equal(result.policy.challenge, "productive");
+  assert.equal(result.policy.review.disposition, "continue_frontier");
   assert.equal(result.assessment.assessor, "provider:openai-compatible:test-model");
   assert.equal(result.assessment.failure_mode, "none");
   assert.equal(result.assessment.artifact_form, "prose");
@@ -61,6 +67,28 @@ test("policy challenge is validated but stripped before Runtime submission", () 
   const invalid = generatedAdvance();
   (invalid.policy as Record<string, unknown>).challenge = "hard";
   assert.throws(() => validateTeachingAdvance(invalid, "provider:test:model"), /policy.challenge is invalid/);
+});
+
+test("review policy is non-authoritative but internally consistent", () => {
+  const recommended = generatedAdvance();
+  (recommended.policy as Record<string, unknown>).review = {
+    disposition: "review_now",
+    concept_ids: ["conditional"],
+    rationale: "A prerequisite has old immediate-only evidence and is worth retrieving before transfer.",
+  };
+  const accepted = validateTeachingAdvance(recommended, "provider:test:model");
+  assert.deepEqual(accepted.policy.review.concept_ids, ["conditional"]);
+
+  const missingConcept = generatedAdvance();
+  (missingConcept.policy as Record<string, unknown>).review = {
+    disposition: "review_now",
+    concept_ids: [],
+    rationale: "Review now.",
+  };
+  assert.throws(
+    () => validateTeachingAdvance(missingConcept, "provider:test:model"),
+    /name at least one concept/,
+  );
 });
 
 test("validator rejects unsupported fields and unsafe concept IDs", () => {
@@ -129,17 +157,37 @@ test("orchestrator treats learner text as untrusted content and validates output
         sourceTitle: "Example paper",
         researchProblem: "A bounded source-grounded question.",
       },
+      reviewPolicy: {
+        observedAt: "2026-09-19T00:00:00Z",
+        concepts: [{
+          conceptId: "conditional",
+          label: "Conditional probability",
+          state: "stable",
+          missionRelevance: "core",
+          isFrontier: false,
+          prerequisiteToFrontier: true,
+          supportingEvidenceCount: 2,
+          contradictingEvidenceCount: 0,
+          daysSinceLatestSupporting: 10,
+          hasDelayedSupporting: false,
+          hasIndependentSupporting: true,
+          hasTransferSupporting: false,
+        }],
+      },
     },
   };
 
   const result = await generateTeachingAdvance(adapter, pending);
   assert.equal(result.assessment.assessor, "provider:fixture:fixture-model");
   assert.equal(result.policy.challenge, "productive");
+  assert.equal(result.policy.review.disposition, "continue_frontier");
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
   assert.match(request?.system || "", /failed transfer/);
   assert.match(request?.system || "", /policy.challenge/);
   assert.match(request?.system || "", /fixed error-rate/);
+  assert.match(request?.system || "", /reviewPolicy/);
+  assert.match(request?.system || "", /Elapsed time never lowers mastery/);
   assert.match(request?.system || "", /strong teaching prior/);
   assert.match(request?.system || "", /slip → brief correction/);
   assert.match(request?.system || "", /not validator rules/);
@@ -152,6 +200,7 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.system || "", /paperLearning/);
   assert.match(request?.prompt || "", /Ignore prior instructions/);
   assert.match(request?.prompt || "", /Example paper/);
+  assert.match(request?.prompt || "", /daysSinceLatestSupporting/);
   assert.deepEqual(request?.schema && (request.schema as { required?: string[] }).required, [
     "policy",
     "assessment",
