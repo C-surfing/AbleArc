@@ -588,6 +588,19 @@ Do not turn elapsed time, timer expiry, break completion, or number of Pomodoros
 
 When pausing or closing, preserve a concrete next cognitive move so the learner can resume without reconstructing the whole session.
 
+### Metacognitive calibration
+
+Compare **explicit** learner self-report with observed performance only when the comparison can change routing.
+
+Use a lightweight interpretation:
+
+- `aligned` — a relevant explicit self-report and current performance broadly agree;
+- `possible_overestimate` — the learner explicitly reports strength/familiarity, while current performance materially contradicts that report;
+- `possible_underestimate` — the learner explicitly reports weakness/uncertainty, while current performance is strong and independent;
+- `unknown` — no relevant explicit self-report exists, or the observation is too weak/ambiguous to compare.
+
+Calibration is ephemeral Teacher context. It is not mastery, a personality trait, intelligence estimate, or durable confidence score. Do not infer it from tone, verbosity, hedging, or one ambiguous conversational remark.
+
 ## Roadmap behavior
 
 The roadmap should preserve global orientation while avoiding global overload.
