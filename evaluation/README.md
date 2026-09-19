@@ -38,11 +38,11 @@ These are default evidentiary standards, not rigid scoring rules. Domain evidenc
 
 ## Evaluation artifacts
 
-- `FIRST-PILOT.md` — end-to-end runbook for the first real learner-facing vNext session from Web startup through product checkpoint validation.
+- `FIRST-PILOT.md` — end-to-end runbook for a real learner-facing Web session during the active K8 validation gate.
 - `SESSION.md` — one meaningful session record.
 - `ARC.md` — cross-session contract for a longitudinal learning arc.
 - `RUNBOOK.md` — execution procedure for running real dogfooding without turning the learner experience into an evaluation form.
-- `VNEXT-PRODUCT-DOGFOOD.md` — typed learner-facing product observations and the pre-Phase-4 promotion boundary.
+- `VNEXT-PRODUCT-DOGFOOD.md` — typed learner-facing product observations with a descriptive-only, no-feature-promotion boundary.
 - `PROMOTION.md` — evidence gate before general Teach/Study protocol changes.
 - `FAILURE-TAXONOMY.md` — classify failures before changing the protocol.
 - `DOMAINS.md` — initial five-domain dogfooding matrix.
@@ -87,7 +87,7 @@ Use repeated observations to formulate and falsify review-trigger hypotheses. A 
 
 ## Recommended execution order
 
-For the first learner-facing vNext run, start with `FIRST-PILOT.md`. For continued longitudinal evaluation, use the broader sequence below:
+For a learner-facing Web run during K8, start with `FIRST-PILOT.md`. For continued longitudinal evaluation, use the broader sequence below:
 
 ```text
 choose real mission
@@ -100,7 +100,7 @@ run Teach / Study normally
     ↓
 record decisive SESSION evidence
     ↓
-record product checkpoint when evaluating vNext surfaces
+record product checkpoint when evaluating learner-facing surfaces
     ↓
 retrieve later with less scaffolding
     ↓
