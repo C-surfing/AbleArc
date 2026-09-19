@@ -1,6 +1,6 @@
-# First AbleArc vNext Pilot
+# First AbleArc Kernel v1 Pilot
 
-Use this runbook for the first real learner-facing AbleArc product session after Phase 3. It is intentionally operational: the goal is to run the product as a learner, preserve real evidence, and collect enough product observations to decide what should happen next.
+Use this runbook for a real learner-facing AbleArc session during the active K8 longitudinal validation gate. It is intentionally operational: the goal is to run the product as a learner, preserve real evidence, and collect enough product observations to decide what should happen next.
 
 This is **not** a synthetic acceptance test. Do not invent learner responses, successful assessments, feature needs, or capability change.
 
@@ -33,33 +33,40 @@ Use `sessions/NNN.md` for the first question and `product-observations/NNN.json`
 
 Use a real learning goal you already care about. Do not choose a toy topic solely to make the product look successful.
 
-From the repository root, confirm repository/runtime invariants:
+The following commands are **developer/evaluator preflight for a source checkout**, not part of the learner interaction:
 
 ```bash
 python tools/learning.py doctor
 python tools/runtime.py --repo . verify
-```
-
-From `apps/workspace/`:
-
-```bash
+cd apps/workspace
 npm install
 npm run test
 npm run typecheck
 npm run dev
 ```
 
-Open the local URL printed by Next.js.
+Open the local URL printed by Next.js. After the Web app is running, normal learning use is graphical; the learner should not need Python or AbleArc CLI commands.
 
-### Recommended Provider setup
+### Provider setup in the Web UI
 
-To exercise the full learner-facing response → assessment → next-decision loop inside the Web product, configure the server-only Provider described in `docs/AGENT-ADAPTER.md` and `apps/workspace/.env.example`, then restart the development server.
+On first open, AbleArc shows **Model Setup** before Entry. Configure the Provider graphically:
+
+- choose an OpenAI-compatible, DeepSeek-compatible, or custom compatible preset;
+- enter the API key;
+- enter the model ID;
+- confirm the base URL;
+- change structured-output compatibility only when the Provider requires it;
+- choose **Save and enter AbleArc**.
+
+The local key is stored in the Git-ignored `.ablearc-local/provider-settings.json`, outside learner state. Later changes go through **Settings** or `/settings`.
+
+Environment variables remain an optional deployment/developer override and take precedence over Web settings; they are not required for the normal local learner flow.
 
 If no Provider is configured, the learner response can still be recorded by the Workspace, but assessment must be completed through the existing Teach/Study agent bridge. Do not mark the evidence-turn surface as passed unless the turn actually reaches an assessed next Runtime Decision.
 
 ## 1. Start a private dogfooding arc
 
-Choose the matching domain brief and create one local arc before or immediately after starting the real learning session:
+As the **evaluator**, choose the matching domain brief and create one local arc before or immediately after starting the real learning session. This bookkeeping stays outside the learner-facing Web flow:
 
 ```bash
 python tools/learning.py start-arc <domain> <working-name>

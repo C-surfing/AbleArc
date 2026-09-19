@@ -10,9 +10,9 @@ B. AbleArc Web + your own model API (BYOM)
 They share the same learner-state and Runtime authority model, but they test different parts of the system.
 
 - **Agent mode** primarily exercises the AbleArc Learning Engine / Runtime. Your Agent already supplies the model, so AbleArc does not need a separate Provider API key.
-- **Web mode** exercises the first-party Learning OS path (`Entry → Today → DailyContext → Focus`). The Web needs a server-side Provider configuration so it can assess a saved learner response and propose the next move.
+- **Web mode** exercises the first-party Learning OS path (`Entry → Today → DailyContext → Focus`). The Web needs a local Provider configuration so it can assess a saved learner response and propose the next move; first-run setup is graphical.
 
-For the current pre-Phase-4 product pilot, use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md). A pure Agent session is still real learning evidence, but it does not by itself validate the Web product surfaces tracked in Issue #43.
+For the active K8 longitudinal validation gate, use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md) for the learner-facing Web path and [`../evaluation/RUNBOOK.md`](../evaluation/RUNBOOK.md) for longitudinal evidence discipline. A pure Agent session can contribute real learning evidence, but it does not by itself validate the Web interaction path.
 
 ---
 
@@ -135,22 +135,23 @@ BYOM assessment
 next Runtime Decision
 ```
 
-### 1. Install the Workspace
+### 1. Start from a source checkout
 
-From the repository root:
+The following repository checks are for developers/evaluators running AbleArc from source; they are not normal learner interactions:
 
 ```bash
 python tools/learning.py doctor
 python tools/runtime.py --repo . verify
 ```
 
-Then:
+Then install the Web workspace:
 
 ```bash
 cd apps/workspace
 npm install
-cp .env.example .env.local
 ```
+
+You do **not** need to create `.env.local` for ordinary local BYOM use. Provider setup happens in the Web UI after startup.
 
 ### 2. Start the Web product
 
