@@ -9,7 +9,7 @@ The first-party Web, external assistant host, Paper Learning, Research Capabilit
 
 The immediate goal is to make the **Learning Kernel complete, coherent, minimal, and hard to bloat**, then validate it longitudinally before resuming product/UI expansion.
 
-## K1 — Kernel boundary consolidation
+## K1 — Kernel boundary consolidation — Issue #111
 
 Goal: make the architecture say exactly what belongs to the Kernel and remove deterministic teaching constraints that should be LLM judgment.
 
@@ -28,7 +28,7 @@ Acceptance:
 - a valid pedagogical move is not rejected merely because it was not in a hand-maintained failure-mode allow-list;
 - contributors can identify Kernel vs Host vs Capability vs Runtime authority.
 
-## K2 — Challenge Calibration
+## K2 — Challenge Calibration — Issue #112
 
 Goal: make adaptive difficulty explicit without fake precision.
 
@@ -42,7 +42,7 @@ Implementation should prefer LLM interpretation from existing Evidence dimension
 
 Do not add a universal difficulty score or target error percentage.
 
-## K3 — Evidence Freshness + Review Policy
+## K3 — Evidence Freshness + Review Policy — Issue #113
 
 Goal: distinguish old evidence from current verification without automatic mastery decay.
 
@@ -53,7 +53,7 @@ Deliver:
 - no automatic state demotion from elapsed time;
 - clean boundary for later FSRS/SM-2 scheduling outside learner truth.
 
-## K4 — Session Policy
+## K4 — Session Policy — Issue #114
 
 Goal: make `continue / pause / close` an explicit learning-policy output.
 
@@ -66,7 +66,7 @@ Deliver:
 
 Product timer presets remain deferred to Issue #110.
 
-## K5 — Retrieval-before-refresh consolidation
+## K5 — Retrieval-before-refresh consolidation — Issue #114
 
 Goal: make delayed reconstruction the default strengthening behavior while preserving Teacher judgment.
 
@@ -76,7 +76,7 @@ Deliver:
 - explicit override when learner intent or pedagogy calls for recap/explanation;
 - no rigid forced-quizzing state machine.
 
-## K6 — Metacognitive Calibration
+## K6 — Metacognitive Calibration — Issue #115
 
 Goal: compare learner self-report with observed capability without building a psychometric profile.
 
@@ -87,7 +87,7 @@ Deliver:
 - no numeric confidence score;
 - no permanent personality label.
 
-## K7 — Kernel facade + code cleanup
+## K7 — Kernel facade + code cleanup — Issue #116
 
 Goal: expose one coherent integration boundary without creating a monolith.
 
@@ -114,7 +114,7 @@ Rules:
 - remove duplicated glue discovered during consolidation;
 - do not rewrite working Runtime merely to match a class diagram.
 
-## K8 — Longitudinal kernel dogfooding
+## K8 — Longitudinal kernel dogfooding — Issues #95 and #2
 
 Validate at minimum:
 
@@ -127,7 +127,7 @@ The existing five-domain Issue #2 remains the broader evidence target. Paper Iss
 
 No simulated learner evidence may satisfy these gates.
 
-## K9 — Kernel v1 freeze
+## K9 — Kernel v1 freeze — tracked by Issue #117
 
 Freeze when:
 
