@@ -124,7 +124,7 @@ The Workspace may create a learner-owned mission containing `Source: learner-exp
 
 ### LEARNER.md
 
-Store durable teaching-relevant properties only: preferred explanation style, language, mathematical maturity, desired rigor, tolerance for Socratic interaction, recurring learning constraints, and stable preferences. Do not use it as a transcript or as a dump of temporary mistakes.
+Store durable teaching-relevant properties only: preferred explanation style, language, mathematical maturity, desired rigor, tolerance for Socratic interaction, recurring learning constraints, prior exposure, self-reported strengths/weaknesses, stable source context, and stable preferences. Do not use it as a transcript or as a dump of temporary mistakes. Self-reported strengths/weaknesses remain routing priors and never become mastery without learner Evidence. Prefer explicit learner statements or learner-edited profile fields over automatic extraction from ambiguous conversation.
 
 ### Learner-provided context and references
 
