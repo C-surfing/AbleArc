@@ -152,35 +152,33 @@ npm install
 cp .env.example .env.local
 ```
 
-### 2. Configure your own model
+### 2. Start the Web product
 
-Edit `apps/workspace/.env.local`.
-
-For a Provider that supports strict JSON Schema on OpenAI-compatible Chat Completions:
+The commands below are only for starting the source checkout as a local Web app:
 
 ```bash
-ABLEARC_PROVIDER_API_KEY=<your key>
-ABLEARC_PROVIDER_MODEL=<model id>
-ABLEARC_PROVIDER_BASE_URL=<provider base URL>
-ABLEARC_PROVIDER_STRUCTURED_OUTPUT=json_schema
-ABLEARC_PROVIDER_TIMEOUT_MS=45000
+npm run dev
 ```
 
-For DeepSeek Chat Completions, use JSON Object mode:
+Open the local Next.js URL.
 
-```bash
-ABLEARC_PROVIDER_API_KEY=<your DeepSeek API key>
-ABLEARC_PROVIDER_MODEL=deepseek-flash
-ABLEARC_PROVIDER_BASE_URL=https://api.deepseek.com
-ABLEARC_PROVIDER_STRUCTURED_OUTPUT=json_object
-ABLEARC_PROVIDER_TIMEOUT_MS=45000
-```
+**Normal learning use after the page opens is graphical. You do not need Python or AbleArc CLI commands.**
 
-The current pilot reads credentials only on the local server. Do **not** use `NEXT_PUBLIC_` variables and do not commit `.env.local`.
+On first open, AbleArc shows **Model Setup** before Entry. Fill in:
 
-A learner-facing Provider Settings screen is not implemented yet; during the current local pilot BYOM is configured through `.env.local`. See [`AGENT-ADAPTER.md`](AGENT-ADAPTER.md).
+- Provider preset;
+- API key;
+- model ID;
+- base URL;
+- optional structured-output compatibility mode.
 
-### 3. Start the Web product
+Choose **Save and enter AbleArc**. The key is stored server-side in the local Git-ignored `.learning/provider-settings.json`; it is not returned to the browser after saving.
+
+You can change the configuration later from **Settings** or `/settings`.
+
+For deployments or developers who deliberately want configuration outside the UI, `ABLEARC_PROVIDER_*` environment variables remain an optional override and take precedence over Web settings. See [`AGENT-ADAPTER.md`](AGENT-ADAPTER.md).
+
+### 3. Use the Web product
 
 ```bash
 npm run dev
