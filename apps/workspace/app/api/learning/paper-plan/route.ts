@@ -1,9 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authorizeAssistantHostRequest } from "@/lib/assistant-host-auth";
-import {
-  AgentAdapterError,
-  createConfiguredAgentAdapter,
-} from "@/lib/agent-adapter";
+import { AgentAdapterError } from "@/lib/agent-adapter";
+import { createWorkspaceAgentAdapter } from "@/lib/workspace-provider";
 import { parseHostTurnInput } from "@/lib/host-turn";
 import { resolveProjectReadContext } from "@/lib/project-store";
 import {
@@ -68,7 +66,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const adapter = createConfiguredAgentAdapter();
+    const adapter = createWorkspaceAgentAdapter(repoRoot);
     const plan = await generatePaperLearningPlan(
       adapter,
       { turn, requestedMode },
