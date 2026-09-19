@@ -326,3 +326,18 @@ Usually hidden:
 - mechanical mastery scores.
 
 The learner should feel guided, not administered.
+
+
+### Study a paper in the first-party Web
+
+After creating/selecting an active Project and Mission, open:
+
+```text
+http://localhost:3000/paper
+```
+
+Paste extracted text from the paper or a substantial section, choose a study order, and build the grounded plan.
+
+Use **Understanding first** when dependency order matters more than the original section order. Use **Follow source** when you explicitly want to stay close to a course/paper sequence. `Auto` lets the planner infer this from the current Mission.
+
+The source body is not retained by the Paper Learning store. The Mission keeps only the structured plan in `paper-learning.json`; exact later source verification still requires the source again or the Research Capability.

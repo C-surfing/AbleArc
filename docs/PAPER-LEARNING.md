@@ -231,6 +231,29 @@ transfer: verified | pending
 
 This is a projection of accepted Runtime Evidence, not section coverage or model confidence.
 
+## First-party Web entry
+
+The local Workspace exposes:
+
+```text
+/paper
+```
+
+for the selected active Project/Mission.
+
+The first slice intentionally supports **pasted extracted text** rather than building a file-upload/parser subsystem. The learner can:
+
+- label the source;
+- choose `auto`, `follow_source`, or `understanding_first`;
+- paste up to 80k characters of paper/section text;
+- generate or replace the Mission-scoped paper plan;
+- reopen the persisted plan in a later session;
+- continue into Focus from the plan's first move.
+
+The pasted source body is sent to the planner for that request and is not persisted by Paper Learning. Only the validated structured plan and source-reference IDs are retained.
+
+PDF extraction, OCR, remote retrieval, and attachment resolution remain host/capability concerns rather than responsibilities of the Paper Learning UI.
+
 ## Teacher continuity
 
 The Workspace Teacher advance path reads the same Mission-scoped paper context together with the workspace Learner Profile. This lets later turns retain the paper's problem → claim → method → evidence → limitation structure without replaying the full source or storing the host transcript.
