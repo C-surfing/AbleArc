@@ -12,7 +12,7 @@ They share the same learner-state and Runtime authority model, but they test dif
 - **Agent mode** primarily exercises the AbleArc Learning Engine / Runtime. Your Agent already supplies the model, so AbleArc does not need a separate Provider API key.
 - **Web mode** exercises the first-party Learning OS path (`Entry → Today → DailyContext → Focus`). The Web needs a local Provider configuration so it can assess a saved learner response and propose the next move; first-run setup is graphical.
 
-For the current pre-Phase-4 product pilot, use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md). A pure Agent session is still real learning evidence, but it does not by itself validate the Web product surfaces tracked in Issue #43.
+For the active K8 longitudinal validation gate, use [`../evaluation/FIRST-PILOT.md`](../evaluation/FIRST-PILOT.md) for the learner-facing Web path and [`../evaluation/RUNBOOK.md`](../evaluation/RUNBOOK.md) for longitudinal evidence discipline. A pure Agent session can contribute real learning evidence, but it does not by itself validate the Web interaction path.
 
 ---
 
