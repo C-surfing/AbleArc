@@ -5,10 +5,6 @@ import {
   type TeachingAdvance,
 } from "./learning-orchestrator.ts";
 import {
-  advancePendingLearningTurn,
-  readPendingLearningTurn,
-} from "./runtime-bridge.ts";
-import {
   readTeachingRoutingContext,
   type TeachingRoutingContext,
 } from "./teaching-context.ts";
@@ -70,6 +66,12 @@ export async function advanceLearningKernelTurn(
   adapter: AgentAdapter,
   signal?: AbortSignal,
 ): Promise<LearningKernelAdvanceResult> {
+  // Keep the process-spawning Runtime bridge behind the actual mutation path.
+  // Read-only Kernel consumers and pure projection tests should not need to load it.
+  const {
+    advancePendingLearningTurn,
+    readPendingLearningTurn,
+  } = await import("./runtime-bridge");
   const pending = await readPendingLearningTurn(repoRoot);
   if (!pending) {
     throw new LearningKernelConflictError("No learner response is awaiting assessment.");
