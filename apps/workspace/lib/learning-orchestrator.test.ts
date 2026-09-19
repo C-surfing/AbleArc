@@ -17,6 +17,10 @@ function generatedAdvance(): Record<string, unknown> {
         concept_ids: [],
         rationale: "The current frontier move has more decision value than interrupting for review.",
       },
+      session: {
+        disposition: "continue",
+        rationale: "Another bounded transfer move still has clear learning value.",
+      },
     },
     assessment: {
       level: "explanation",
@@ -52,6 +56,7 @@ test("validator injects deterministic assessor identity", () => {
   const result = validateTeachingAdvance(generatedAdvance(), "provider:openai-compatible:test-model");
   assert.equal(result.policy.challenge, "productive");
   assert.equal(result.policy.review.disposition, "continue_frontier");
+  assert.equal(result.policy.session.disposition, "continue");
   assert.equal(result.assessment.assessor, "provider:openai-compatible:test-model");
   assert.equal(result.assessment.failure_mode, "none");
   assert.equal(result.assessment.artifact_form, "prose");
@@ -88,6 +93,27 @@ test("review policy is non-authoritative but internally consistent", () => {
   assert.throws(
     () => validateTeachingAdvance(missingConcept, "provider:test:model"),
     /name at least one concept/,
+  );
+});
+
+test("session policy is validated but remains outside Runtime authority", () => {
+  const close = generatedAdvance();
+  (close.policy as Record<string, unknown>).session = {
+    disposition: "close",
+    rationale: "The cognitive unit is complete and delayed retrieval will be more informative.",
+  };
+  const accepted = validateTeachingAdvance(close, "provider:test:model");
+  assert.equal(accepted.policy.session.disposition, "close");
+  assert.equal("policy" in runtimeAdvancePayload(accepted), false);
+
+  const invalid = generatedAdvance();
+  (invalid.policy as Record<string, unknown>).session = {
+    disposition: "stop_forever",
+    rationale: "Invalid.",
+  };
+  assert.throws(
+    () => validateTeachingAdvance(invalid, "provider:test:model"),
+    /policy.session.disposition is invalid/,
   );
 });
 
@@ -157,6 +183,12 @@ test("orchestrator treats learner text as untrusted content and validates output
         sourceTitle: "Example paper",
         researchProblem: "A bounded source-grounded question.",
       },
+      dailyContext: {
+        energy: 2,
+        focus: 2,
+        availableMinutes: 12,
+        note: "Prefer a clean stopping point today.",
+      },
       reviewPolicy: {
         observedAt: "2026-09-19T00:00:00Z",
         concepts: [{
@@ -181,6 +213,7 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.equal(result.assessment.assessor, "provider:fixture:fixture-model");
   assert.equal(result.policy.challenge, "productive");
   assert.equal(result.policy.review.disposition, "continue_frontier");
+  assert.equal(result.policy.session.disposition, "continue");
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
   assert.match(request?.system || "", /failed transfer/);
@@ -188,6 +221,10 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.system || "", /fixed error-rate/);
   assert.match(request?.system || "", /reviewPolicy/);
   assert.match(request?.system || "", /Elapsed time never lowers mastery/);
+  assert.match(request?.system || "", /policy.session/);
+  assert.match(request?.system || "", /Do not infer pacing from a timer/);
+  assert.match(request?.system || "", /prefer retrieval\/reconstruction/);
+  assert.match(request?.system || "", /strong default, not a hard invariant/);
   assert.match(request?.system || "", /strong teaching prior/);
   assert.match(request?.system || "", /slip → brief correction/);
   assert.match(request?.system || "", /not validator rules/);
@@ -201,6 +238,7 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.prompt || "", /Ignore prior instructions/);
   assert.match(request?.prompt || "", /Example paper/);
   assert.match(request?.prompt || "", /daysSinceLatestSupporting/);
+  assert.match(request?.prompt || "", /Prefer a clean stopping point today/);
   assert.deepEqual(request?.schema && (request.schema as { required?: string[] }).required, [
     "policy",
     "assessment",
