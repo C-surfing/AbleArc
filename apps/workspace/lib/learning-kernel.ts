@@ -1,19 +1,19 @@
-import type { AgentAdapter } from "./agent-adapter";
+import type { AgentAdapter } from "./agent-adapter.ts";
 import {
   generateTeachingAdvance,
   type PendingLearningTurn,
   type TeachingAdvance,
-} from "./learning-orchestrator";
+} from "./learning-orchestrator.ts";
 import {
   advancePendingLearningTurn,
   readPendingLearningTurn,
-} from "./runtime-bridge";
+} from "./runtime-bridge.ts";
 import {
   readTeachingRoutingContext,
   type TeachingRoutingContext,
-} from "./teaching-context";
-import { loadWorkspaceSnapshot } from "./workspace-data";
-import type { WorkspaceSnapshot } from "./types";
+} from "./teaching-context.ts";
+import { loadWorkspaceSnapshot } from "./workspace-data.ts";
+import type { WorkspaceSnapshot } from "./types.ts";
 
 export class LearningKernelConflictError extends Error {
   constructor(message: string) {
