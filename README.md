@@ -225,6 +225,7 @@ The repository has automated CI for the runner and repository invariants. See [`
 - [`docs/MISSION-COMPLETION.md`](docs/MISSION-COMPLETION.md) — evidence criteria, Feynman/performance gate, immutable completion, and retained Archive semantics.
 - [`docs/LEARNING-LIBRARY.md`](docs/LEARNING-LIBRARY.md) — typed reusable materials, provenance, lifecycle, and safe Workspace projection.
 - [`docs/PAPER-LEARNING.md`](docs/PAPER-LEARNING.md) — paper-first source reconstruction, prerequisite hypotheses, onboarding budget, and first teaching move.
+- [`docs/RESEARCH-CAPABILITY.md`](docs/RESEARCH-CAPABILITY.md) — bounded Teacher-invoked source verification with provenance, minimized audit, and no learner-state authority.
 - [`docs/AGENT-ADAPTER.md`](docs/AGENT-ADAPTER.md) — Provider configuration, strict turn contract, failure handling, and authority boundary.
 - [`docs/USER-FIRST-PRODUCT.md`](docs/USER-FIRST-PRODUCT.md) — learner journey, open-source lessons, and the architecture budget.
 - [`docs/TEACHING-TASTE.md`](docs/TEACHING-TASTE.md) — the qualitative teaching standard.
