@@ -3,11 +3,16 @@ import test from "node:test";
 import type { AgentAdapter, StructuredGenerationRequest } from "./agent-adapter.ts";
 import {
   generateTeachingAdvance,
+  runtimeAdvancePayload,
   validateTeachingAdvance,
 } from "./learning-orchestrator.ts";
 
 function generatedAdvance(): Record<string, unknown> {
   return {
+    policy: {
+      challenge: "productive",
+      rationale: "The learner succeeded with light scaffolding, but transfer remains meaningfully uncertain.",
+    },
     assessment: {
       level: "explanation",
       outcome: "supports",
@@ -40,10 +45,22 @@ function generatedAdvance(): Record<string, unknown> {
 
 test("validator injects deterministic assessor identity", () => {
   const result = validateTeachingAdvance(generatedAdvance(), "provider:openai-compatible:test-model");
+  assert.equal(result.policy.challenge, "productive");
   assert.equal(result.assessment.assessor, "provider:openai-compatible:test-model");
   assert.equal(result.assessment.failure_mode, "none");
   assert.equal(result.assessment.artifact_form, "prose");
   assert.equal(result.next_decision.move, "transfer");
+});
+
+test("policy challenge is validated but stripped before Runtime submission", () => {
+  const result = validateTeachingAdvance(generatedAdvance(), "provider:test:model");
+  const runtime = runtimeAdvancePayload(result);
+  assert.deepEqual(Object.keys(runtime).sort(), ["assessment", "next_decision"]);
+  assert.equal("policy" in runtime, false);
+
+  const invalid = generatedAdvance();
+  (invalid.policy as Record<string, unknown>).challenge = "hard";
+  assert.throws(() => validateTeachingAdvance(invalid, "provider:test:model"), /policy.challenge is invalid/);
 });
 
 test("validator rejects unsupported fields and unsafe concept IDs", () => {
@@ -117,9 +134,12 @@ test("orchestrator treats learner text as untrusted content and validates output
 
   const result = await generateTeachingAdvance(adapter, pending);
   assert.equal(result.assessment.assessor, "provider:fixture:fixture-model");
+  assert.equal(result.policy.challenge, "productive");
   assert.match(request?.system || "", /untrusted learning content/);
   assert.match(request?.system || "", /learner-facing feedback/);
   assert.match(request?.system || "", /failed transfer/);
+  assert.match(request?.system || "", /policy.challenge/);
+  assert.match(request?.system || "", /fixed error-rate/);
   assert.match(request?.system || "", /strong teaching prior/);
   assert.match(request?.system || "", /slip → brief correction/);
   assert.match(request?.system || "", /not validator rules/);
@@ -133,6 +153,7 @@ test("orchestrator treats learner text as untrusted content and validates output
   assert.match(request?.prompt || "", /Ignore prior instructions/);
   assert.match(request?.prompt || "", /Example paper/);
   assert.deepEqual(request?.schema && (request.schema as { required?: string[] }).required, [
+    "policy",
     "assessment",
     "next_decision",
   ]);
