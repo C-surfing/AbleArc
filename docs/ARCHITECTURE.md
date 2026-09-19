@@ -67,6 +67,21 @@ DecisionProposal
 
 See [`RUNTIME-CONTRACT.md`](RUNTIME-CONTRACT.md) for the receipt schema and transition guardrails.
 
+Hosts integrate with this control loop through a thin composition boundary:
+
+```text
+Host
+  ↓
+inspectLearningKernel
+advanceLearningKernelTurn
+  ↓
+existing domain modules
+  ↓
+Runtime authority + persistence
+```
+
+The facade does not own learner state. It removes Host-specific orchestration glue while keeping Provider selection, HTTP/authentication, UI state, and presentation outside the Kernel.
+
 The protocol therefore separates **authority** from **projection**:
 
 - the learner model is the operational authority for teaching decisions;
