@@ -300,9 +300,9 @@ possible_underestimate
 unknown
 ```
 
-These are teaching context, not permanent personality labels and not mastery.
+These are ephemeral teaching-policy context, not permanent personality labels and not mastery. They should be derived only when explicit learner self-report is materially relevant to observed performance; otherwise use `unknown`.
 
-Do not build a psychometric learner profile or numeric confidence score without a demonstrated learning need.
+Do not persist metacognitive calibration into learner truth. Do not infer it from tone or conversational style, and do not build a psychometric learner profile or numeric confidence score without a demonstrated learning need.
 
 ## 8. Session policy and consolidation-aware stopping
 
