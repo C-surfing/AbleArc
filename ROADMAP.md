@@ -1,74 +1,82 @@
 # Project roadmap
 
-The canonical post-v0.2 product and development plan is:
+## Canonical current direction
 
-- [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md)
+AbleArc is now in a **Kernel-first consolidation phase**.
 
-The current near-term delivery focus is:
+Current sources of truth:
 
-- [`docs/PAPER-FIRST-FOCUS.md`](docs/PAPER-FIRST-FOCUS.md) — Teacher quality → Paper Learning → Research → host/plugin → learner-facing Map/Review → Learner Profile.
+- [`docs/KERNEL-V1.md`](docs/KERNEL-V1.md) — canonical Learning Kernel v1 architecture and anti-bloat boundary;
+- [`docs/KERNEL-FIRST-ROADMAP.md`](docs/KERNEL-FIRST-ROADMAP.md) — current K1–K9 development order;
+- [`docs/adr/0010-learning-kernel-boundary.md`](docs/adr/0010-learning-kernel-boundary.md) — accepted boundary between LLM teaching judgment and deterministic learner-truth invariants;
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture;
+- [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) — implemented/product roadmap history and future product reference, subordinate when its delivery ordering conflicts with the Kernel-first roadmap.
 
-Where Phase 8+ ordering in the broader vNext roadmap conflicts with this paper-first focus, the paper-first focus controls near-term priority; accepted Runtime/authority boundaries remain unchanged.
+The previous paper-first chain is implemented and remains valuable as a proving scenario. Product/UI expansion is temporarily deferred while the Kernel is completed and simplified.
 
-The corresponding accepted architecture boundary is:
+## Current system shape
 
-- [`docs/adr/0008-learning-os-product-boundary.md`](docs/adr/0008-learning-os-product-boundary.md)
+```text
+Host / Product
+Web · Agent/Skill · assistant integrations
+                │
+                ▼
+         Learning Kernel
+Mission · Map · Model · Context · Policy
+Move · Observation · Evidence · Pacing
+                │
+                ▼
+      Learning Runtime authority
+receipts · state proposals · accepted projection
+                │
+                ▼
+       local learner workspace
+```
 
-These documents define the current direction: evolve the first-party Web product into a daily-use **Learning OS** while preserving the provider-neutral, local-first, evidence-driven **Learning Runtime / Engine** underneath it.
-
-Branding has since completed its separate transition: **AbleArc** is the accepted public product name and `C-surfing/AbleArc` is the canonical repository. [`docs/BRANDING.md`](docs/BRANDING.md) is the current source of truth for naming and compatibility. Pre-rename wording in the naming-transition section of `docs/VNEXT-ROADMAP.md` describes the state when that roadmap was written; it does not reopen the naming decision or override the accepted AbleArc brand.
+Supporting capabilities such as Research and LearningMaterial sit beside the Kernel and may provide context. They do not own learner truth.
 
 ## Current delivery checkpoint
 
-vNext Phases 1–7 are implemented on `main`:
+Implemented baseline includes Mission/Project lifecycle, typed LearningMap, learner-state overlay, Runtime Evidence/authority, evidence-gated completion, Teach/Study policies, conversation-first Host context, DailyContext, Focus, Session Close/Tomorrow Seed, Reflection, Research, Paper Learning, learner-facing Map/Review, Learner Profile, assistant host, and graphical Web Provider setup.
+
+The active architectural work is now:
 
 ```text
-Entry → Today + DailyContext → Focus Session
-                              ↓
-                 natural conversation / host context
-                              ↓
-                     Learning Runtime
-                              ↓
-              response → assessment → next Decision
+K1 Kernel boundary consolidation
+→ K2 Challenge Calibration
+→ K3 Evidence Freshness + Review Policy
+→ K4 Session Policy
+→ K5 Retrieval-before-refresh consolidation
+→ K6 Metacognitive Calibration
+→ K7 Kernel facade + cleanup
+→ K8 longitudinal kernel dogfooding
+→ K9 Kernel v1 freeze
 ```
 
-The conversation-first correction is now part of the baseline architecture: host context is non-authoritative, free-text Agent responses require explicit attribution, late Decisions have an auditable recovery path, failure Evidence carries `failure_mode`, concrete performance carries `artifact_form`, and Runtime-derived topology changes remain proposal-first.
+Do not insert unrelated product features into this sequence.
 
-Phase 5 Session Close + Tomorrow Seed is now part of the baseline product loop: a Close is derived from existing Runtime Evidence/state only, and its Mission-scoped Tomorrow Seed is operational continuity that becomes stale when the unanswered Decision changes.
+## Existing evidence gates remain open
 
-Phase 6 learner-owned Reflection is now part of the baseline product: free-form, optional, Project-local, and separate from Evidence/LearningMaterial/mastery authority.
+- Issue #95 remains the real multi-session Paper Learning acceptance gate, including delayed retrieval and transfer.
+- Issue #2 remains the broader longitudinal multi-domain evidence goal.
+- Product Session Pacing presets / Pomodoro UX are deferred in Issue #110 and must remain Host/UI state.
 
-Phase 7 risk-tiered state authority is now part of the baseline: only descriptive first exposure (`unknown → exposed`) may be auto-accepted by deterministic Runtime policy; stronger learner-state claims remain explicit review.
+Real learner evidence must not be fabricated to satisfy either longitudinal gate.
 
-The architecture-simplification work in Issue #90 is complete. The paper-first implementation chain in [`docs/PAPER-FIRST-FOCUS.md`](docs/PAPER-FIRST-FOCUS.md) is now implemented on `main`: **Teacher Policy v1 → Paper Learning entry + evidence-gated completion profile → bounded Research Capability → thin ChatGPT/assistant host slice → learner-facing LearningMap/Review → Learner Profile v1**. The active gate is Issue [#95](https://github.com/C-surfing/AbleArc/issues/95): real longitudinal paper-learning dogfooding across multiple sessions, including delayed retrieval and transfer. Do not add another product subsystem merely to finish a checklist; changes should now be driven by observed learning behavior. Issue [#2](https://github.com/C-surfing/AbleArc/issues/2) remains the broader five-domain validation target after the paper-first proving loop.
+## Anti-bloat development rule
 
-Capture Inbox remains **not promoted and removed from the canonical product architecture**. It was a focus-protection hypothesis, not a Learning Engine requirement. If future sessions reveal a recurring continuity problem, solve that observed problem from first principles rather than preserving a preselected Capture module. Issue [#43](https://github.com/C-surfing/AbleArc/issues/43) records the closed hypothesis.
+Before adding a subsystem or first-class abstraction:
 
-The broader runtime still has a separate five-domain longitudinal evidence goal tracked in Issue [#2](https://github.com/C-surfing/AbleArc/issues/2). Product pilot completion and five-domain runtime validation are related but not interchangeable.
+1. identify the concrete learner-visible failure;
+2. show why existing Kernel concepts cannot express the solution;
+3. classify it as learner truth, LLM teaching judgment, supporting capability, or Host/UI state;
+4. prefer LLM judgment when a hard rule is not required for integrity;
+5. abstract only after repeated real use exposes the same structure.
 
-## Evidence-gated phase semantics
+A phase is not a feature checklist. The smallest coherent solution wins.
 
-Roadmap phases are **decision gates and recommended ordering**, not a mandatory feature checklist.
+## Product work after Kernel freeze
 
-An evidence-gated phase may end in one of these states:
+After K9, product shape may again advance: Web UX, packaging, mobile/desktop, notifications, richer assistant/plugin integrations, and timer/break UX can consume the frozen Kernel without reopening learner-truth semantics by default.
 
-```text
-promoted
-collect_more_evidence / deferred
-not_promoted_for_now
-```
-
-If an optional feature is not promoted, that does **not** automatically block a later phase whose learner problem, authority boundary, and implementation dependencies are independent. The removed Capture Inbox hypothesis is the first explicit example: its non-promotion does not block independently justified work on natural conversation, Session Close, learner context, or Review.
-
-A phase still blocks later work when there is a real dependency: the later behavior requires its data contract, authority path, continuity mechanism, or validated user interaction. Skipping a dependency to preserve roadmap velocity is not allowed.
-
-Promotion evidence is qualitative and behavioral rather than a fixed mechanical session count. Repeated independent observations are normally stronger than one anecdote, but a single clearly structural high-consequence failure may justify repair. The deciding questions remain: did the problem actually occur, did it materially harm learning/continuity, and is the proposed feature the smallest sufficient fix?
-
-Older roadmap and product documents remain useful architectural history and detailed subsystem references, but when delivery priority conflicts, `docs/VNEXT-ROADMAP.md` is the source of truth unless a later accepted ADR or roadmap revision explicitly supersedes it.
-
-
-### Web usability checkpoint — 2026-09-19
-
-Normal learner-facing Web use must not require AbleArc CLI knowledge. Provider/BYOM setup is now a graphical first-run step and remains editable from `/settings`. Environment variables are a deployment/developer override, not the normal learner workflow.
-
-The remaining source-checkout startup commands (`npm install`, `npm run dev`) are development/distribution concerns rather than learning interactions. A future packaged/deployed distribution may remove even that startup requirement without changing Learning Runtime semantics.
+Branding remains **AbleArc**; [`docs/BRANDING.md`](docs/BRANDING.md) is authoritative for naming.

@@ -1,9 +1,11 @@
 # vNext Product and Development Roadmap
 
-Status: **Canonical direction for post-v0.2 development**  
-Last updated: 2026-09-18
+Status: **implemented product roadmap / subordinate delivery reference**  
+Last updated: 2026-09-19
 
-This document is the primary product and implementation roadmap for the next stage of the project. It complements the accepted ADRs and supersedes older backlog ordering where those documents conflict with the priorities below. Existing runtime, evidence, authority, storage, and compatibility guarantees remain binding unless a later ADR explicitly changes them.
+> **Current priority override:** Kernel v1 consolidation now controls near-term development. See [`KERNEL-V1.md`](KERNEL-V1.md), [`KERNEL-FIRST-ROADMAP.md`](KERNEL-FIRST-ROADMAP.md), and ADR 0010. The product architecture in this document remains valid, but its product-first delivery ordering is no longer canonical until the Kernel v1 freeze gate is reached.
+
+This document remains the product and implementation history/reference for the post-v0.2 Learning OS stage. It complements the accepted ADRs and supersedes older backlog ordering where those documents conflict with the priorities below. Existing runtime, evidence, authority, storage, and compatibility guarantees remain binding unless a later ADR explicitly changes them.
 
 The project has reached a transition point. The first stage proved that a rigorous learning runtime can exist: Mission, learner model, typed LearningMap, evidence receipts, state proposals, completion gating, Learning Library, project lifecycle, proposal review, learner-state replay, and longitudinal review observations are implemented. The next stage is not primarily about adding more internal subsystems. It is about turning that learning engine into a product a learner can open every day, enter quickly, focus inside, leave cleanly, and return to with continuity.
 
