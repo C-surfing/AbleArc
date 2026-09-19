@@ -792,7 +792,7 @@ Less learner confirmation friction without any client-side direct mastery write.
 
 ### Phase 8 — Capability boundary and first Research Capability
 
-**Status:** tracked by Issue #89; promoted after the first coherent Teacher Policy + Paper Learning slice demonstrates a real source-verification need.
+**Status:** active implementation slice in Issue #89 after Teacher Policy v1 and the first Paper Learning slices established the source-verification boundary.
 
 **Goal:** let one coherent Teacher invoke specialist workflows.
 
