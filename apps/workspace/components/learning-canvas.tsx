@@ -1,7 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  assessmentFailureLabel,
+  assessmentFailureStorageKey,
+  normalizeAssessmentFailureType,
+  type AssessmentFailure,
+} from "@/lib/focus-session";
 import type { ArtifactInteraction, FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
@@ -226,7 +233,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   const [isAssessing, setIsAssessing] = useState(false);
   const [submitted, setSubmitted] = useState(snapshot.decision?.hasLearnerResponse ?? false);
   const [submitError, setSubmitError] = useState<string>();
-  const [assessmentError, setAssessmentError] = useState<string>();
+  const [assessmentError, setAssessmentError] = useState<AssessmentFailure>();
   const [artifactInteraction, setArtifactInteraction] = useState<ArtifactInteraction>();
   const [missionTitle, setMissionTitle] = useState("");
   const [missionGoal, setMissionGoal] = useState("");
@@ -239,14 +246,54 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
       snapshot.projectStatus === "archived"
       && snapshot.maintenanceStatus === "study_active"
     );
+  const assessmentStorageKey = useMemo(
+    () => snapshot.decision?.id
+      ? assessmentFailureStorageKey(snapshot.projectId || "workspace", snapshot.decision.id)
+      : undefined,
+    [snapshot.projectId, snapshot.decision?.id],
+  );
   useEffect(() => {
     setSubmitted(snapshot.decision?.hasLearnerResponse ?? false);
     setResponse("");
     setSubmitError(undefined);
-    setAssessmentError(undefined);
     setIsAssessing(false);
     setArtifactInteraction(undefined);
-  }, [snapshot.decision?.id, snapshot.decision?.hasLearnerResponse]);
+
+    if (!assessmentStorageKey) {
+      setAssessmentError(undefined);
+      return;
+    }
+    if (snapshot.latestExchange?.status === "assessed") {
+      window.localStorage.removeItem(assessmentStorageKey);
+      setAssessmentError(undefined);
+      return;
+    }
+    try {
+      const stored = window.localStorage.getItem(assessmentStorageKey);
+      if (!stored) {
+        setAssessmentError(undefined);
+        return;
+      }
+      const parsed = JSON.parse(stored) as { type?: unknown; message?: unknown };
+      if (typeof parsed.message !== "string" || !parsed.message.trim()) {
+        window.localStorage.removeItem(assessmentStorageKey);
+        setAssessmentError(undefined);
+        return;
+      }
+      setAssessmentError({
+        type: normalizeAssessmentFailureType(parsed.type),
+        message: parsed.message,
+      });
+    } catch {
+      window.localStorage.removeItem(assessmentStorageKey);
+      setAssessmentError(undefined);
+    }
+  }, [
+    assessmentStorageKey,
+    snapshot.decision?.id,
+    snapshot.decision?.hasLearnerResponse,
+    snapshot.latestExchange?.status,
+  ]);
   useEffect(() => {
     setRepresentation(snapshot.artifact ? "artifact" : "structure");
   }, [snapshot.artifact?.id]);
@@ -265,7 +312,9 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
   if (!projectWritable) {
     composerMessage = "This Project is read-only in its current lifecycle state";
   } else if (isAssessing) {
-    composerMessage = `Assessing with ${snapshot.agent.model || "the configured Provider"}…`;
+    composerMessage = `Your response is saved locally · Assessing with ${snapshot.agent.model || "the configured Provider"}…`;
+  } else if (assessmentError) {
+    composerMessage = `Your response is saved locally · ${assessmentFailureLabel(assessmentError.type)}: ${assessmentError.message}`;
   } else if (submitted && snapshot.agent.configured) {
     composerMessage = `Saved locally · ${snapshot.agent.model} is ready to assess`;
   } else if (submitted && snapshot.agent.error) {
@@ -276,8 +325,15 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
     composerMessage = "Commit a prediction in the artifact before submitting";
   }
 
+  function rememberAssessmentFailure(failure: AssessmentFailure) {
+    setAssessmentError(failure);
+    if (assessmentStorageKey) {
+      window.localStorage.setItem(assessmentStorageKey, JSON.stringify(failure));
+    }
+  }
+
   async function assessPendingResponse(decisionId: string) {
-    if (isAssessing || !snapshot.agent.configured) return;
+    if (isAssessing || !snapshot.agent.configured || !decisionId) return;
     setIsAssessing(true);
     setAssessmentError(undefined);
     try {
@@ -286,11 +342,22 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ decisionId }),
       });
-      const payload = await result.json() as { error?: string };
-      if (!result.ok) throw new Error(payload.error || "Could not assess the saved response.");
+      const payload = await result.json() as { error?: string; errorType?: unknown };
+      if (!result.ok) {
+        rememberAssessmentFailure({
+          type: normalizeAssessmentFailureType(payload.errorType),
+          message: payload.error || "Could not assess the saved response.",
+        });
+        return;
+      }
+      if (assessmentStorageKey) window.localStorage.removeItem(assessmentStorageKey);
+      setAssessmentError(undefined);
       router.refresh();
     } catch (error) {
-      setAssessmentError(error instanceof Error ? error.message : "Could not assess the saved response.");
+      rememberAssessmentFailure({
+        type: "network",
+        message: error instanceof Error ? error.message : "Could not reach the assessment endpoint.",
+      });
     } finally {
       setIsAssessing(false);
     }
@@ -526,7 +593,7 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         </label>
         <div className="composer-status">
           <span aria-live="polite">
-            {assessmentError || submitError || composerMessage}
+            {submitError || composerMessage}
           </span>
           <div className="composer-actions">
             {submitted && snapshot.latestExchange?.status !== "assessed" ? (
@@ -541,9 +608,20 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
                 {isAssessing
                   ? "Assessing…"
                   : snapshot.agent.configured
-                    ? `Assess with ${snapshot.agent.model}`
+                    ? assessmentError
+                      ? "Retry assessment"
+                      : `Assess with ${snapshot.agent.model}`
                     : "Check feedback"}
               </button>
+            ) : null}
+            {assessmentError ? (
+              <Link
+                className="composer-refresh"
+                href="/workspace"
+                title="The saved response remains available to the Workspace and external Agent path."
+              >
+                Open Workspace
+              </Link>
             ) : null}
             <button
               type="submit"
