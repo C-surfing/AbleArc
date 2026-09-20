@@ -37,3 +37,11 @@ jobs:
         run: npm run typecheck
       - name: Build workspace
         run: npm run build
+      - name: Verify workspace startup/build leaves tracked config clean
+        run: |
+          dirty="$(git status --porcelain --untracked-files=all -- .)"
+          if [ -n "$dirty" ]; then
+            echo "Workspace commands dirtied apps/workspace:"
+            echo "$dirty"
+            exit 1
+          fi
