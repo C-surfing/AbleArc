@@ -267,3 +267,28 @@ test("untouched dogfooding SESSION template is not counted as a real session", (
   fs.writeFileSync(path.join(sessionsDir, "001.md"), template + "\nReal learner observation.");
   assert.equal(loadWorkspaceSnapshot(root).sessions.length, 1);
 });
+
+
+test("workspace projection import closure uses explicit TypeScript extensions", () => {
+  const files = [
+    "workspace-data.ts",
+    "workspace-provider.ts",
+    "learning-kernel.ts",
+    "runtime-bridge.ts",
+  ];
+  for (const name of files) {
+    const source = fs.readFileSync(path.join(process.cwd(), "lib", name), "utf8");
+    const imports = [
+      ...source.matchAll(/from\s+["'](\.[^"']+)["']/g),
+      ...source.matchAll(/import\(["'](\.[^"']+)["']\)/g),
+    ];
+    for (const match of imports) {
+      const specifier = match[1];
+      assert.match(
+        specifier,
+        /\.(?:ts|tsx|js|json|css)$/,
+        `${name} has a test-loader-unsafe relative import: ${specifier}`,
+      );
+    }
+  }
+});
