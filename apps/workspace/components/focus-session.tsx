@@ -24,16 +24,18 @@ function defaultTimerMinutes(context?: DailyContext): number {
 export function FocusSession({
   snapshot,
   dailyContext,
+  initialSupportVisible = false,
 }: {
   snapshot: WorkspaceSnapshot;
   dailyContext?: DailyContext;
+  initialSupportVisible?: boolean;
 }) {
   const initialMinutes = useMemo(() => defaultTimerMinutes(dailyContext), [dailyContext]);
   const [remainingSeconds, setRemainingSeconds] = useState(initialMinutes * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerVisible, setTimerVisible] = useState(false);
   const [scaffoldLevel, setScaffoldLevel] = useState(0);
-  const [supportVisible, setSupportVisible] = useState(false);
+  const [supportVisible, setSupportVisible] = useState(initialSupportVisible);
   const locale = useMemo(
     () => resolveLearnerUiLocale(snapshot.preferredLanguage, [
       snapshot.mission,
