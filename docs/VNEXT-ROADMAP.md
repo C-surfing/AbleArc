@@ -4,6 +4,8 @@ Status: **implemented product roadmap / subordinate delivery reference**
 Last updated: 2026-09-19
 
 > **Current priority override:** Kernel v1 consolidation now controls near-term development. See [`KERNEL-V1.md`](KERNEL-V1.md), [`KERNEL-FIRST-ROADMAP.md`](KERNEL-FIRST-ROADMAP.md), and ADR 0010. The product architecture in this document remains valid, but its product-first delivery ordering is no longer canonical until the Kernel v1 freeze gate is reached.
+>
+> **2026-09-20 evidence-based exception:** Issue #132 temporarily prioritizes a bounded first-party Web stabilization gate because real dogfooding showed that the Web Host cannot yet produce reliable K8 evidence. This exception repairs Provider reliability, recovery UX, projection truthfulness, and the existing authority path; it does not resume broad product-first expansion.
 
 This document remains the product and implementation history/reference for the post-v0.2 Learning OS stage. It complements the accepted ADRs and supersedes older backlog ordering where those documents conflict with the priorities below. Existing runtime, evidence, authority, storage, and compatibility guarantees remain binding unless a later ADR explicitly changes them.
 
