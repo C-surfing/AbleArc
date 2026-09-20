@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { runtimeAdvancePayload, type PendingLearningTurn, type TeachingAdvance } from "./learning-orchestrator";
+import { runtimeAdvancePayload, type PendingLearningTurn, type TeachingAdvance } from "./learning-orchestrator.ts";
 
 const MAX_STDOUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 32 * 1024;

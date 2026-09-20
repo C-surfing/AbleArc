@@ -38,7 +38,7 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
           </div>
           <div className="decision-trace">
             <div><span>move</span><strong>{snapshot.decision.move.replaceAll("_", " ")}</strong></div>
-            <div><span>grounding</span><strong>{snapshot.decision.evidenceCount} evidence receipt(s)</strong></div>
+            <div><span>grounding</span><strong>{snapshot.decision.evidenceCount} supporting evidence item(s)</strong></div>
             <p>{snapshot.decision.rationale}</p>
             <small>{snapshot.decision.representationKind} · {snapshot.decision.representationPurpose}</small>
           </div>
@@ -86,7 +86,7 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
             </div>
             <p>{snapshot.latestStateDecision.reason}</p>
             <small>
-              {snapshot.latestStateDecision.authority} · {snapshot.latestStateDecision.evidenceCount} evidence receipt(s)
+              {snapshot.latestStateDecision.authority} · {snapshot.latestStateDecision.evidenceCount} supporting evidence item(s)
               {snapshot.latestStateDecision.policyOverridden ? " · policy override recorded" : ""}
             </small>
           </div>

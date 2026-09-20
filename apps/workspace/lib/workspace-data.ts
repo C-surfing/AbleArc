@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parseCanonicalLearningMap } from "./learning-map-data";
-import { getWorkspaceProviderStatus } from "./workspace-provider";
-import { parseLearningMaterialSummary } from "./learning-material-data";
-import { listProjectSummaries, resolveProjectReadContext } from "./project-store";
+import { parseCanonicalLearningMap } from "./learning-map-data.ts";
+import { getWorkspaceProviderStatus } from "./workspace-provider.ts";
+import { parseLearningMaterialSummary } from "./learning-material-data.ts";
+import { listProjectSummaries, resolveProjectReadContext } from "./project-store.ts";
 import type {
   DecisionTrace,
   EvidenceItem,
@@ -11,6 +11,7 @@ import type {
   LearnerExchange,
   LearningMapView,
   LearningMaterialSummary,
+  LearningNodeKind,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
@@ -19,7 +20,7 @@ import type {
   SessionPoint,
   StateDecisionTrace,
   WorkspaceSnapshot,
-} from "./types";
+} from "./types.ts";
 
 interface RuntimeState {
   revision: number;
@@ -490,7 +491,7 @@ function applyRuntimeState(nodes: RoadmapNode[], runtimeState: RuntimeState | un
   return nodes.map((node) => {
     const concept = runtimeState.concepts[node.id]
       || Object.values(runtimeState.concepts).find((item) => item.label.toLowerCase() === node.label.toLowerCase());
-    return concept ? { ...node, state: concept.state, evidence: `${concept.evidence_ids.length} accepted receipt(s)` } : node;
+    return concept ? { ...node, state: concept.state, evidence: `${concept.evidence_ids.length} accepted evidence item(s)` } : node;
   });
 }
 
@@ -498,12 +499,39 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const TEMPLATE_PLACEHOLDERS: readonly string[] = [
+  "unknown | exposed | developing | stable | transferable",
+  "recognition/recall/explanation/application/transfer",
+  "low/medium/high",
+  "same/new-form/delayed/novel-context",
+  "weak/medium/strong",
+  "active/testing/resolved",
+  "same-form/new-form/independent",
+];
+
+const MASTERY_STATES: readonly MasteryState[] = [
+  "unknown", "exposed", "developing", "stable", "transferable",
+];
+
+const MASTERY_GLYPHS: Record<string, MasteryState> = {
+  "○": "unknown",
+  "◔": "exposed",
+  "◐": "developing",
+  "●": "stable",
+  "◆": "transferable",
+};
+
 function field(markdown: string | undefined, label: string): string | undefined {
   if (!markdown) return undefined;
-  const pattern = new RegExp(`^-\\s*${escapeRegExp(label)}:\\s*(.+)$`, "im");
+  // Horizontal whitespace only: \\s* also consumes newlines and let an empty
+  // template field swallow the following markdown bullet.
+  const pattern = new RegExp(`^-[ \\t]*${escapeRegExp(label)}:[ \\t]*(.+)$`, "im");
   const match = markdown.match(pattern);
   const value = match?.[1]?.trim();
-  return value && value !== "-" ? value : undefined;
+  if (!value || value === "-") return undefined;
+  return TEMPLATE_PLACEHOLDERS.some((placeholder) => value.includes(placeholder))
+    ? undefined
+    : value;
 }
 
 function section(markdown: string | undefined, heading: string): string {
@@ -551,13 +579,28 @@ function tableRows(body: string): string[][] {
     .filter((cells) => cells.some(Boolean));
 }
 
+function table(markdown: string | undefined, heading: string): { header: string[]; rows: string[][] } {
+  const body = section(markdown, heading);
+  const lines = body
+    .split(/\r?\n/)
+    .filter((line) => line.trim().startsWith("|") && !/^\|\s*-+/.test(line.trim()))
+    .map((line) =>
+      line
+        .trim()
+        .replace(/^\||\|$/g, "")
+        .split("|")
+        .map((cell) => cell.trim()),
+    );
+  const [header = [], ...rows] = lines;
+  return { header, rows };
+}
+
 function normalizeState(value: string | undefined): MasteryState {
-  const text = (value || "").toLowerCase();
-  if (text.includes("transfer") || text.includes("◆")) return "transferable";
-  if (text.includes("stable") || text.includes("●")) return "stable";
-  if (text.includes("develop") || text.includes("◐")) return "developing";
-  if (text.includes("exposed") || text.includes("◔")) return "exposed";
-  return "unknown";
+  const text = (value || "").trim().toLowerCase().replace(/[`*_]/g, "");
+  if (!text) return "unknown";
+  const glyph = MASTERY_GLYPHS[text];
+  if (glyph) return glyph;
+  return MASTERY_STATES.find((state) => text === state) ?? "unknown";
 }
 
 function slug(value: string, fallback: string): string {
@@ -569,24 +612,53 @@ function slug(value: string, fallback: string): string {
 }
 
 function parseRoadmap(markdown: string | undefined): { nodes: RoadmapNode[]; edges: RoadmapEdge[] } {
-  const rows = tableRows(section(markdown, "Nodes"));
+  const { header, rows } = table(markdown, "Nodes");
+  const at = (name: string, fallback: number): number => {
+    const index = header.findIndex((cell) => cell.toLowerCase() === name);
+    return index >= 0 ? index : fallback;
+  };
+  const cellAt = (cells: string[], index: number): string => (index >= 0 ? cells[index] || "" : "");
+
+  const labelColumn = at("node", 0);
+  const stateColumn = at("state", -1);
+  const idColumn = at("id", -1);
+  const kindColumn = at("kind", -1);
+  const relevanceColumn = at("mission relevance", 4);
+  const dependsColumn = at("depends on", 2);
+  const evidenceColumn = at("evidence", -1);
+
+  const placeholderRow = /^no .* yet$/i;
+  const validKinds: LearningNodeKind[] = ["concept", "procedure", "strategy"];
   const nodes = rows
-    .filter((cells) => cells[0])
-    .map((cells, index) => ({
-      id: slug(cells[0], `node-${index + 1}`),
-      label: cells[0],
-      kind: "concept" as const,
-      state: normalizeState(cells[1]),
-      missionRelevance: ["core", "supporting", "optional"].includes(cells[4])
-        ? (cells[4] as RoadmapNode["missionRelevance"])
-        : "supporting" as const,
-      evidence: cells[5] || undefined,
-    }));
+    .filter((cells) => cellAt(cells, labelColumn) && !placeholderRow.test(cellAt(cells, labelColumn)))
+    .map((cells, index) => {
+      const label = cellAt(cells, labelColumn);
+      const explicitId = cellAt(cells, idColumn);
+      const kind = cellAt(cells, kindColumn);
+      const relevance = cellAt(cells, relevanceColumn);
+      const evidence = cellAt(cells, evidenceColumn);
+      return {
+        id: /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(explicitId)
+          ? explicitId
+          : slug(label, `node-${index + 1}`),
+        label,
+        kind: validKinds.includes(kind as LearningNodeKind)
+          ? (kind as LearningNodeKind)
+          : ("concept" as const),
+        // The canonical v0.2 roadmap intentionally has no mastery column.
+        state: stateColumn < 0 ? ("unknown" as const) : normalizeState(cellAt(cells, stateColumn)),
+        missionRelevance: ["core", "supporting", "optional"].includes(relevance)
+          ? (relevance as RoadmapNode["missionRelevance"])
+          : ("supporting" as const),
+        ...(evidence ? { evidence } : {}),
+      };
+    });
   const ids = new Set(nodes.map((node) => node.id));
   const edges = rows.flatMap((cells, index): RoadmapEdge[] => {
-    if (!cells[0] || !cells[2]) return [];
+    const depends = cellAt(cells, dependsColumn);
+    if (!cellAt(cells, labelColumn) || !depends) return [];
     const target = nodes[index]?.id;
-    const source = slug(cells[2], "");
+    const source = slug(depends, "");
     if (!target || !source || !ids.has(source) || source === target) return [];
     return [{
       id: `legacy-edge-${index + 1}`,
@@ -675,10 +747,18 @@ function localTimeline(repoRoot: string): { sessions: SessionPoint[]; activeArc?
   if (!activeArc) return { sessions: [] };
   const sessionsDir = path.join(root, activeArc, "sessions");
   if (!fs.existsSync(sessionsDir)) return { sessions: [], activeArc };
+
+  const sessionTemplate = readOptional(path.join(repoRoot, "evaluation", "SESSION.md"));
   const files = fs
     .readdirSync(sessionsDir)
     .filter((name) => /^\d+\.md$/.test(name))
+    .filter((name) => {
+      const content = readOptional(path.join(sessionsDir, name));
+      if (!content?.trim()) return false;
+      return sessionTemplate === undefined || content !== sessionTemplate;
+    })
     .sort();
+
   return {
     activeArc,
     sessions: files.map((name, index) => ({
@@ -802,9 +882,12 @@ export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): Worksp
     learnerNote: firstMeaningfulLine(learner, "Learner profile is intentionally sparse until evidence accumulates."),
     frontier,
     frontierState,
-    frontierReason: field(state, "Why this is the frontier") || (awaitingFirstDecision
-      ? "No learner model has been inferred. The first Teach turn should locate the nearest useful frontier."
-      : "The current state file marks this as the active frontier."),
+    frontierReason: field(state, "Why this is the frontier")
+      || (awaitingFirstDecision
+        ? "No learner model has been inferred. The first Teach turn should locate the nearest useful frontier."
+        : recordedFrontier
+          ? "The current state file marks this as the active frontier."
+          : "No learner model has been recorded yet; this is the Runtime's current teaching target."),
     nextMove: decision?.rationale || field(state, "Move") || (awaitingFirstDecision
       ? "Let the Teach agent turn this mission into one short, decision-relevant first move."
       : "Use the Teach/Study runtime to choose the next evidence-bearing cognitive move."),

@@ -71,7 +71,7 @@ export async function advanceLearningKernelTurn(
   const {
     advancePendingLearningTurn,
     readPendingLearningTurn,
-  } = await import("./runtime-bridge");
+  } = await import("./runtime-bridge.ts");
   const pending = await readPendingLearningTurn(repoRoot);
   if (!pending) {
     throw new LearningKernelConflictError("No learner response is awaiting assessment.");

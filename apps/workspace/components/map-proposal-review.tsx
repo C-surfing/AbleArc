@@ -104,7 +104,7 @@ export function MapProposalReview({
       </div>
       <p className={styles.rationale}>{proposal.rationale}</p>
       <div className={styles.meta}>
-        <span>{proposal.evidenceCount} evidence receipt(s)</span>
+        <span>{proposal.evidenceCount} supporting evidence item(s)</span>
         <span>proposed by {proposal.proposedBy}</span>
       </div>
       <div className={styles.delta}>

@@ -122,7 +122,7 @@ export function StateProposalReview({
           </div>
           <p>{proposal.rationale}</p>
           <div className={styles.meta}>
-            <span>{proposal.evidenceCount} evidence receipt(s)</span>
+            <span>{proposal.evidenceCount} supporting evidence item(s)</span>
             <span>{proposal.risk} risk</span>
             <span>proposed by {proposal.proposedBy}</span>
           </div>
