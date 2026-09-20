@@ -127,6 +127,19 @@ Rules:
 
 ## K8 — Longitudinal kernel dogfooding — Issues #95 and #2
 
+### Temporary Web stabilization gate — Issue #132
+
+The 2026-09-20 real Web retest found blocking failures in Provider reliability, Focus recovery, learner-facing projection truthfulness, and the Web Evidence → StateProposal path. These are Host/product-boundary failures, not evidence for a new Kernel abstraction.
+
+Until #132 closes:
+
+- Agent-mode real longitudinal evidence may continue to satisfy K8 where appropriate;
+- first-party Web sessions may reproduce/verify Host defects, but provider/transport/UI failures must not be classified as Kernel teaching failures;
+- work is limited to the stabilization sequence in [`WEB-STABILIZATION-2026-09-20.md`](WEB-STABILIZATION-2026-09-20.md);
+- Kernel semantics stay frozen unless independent real learning evidence reveals a repeated or clearly structural Kernel failure.
+
+After the Web stabilization exit gate passes, normal Web K8 dogfooding resumes.
+
 Validate at minimum:
 
 - Paper learning;
