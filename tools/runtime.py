@@ -1310,11 +1310,21 @@ def advance_learning_turn(
     )
     _require_compatible_scope(repo_root, prepared_next, prepared_evidence)
 
+    state_candidate_policy = data.get("state_candidate_policy")
+    if state_candidate_policy not in (None, "evidence-conservative-v0.1"):
+        raise RuntimeContractError(
+            "state_candidate_policy must be evidence-conservative-v0.1 when provided"
+        )
+
     evidence = _save(repo_root, "evidence", prepared_evidence)
-    state_proposals = derive_state_proposals_from_evidence(
-        repo_root,
-        current_decision,
-        evidence,
+    state_proposals = (
+        derive_state_proposals_from_evidence(
+            repo_root,
+            current_decision,
+            evidence,
+        )
+        if state_candidate_policy == "evidence-conservative-v0.1"
+        else []
     )
     state_decisions = reconcile_low_risk_state_proposals(
         repo_root,
