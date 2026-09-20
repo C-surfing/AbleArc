@@ -73,3 +73,25 @@ export function uiSessionShape(locale: LearnerUiLocale, moveType: string): {
   };
   return copy[moveType] || copy["continue-frontier"];
 }
+
+
+export function uiAssessmentFailure(
+  locale: LearnerUiLocale,
+  type: string,
+  fallback: string,
+): string {
+  if (locale !== "zh") return fallback;
+  const messages: Record<string, string> = {
+    provider_configuration: "模型服务配置不可用，请先检查模型设置。",
+    provider_timeout: "模型评估超时。你的回答已经保存，可以直接重新评估。",
+    provider_refusal: "模型服务拒绝了这次评估。你的回答仍然已经保存。",
+    provider_request: "模型服务请求失败。你的回答已经保存，可以稍后重试。",
+    provider_invalid_response: "模型返回的评估格式无效。你的回答已经保存，可以重新评估。",
+    structured_output_validation: "模型评估没有通过结构校验。你的回答已经保存，可以重新评估。",
+    runtime_conflict: "学习状态在评估期间发生了变化，请刷新后继续。",
+    runtime_failure: "本地学习运行时未能安全完成这次评估。",
+    network: "无法连接评估服务。你的回答已经保存，可以稍后重试。",
+    unknown: "这次评估没有完成。你的回答已经保存，可以重新评估。",
+  };
+  return messages[type] || messages.unknown;
+}
