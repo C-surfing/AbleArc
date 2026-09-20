@@ -581,12 +581,12 @@ function tableRows(body: string): string[][] {
 function table(markdown: string | undefined, heading: string): { header: string[]; rows: string[][] } {
   const body = section(markdown, heading);
   const lines = body
-    .split(/\\r?\\n/)
-    .filter((line) => line.trim().startsWith("|") && !/^\\|\\s*-+/.test(line.trim()))
+    .split(/\r?\n/)
+    .filter((line) => line.trim().startsWith("|") && !/^\|\s*-+/.test(line.trim()))
     .map((line) =>
       line
         .trim()
-        .replace(/^\\||\\|$/g, "")
+        .replace(/^\||\|$/g, "")
         .split("|")
         .map((cell) => cell.trim()),
     );
@@ -750,7 +750,7 @@ function localTimeline(repoRoot: string): { sessions: SessionPoint[]; activeArc?
   const sessionTemplate = readOptional(path.join(repoRoot, "evaluation", "SESSION.md"));
   const files = fs
     .readdirSync(sessionsDir)
-    .filter((name) => /^\\d+\\.md$/.test(name))
+    .filter((name) => /^\d+\.md$/.test(name))
     .filter((name) => {
       const content = readOptional(path.join(sessionsDir, name));
       if (!content?.trim()) return false;
