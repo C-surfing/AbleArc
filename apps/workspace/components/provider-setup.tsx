@@ -74,7 +74,7 @@ export function ProviderSetup({
       const body = await response.json() as { error?: string };
       if (!response.ok) throw new Error(body.error || "Could not save model settings.");
       setApiKey("");
-      setMessage("Model settings saved.");
+      setMessage("Model connection verified and settings saved.");
       router.refresh();
       if (mode === "onboarding") router.push("/");
     } catch (error) {
@@ -142,8 +142,12 @@ export function ProviderSetup({
               <input
                 value={baseUrl}
                 onChange={(event) => {
-                  setBaseUrl(event.target.value);
-                  setPreset("custom");
+                  const next = event.target.value;
+                  setBaseUrl(next);
+                  const inferred = inferPreset(next);
+                  setPreset(inferred);
+                  if (inferred === "deepseek") setStructuredOutput("json_object");
+                  if (inferred === "openai") setStructuredOutput("json_schema");
                 }}
                 maxLength={2000}
                 placeholder="https://api.openai.com/v1"
@@ -188,7 +192,7 @@ export function ProviderSetup({
                   || (!apiKey.trim() && initial.source !== "web")
                 }
               >
-                {busy ? "Saving…" : mode === "onboarding" ? "Save and enter AbleArc" : "Save model settings"}
+                {busy ? "Checking connection…" : mode === "onboarding" ? "Verify, save, and enter AbleArc" : "Verify and save settings"}
               </button>
               <span>No command-line model configuration is required for normal Web use.</span>
             </div>
