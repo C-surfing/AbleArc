@@ -119,7 +119,7 @@ export function FocusSession({
             </div>
           ) : (
             <button className={styles.timerToggle} type="button" onClick={() => setTimerVisible(true)}>
-              {t("Timer", "计时")} · {initialMinutes}m
+              {locale === "zh" ? `计时 · ${initialMinutes} 分钟` : `Timer · ${initialMinutes}m`}
             </button>
           )}
           {snapshot.latestExchange?.status === "assessed" ? (
