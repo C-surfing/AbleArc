@@ -21,8 +21,8 @@ trap cleanup EXIT
 echo "Installing Chromium for visual QA..."
 npx --yes playwright@1.55.0 install --with-deps chromium
 
-echo "Starting AbleArc visual QA server..."
-npm run dev -- --hostname "${HOST}" --port "${PORT}" >"${LOG_FILE}" 2>&1 &
+echo "Starting AbleArc production visual QA server..."
+npm run start -- --hostname "${HOST}" --port "${PORT}" >"${LOG_FILE}" 2>&1 &
 SERVER_PID=$!
 
 ready=0
