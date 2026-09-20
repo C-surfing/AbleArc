@@ -44,7 +44,7 @@ A stale proposal is never auto-accepted. Runtime policy cannot override its own 
 
 ## Evidence-derived candidate policy
 
-The normal Web/Agent `advance_learning_turn` path now derives candidate state changes **after** validated Evidence is written. The Provider does not output accepted mastery, and React never writes learner state.
+The Web Runtime bridge opts into `state_candidate_policy=evidence-conservative-v0.1`, so `advance_learning_turn` derives candidate state changes **after** validated Evidence is written. Headless/Agent callers remain backward-compatible: they may opt into the same policy or continue creating explicit StateProposals themselves. The Provider does not output accepted mastery, and React never writes learner state.
 
 The current conservative candidate rules are:
 
