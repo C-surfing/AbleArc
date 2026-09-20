@@ -880,6 +880,7 @@ export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): Worksp
     hasMission,
     mission: missionGoal || firstMeaningfulLine(mission, "Learning mission is being established."),
     learnerNote: firstMeaningfulLine(learner, "Learner profile is intentionally sparse until evidence accumulates."),
+    preferredLanguage: field(learner, "Preferred language"),
     frontier,
     frontierState,
     frontierReason: field(state, "Why this is the frontier")

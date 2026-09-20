@@ -97,3 +97,28 @@ test("assessment failure state is typed but remains Host-only recovery metadata"
     "ablearc:assessment-failure:Bayes%20%2F%20course:dec_123",
   );
 });
+
+
+test("Focus scaffolds keep static chrome in the learner UI locale", () => {
+  const current = snapshot({
+    decision: {
+      id: "dec_zh",
+      target: "bayes",
+      move: "probe",
+      rationale: "检查条件方向。",
+      learnerAction: "解释 P(A|B) 与 P(B|A) 为什么不同。",
+      uncertainty: "medium",
+      representationKind: "conversation",
+      representationPurpose: "检查条件方向。",
+      evidenceCount: 0,
+      expectedEvidence: "能独立解释条件方向。",
+      falsificationSignal: "把两个条件概率当成对称关系。",
+      hasLearnerResponse: false,
+    },
+  });
+  const scaffolds = focusScaffolds(current, "zh");
+  assert.equal(scaffolds[0]?.label, "证据目标");
+  assert.equal(scaffolds[1]?.label, "提交前自检");
+  assert.equal(scaffolds[2]?.label, "暴露最不确定的一步");
+  assert.match(scaffolds[2]?.text || "", /不确定/);
+});

@@ -16,6 +16,9 @@ apps/workspace/.next/
 apps/workspace/node_modules/
 apps/workspace/next-env.d.ts
 apps/workspace/.env*.local
+# Local AI/dev assistants may generate these during workspace startup.
+apps/workspace/AGENTS.md
+apps/workspace/CLAUDE.md
 *.tsbuildinfo
 __pycache__/
 

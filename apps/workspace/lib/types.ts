@@ -220,6 +220,7 @@ export interface WorkspaceSnapshot {
   hasMission: boolean;
   mission: string;
   learnerNote: string;
+  preferredLanguage?: string;
   frontier: string;
   frontierState: MasteryState;
   frontierReason: string;
