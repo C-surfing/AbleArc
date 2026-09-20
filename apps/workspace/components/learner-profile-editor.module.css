@@ -1,69 +1,73 @@
 .editor {
   display: grid;
-  gap: 14px;
+  gap: 22px;
 }
 
 .editor section {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  overflow: hidden;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
 }
 
 .editor section > header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line-soft);
+  padding: 12px 0 10px;
 }
 
 .editor section > header span {
-  color: var(--accent);
+  color: var(--accent-strong);
   font-size: 10px;
-  font-weight: 760;
-  letter-spacing: .08em;
+  font-weight: 780;
+  letter-spacing: .09em;
   text-transform: uppercase;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  padding: 16px;
+  gap: 14px 16px;
 }
 
 .grid label {
   display: grid;
-  gap: 6px;
+  gap: 7px;
 }
 
 .grid label > span {
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: 11px;
   font-weight: 650;
 }
 
 .grid input {
   width: 100%;
-  padding: 10px 11px;
+  min-height: 43px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface-strong);
+  border-radius: 11px;
+  background: rgba(255, 254, 249, 0.78);
+  color: var(--ink);
   outline: none;
 }
 
+.grid input::placeholder {
+  color: #aaa3ac;
+}
+
 .grid input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: rgba(116, 99, 168, 0.5);
+  box-shadow: 0 0 0 4px rgba(116, 99, 168, 0.09);
+  background: var(--surface-strong);
 }
 
 .editor > footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 16px;
-  border: 1px solid var(--line);
+  gap: 24px;
+  margin-top: 6px;
+  padding: 18px 20px;
+  border: 1px solid rgba(110, 152, 182, 0.18);
   border-radius: 14px;
-  background: var(--surface);
+  background: rgba(232, 240, 245, 0.44);
 }
 
 .editor > footer > div {
@@ -72,6 +76,7 @@
 }
 
 .editor > footer strong {
+  color: var(--ink-soft);
   font-size: 12px;
 }
 
@@ -79,27 +84,32 @@
 .message {
   color: var(--muted);
   font-size: 10px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .editor button {
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  background: var(--accent);
-  color: white;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid var(--ink);
+  border-radius: 10px 10px 10px 5px;
+  background: var(--ink);
+  color: var(--surface-strong);
   font-weight: 740;
   cursor: pointer;
 }
 
+.editor button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #383442;
+}
+
 .editor button:disabled {
-  opacity: .55;
+  opacity: .5;
   cursor: wait;
 }
 
 .message {
-  margin: 0;
+  margin: -10px 0 0;
 }
 
 @media (max-width: 720px) {
@@ -110,5 +120,9 @@
   .editor > footer {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .editor button {
+    width: 100%;
   }
 }
