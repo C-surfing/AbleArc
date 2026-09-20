@@ -2,12 +2,12 @@ import {
   createConfiguredAgentAdapter,
   getAgentProviderStatus,
   type AgentAdapter,
-} from "./agent-adapter";
+} from "./agent-adapter.ts";
 import {
   effectiveProviderEnvironment,
   providerSettingsMetadata,
-} from "./provider-settings";
-import type { AgentProviderStatus } from "./types";
+} from "./provider-settings.ts";
+import type { AgentProviderStatus } from "./types.ts";
 
 export function getWorkspaceProviderStatus(repoRoot: string): AgentProviderStatus {
   let metadata;
