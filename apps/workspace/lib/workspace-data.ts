@@ -11,6 +11,7 @@ import type {
   LearnerExchange,
   LearningMapView,
   LearningMaterialSummary,
+  LearningNodeKind,
   MasteryState,
   MisconceptionItem,
   ReviewCandidate,
