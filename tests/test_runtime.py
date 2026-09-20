@@ -290,7 +290,10 @@ class LearningRuntimeTests(unittest.TestCase):
         result = runtime.advance_learning_turn(
             self.root,
             decision["id"],
-            self.advance_payload(),
+            {
+                **self.advance_payload(),
+                "state_candidate_policy": "evidence-conservative-v0.1",
+            },
         )
 
         self.assertEqual(len(result["state_proposals"]), 1)
@@ -335,7 +338,10 @@ class LearningRuntimeTests(unittest.TestCase):
         second_result = runtime.advance_learning_turn(
             self.root,
             second["id"],
-            self.advance_payload(),
+            {
+                **self.advance_payload(),
+                "state_candidate_policy": "evidence-conservative-v0.1",
+            },
         )
 
         self.assertEqual(len(second_result["state_proposals"]), 1)
@@ -360,6 +366,7 @@ class LearningRuntimeTests(unittest.TestCase):
             "outcome": "inconclusive",
             "supports": [],
         }
+        inconclusive["state_candidate_policy"] = "evidence-conservative-v0.1"
         result = runtime.advance_learning_turn(self.root, decision["id"], inconclusive)
         self.assertEqual(result["state_proposals"], [])
         self.assertEqual(result["state_decisions"], [])
@@ -378,6 +385,7 @@ class LearningRuntimeTests(unittest.TestCase):
             "supports": [],
             "contradicts": ["confuses sensitivity with posterior"],
         }
+        contradicting["state_candidate_policy"] = "evidence-conservative-v0.1"
         contradicted = runtime.advance_learning_turn(
             self.root,
             next_decision["id"],
