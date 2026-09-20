@@ -1,4 +1,4 @@
-import type { AgentAdapter } from "./agent-adapter";
+import { AgentAdapterError, type AgentAdapter, type StructuredGenerationRequest } from "./agent-adapter.ts";
 
 const LEVELS = ["recognition", "recall", "explanation", "application", "transfer"] as const;
 const OUTCOMES = ["supports", "contradicts", "inconclusive"] as const;
@@ -226,86 +226,134 @@ export const TEACHING_ADVANCE_SCHEMA: Record<string, unknown> = {
   required: ["policy", "assessment", "next_decision"],
 };
 
-function object(value: unknown, label: string): Record<string, unknown> {
+export class TeachingAdvanceValidationError extends Error {
+  constructor(
+    message: string,
+    readonly path: string,
+    readonly expected: string,
+    readonly actual: string,
+  ) {
+    super(message);
+    this.name = "TeachingAdvanceValidationError";
+  }
+}
+
+function shape(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return `array(length=${value.length})`;
+  if (typeof value === "object") {
+    return `object(keys=[${Object.keys(value as Record<string, unknown>).sort().join(",")}])`;
+  }
+  if (typeof value === "string") return `string(length=${value.length})`;
+  return typeof value;
+}
+
+function validationError(
+  path: string,
+  expected: string,
+  value: unknown,
+  message: string,
+): never {
+  throw new TeachingAdvanceValidationError(message, path, expected, shape(value));
+}
+
+function object(value: unknown, path: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error(`${label} must be an object.`);
+    return validationError(path, "object", value, `${path} must be an object.`);
   }
   return value as Record<string, unknown>;
 }
 
-function exactKeys(value: Record<string, unknown>, expected: string[], label: string): void {
+function exactKeys(value: Record<string, unknown>, expected: string[], path: string): void {
   const keys = Object.keys(value).sort();
   const required = [...expected].sort();
   if (keys.length !== required.length || keys.some((key, index) => key !== required[index])) {
-    throw new Error(`${label} contains missing or unsupported fields.`);
+    validationError(
+      path,
+      `exact keys [${required.join(",")}]`,
+      value,
+      `${path} contains missing or unsupported fields.`,
+    );
   }
 }
 
-function text(value: unknown, label: string, maximum: number): string {
+function text(value: unknown, path: string, maximum: number): string {
   if (typeof value !== "string" || !value.trim() || value.length > maximum) {
-    throw new Error(`${label} must be a non-empty string of at most ${maximum} characters.`);
+    return validationError(
+      path,
+      `non-empty string <= ${maximum} characters`,
+      value,
+      `${path} must be a non-empty string of at most ${maximum} characters.`,
+    );
   }
   return value.trim();
 }
 
-function member<T extends readonly string[]>(value: unknown, values: T, label: string): T[number] {
+function member<T extends readonly string[]>(value: unknown, values: T, path: string): T[number] {
   if (typeof value !== "string" || !values.includes(value)) {
-    throw new Error(`${label} is invalid.`);
+    return validationError(
+      path,
+      `one of [${values.join(",")}]`,
+      value,
+      `${path} is invalid.`,
+    );
   }
   return value as T[number];
 }
 
-function texts(value: unknown, label: string): string[] {
-  if (!Array.isArray(value) || value.length > 20) throw new Error(`${label} must be a short array.`);
-  return value.map((item, index) => text(item, `${label}[${index}]`, 500));
+function texts(value: unknown, path: string): string[] {
+  if (!Array.isArray(value) || value.length > 20) {
+    return validationError(path, "array(length<=20)", value, `${path} must be a short array.`);
+  }
+  return value.map((item, index) => text(item, `${path}[${index}]`, 500));
 }
 
 export function validateTeachingAdvance(value: unknown, assessor: string): TeachingAdvance {
-  const root = object(value, "Teaching advance");
-  exactKeys(root, ["policy", "assessment", "next_decision"], "Teaching advance");
-  const policy = object(root.policy, "Policy");
-  exactKeys(policy, ["challenge", "rationale", "review", "session", "calibration"], "Policy");
-  const review = object(policy.review, "Policy review");
-  exactKeys(review, ["disposition", "concept_ids", "rationale"], "Policy review");
-  const session = object(policy.session, "Policy session");
-  exactKeys(session, ["disposition", "rationale"], "Policy session");
-  const calibration = object(policy.calibration, "Policy calibration");
-  exactKeys(calibration, ["state", "rationale"], "Policy calibration");
-  const assessment = object(root.assessment, "Assessment");
+  const root = object(value, "$");
+  exactKeys(root, ["policy", "assessment", "next_decision"], "$");
+  const policy = object(root.policy, "policy");
+  exactKeys(policy, ["challenge", "rationale", "review", "session", "calibration"], "policy");
+  const review = object(policy.review, "policy.review");
+  exactKeys(review, ["disposition", "concept_ids", "rationale"], "policy.review");
+  const session = object(policy.session, "policy.session");
+  exactKeys(session, ["disposition", "rationale"], "policy.session");
+  const calibration = object(policy.calibration, "policy.calibration");
+  exactKeys(calibration, ["state", "rationale"], "policy.calibration");
+  const assessment = object(root.assessment, "assessment");
   exactKeys(assessment, [
     "level", "outcome", "failure_mode", "artifact_form", "result_summary", "scaffolding", "context", "delay",
     "independence", "supports", "contradicts", "confidence",
-  ], "Assessment");
-  const next = object(root.next_decision, "Next decision");
+  ], "assessment");
+  const next = object(root.next_decision, "next_decision");
   exactKeys(next, [
     "mode", "target", "concept_ids", "frontier_hypothesis", "uncertainty",
     "move", "rationale", "learner_action", "representation", "expected_evidence",
     "falsification_signal",
-  ], "Next decision");
-  const representation = object(next.representation, "Representation");
-  exactKeys(representation, ["kind", "purpose"], "Representation");
-  const conceptIds = texts(next.concept_ids, "concept_ids");
+  ], "next_decision");
+  const representation = object(next.representation, "next_decision.representation");
+  exactKeys(representation, ["kind", "purpose"], "next_decision.representation");
+  const conceptIds = texts(next.concept_ids, "next_decision.concept_ids");
   if (conceptIds.length === 0 || conceptIds.length > 12 || conceptIds.some(
     (id) => !/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)
-  )) throw new Error("concept_ids must contain safe, stable local identifiers.");
+  )) validationError("next_decision.concept_ids", "1-12 safe kebab-case local identifiers", next.concept_ids, "concept_ids must contain safe, stable local identifiers.");
 
   const outcome = member(assessment.outcome, OUTCOMES, "assessment.outcome");
   const failureMode = member(assessment.failure_mode, FAILURE_MODES, "assessment.failure_mode");
   if (outcome === "supports" && failureMode !== "none") {
-    throw new Error("Supporting evidence must use failure_mode=none.");
+    validationError("assessment.failure_mode", "none when assessment.outcome=supports", assessment.failure_mode, "Supporting evidence must use failure_mode=none.");
   }
   if (outcome === "contradicts" && failureMode === "none") {
-    throw new Error("Contradicting evidence must identify a specific failure_mode.");
+    validationError("assessment.failure_mode", "specific failure mode when assessment.outcome=contradicts", assessment.failure_mode, "Contradicting evidence must identify a specific failure_mode.");
   }
 
   const nextMove = member(next.move, MOVES, "next_decision.move");
   const reviewDisposition = member(review.disposition, REVIEW_DISPOSITIONS, "policy.review.disposition");
   const reviewConceptIds = texts(review.concept_ids, "policy.review.concept_ids");
   if (reviewConceptIds.some((id) => !/^[a-z0-9][a-z0-9-]{0,63}$/.test(id))) {
-    throw new Error("policy.review.concept_ids must contain safe, stable local identifiers.");
+    validationError("policy.review.concept_ids", "safe kebab-case local identifiers", review.concept_ids, "policy.review.concept_ids must contain safe, stable local identifiers.");
   }
   if ((reviewDisposition === "review_now" || reviewDisposition === "review_later") && reviewConceptIds.length === 0) {
-    throw new Error("Review policy must name at least one concept when review is recommended.");
+    validationError("policy.review.concept_ids", "at least one concept for review_now/review_later", review.concept_ids, "Review policy must name at least one concept when review is recommended.");
   }
 
   return {
@@ -351,8 +399,8 @@ export function validateTeachingAdvance(value: unknown, assessor: string): Teach
       rationale: text(next.rationale, "next_decision.rationale", 1600),
       learner_action: text(next.learner_action, "next_decision.learner_action", 1600),
       representation: {
-        kind: text(representation.kind, "representation.kind", 120),
-        purpose: text(representation.purpose, "representation.purpose", 800),
+        kind: text(representation.kind, "next_decision.representation.kind", 120),
+        purpose: text(representation.purpose, "next_decision.representation.purpose", 800),
       },
       expected_evidence: text(next.expected_evidence, "next_decision.expected_evidence", 1600),
       falsification_signal: text(next.falsification_signal, "next_decision.falsification_signal", 1600),
@@ -374,7 +422,7 @@ export async function generateTeachingAdvance(
   pending: PendingLearningTurn,
   signal?: AbortSignal,
 ): Promise<TeachingAdvance> {
-  const generated = await adapter.generateStructured({
+  const baseRequest: StructuredGenerationRequest = {
     name: "teaching_turn_advance",
     schema: TEACHING_ADVANCE_SCHEMA,
     signal,
@@ -406,9 +454,37 @@ export async function generateTeachingAdvance(
       "Interpret this pending turn and propose the validated Runtime advance payload.",
       JSON.stringify(pending),
     ].join("\n\n"),
-  });
-  return validateTeachingAdvance(
-    generated,
-    `provider:${adapter.id}:${adapter.model}`,
-  );
+  };
+  const assessor = `provider:${adapter.id}:${adapter.model}`;
+  let correction: string | undefined;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const generated = await adapter.generateStructured({
+        ...baseRequest,
+        prompt: correction
+          ? [
+              baseRequest.prompt,
+              "The previous structured response was rejected locally. Correct the exact problem below; do not add commentary or extra fields.",
+              correction,
+            ].join("\n\n")
+          : baseRequest.prompt,
+      });
+      return validateTeachingAdvance(generated, assessor);
+    } catch (error) {
+      const validationFailure = error instanceof TeachingAdvanceValidationError;
+      const malformedProviderOutput = error instanceof AgentAdapterError && error.code === "invalid_response";
+      if ((!validationFailure && !malformedProviderOutput) || attempt >= 2) throw error;
+      correction = validationFailure
+        ? [
+            `Validation path: ${error.path}`,
+            `Expected: ${error.expected}`,
+            `Actual: ${error.actual}`,
+            `Reason: ${error.message}`,
+          ].join("\n")
+        : "The previous Provider response was incomplete or invalid JSON. Return one complete JSON object matching the supplied schema exactly.";
+    }
+  }
+
+  throw new AgentAdapterError("Provider could not produce a valid structured learning turn.", "invalid_response");
 }

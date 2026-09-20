@@ -5,6 +5,7 @@ import {
   LearningKernelConflictError,
   advanceLearningKernelTurn,
 } from "@/lib/learning-kernel";
+import { TeachingAdvanceValidationError } from "@/lib/learning-orchestrator";
 import { RuntimeBridgeError } from "@/lib/runtime-bridge";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
@@ -59,6 +60,16 @@ export async function POST(request: NextRequest) {
             ? "The Provider declined this assessment. Continue with an external Agent."
             : "The Provider could not produce a valid structured learning turn.";
       return NextResponse.json({ error: message }, { status });
+    }
+    if (error instanceof TeachingAdvanceValidationError) {
+      return NextResponse.json(
+        {
+          error: "The Provider response did not match the required learning-turn structure after bounded repair attempts.",
+          errorType: "structured_output_validation",
+          path: error.path,
+        },
+        { status: 502 },
+      );
     }
     if (error instanceof RuntimeBridgeError) {
       return NextResponse.json(

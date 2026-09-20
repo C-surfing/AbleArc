@@ -1,4 +1,4 @@
-import type { AgentProviderStatus } from "./types";
+import type { AgentProviderStatus } from "./types.ts";
 
 type Environment = Readonly<Record<string, string | undefined>>;
 
@@ -87,7 +87,7 @@ export function readOpenAICompatibleConfig(
   const model = (env.ABLEARC_PROVIDER_MODEL ?? env.AI4LEARNING_PROVIDER_MODEL)?.trim();
   if (!apiKey || !model) return undefined;
   const parsedTimeout = Number(
-    env.ABLEARC_PROVIDER_TIMEOUT_MS ?? env.AI4LEARNING_PROVIDER_TIMEOUT_MS ?? 45_000,
+    env.ABLEARC_PROVIDER_TIMEOUT_MS ?? env.AI4LEARNING_PROVIDER_TIMEOUT_MS ?? 120_000,
   );
   if (!Number.isInteger(parsedTimeout) || parsedTimeout < 1_000 || parsedTimeout > 120_000) {
     throw new AgentAdapterError(
@@ -177,6 +177,7 @@ export class OpenAICompatibleAdapter implements AgentAdapter {
               { role: "user", content: request.prompt },
             ],
             response_format: responseFormat,
+            ...(mode === "json_object" ? { max_tokens: 4096 } : {}),
           }),
           signal: controller.signal,
         },

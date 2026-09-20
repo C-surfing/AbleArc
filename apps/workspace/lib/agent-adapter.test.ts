@@ -30,7 +30,7 @@ test("AbleArc provider variables are preferred while legacy names remain compati
     apiKey: "ablearc-secret",
     model: "ablearc-model",
     baseUrl: "https://ablearc-provider.example/v1",
-    timeoutMs: 45_000,
+    timeoutMs: 120_000,
     structuredOutput: "json_schema",
   });
 
@@ -42,7 +42,7 @@ test("AbleArc provider variables are preferred while legacy names remain compati
     apiKey: "legacy-secret",
     model: "legacy-model",
     baseUrl: "https://api.openai.com/v1",
-    timeoutMs: 45_000,
+    timeoutMs: 120_000,
     structuredOutput: "json_object",
   });
 });
@@ -147,8 +147,10 @@ test("adapter can request JSON Object output while retaining local schema valida
   const body = JSON.parse(String(capturedInit?.body)) as {
     messages: Array<{ role: string; content: string }>;
     response_format: unknown;
+    max_tokens?: number;
   };
   assert.deepEqual(body.response_format, { type: "json_object" });
+  assert.equal(body.max_tokens, 4096);
   assert.match(body.messages[0]?.content ?? "", /valid JSON/);
   assert.match(body.messages[0]?.content ?? "", /JSON Schema/);
   assert.match(body.messages[0]?.content ?? "", /additionalProperties/);

@@ -37,7 +37,7 @@ export function ProviderSetup({
   const [structuredOutput, setStructuredOutput] = useState<"json_schema" | "json_object">(
     initial.structuredOutput || "json_schema",
   );
-  const [timeoutMs, setTimeoutMs] = useState(String(initial.timeoutMs || 45000));
+  const [timeoutMs, setTimeoutMs] = useState(String(initial.timeoutMs || 120000));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string>();
   const environmentManaged = initial.source === "environment";
