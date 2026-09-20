@@ -83,8 +83,8 @@ export function FocusSession({
 
   useEffect(() => {
     setScaffoldLevel(0);
-    setSupportVisible(false);
-  }, [snapshot.projectId, snapshot.decision?.id]);
+    setSupportVisible(initialSupportVisible);
+  }, [snapshot.projectId, snapshot.decision?.id, initialSupportVisible]);
 
   function resetTimer() {
     setTimerRunning(false);
