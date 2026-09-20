@@ -298,3 +298,32 @@ export const VISUAL_SESSION_CLOSE: SessionCloseDraft = {
     action: "Compare two tiled kernels and predict when staging cost is repaid by reuse.",
   },
 };
+
+
+export const VISUAL_PENDING_SNAPSHOT: WorkspaceSnapshot = {
+  ...VISUAL_SNAPSHOT,
+  decision: VISUAL_SNAPSHOT.decision
+    ? { ...VISUAL_SNAPSHOT.decision, hasLearnerResponse: true }
+    : undefined,
+  latestExchange: {
+    decisionId: "dec_visual_cache",
+    observationId: "obs_visual_cache_pending",
+    response: "After an L1 miss I would check the next cache level before DRAM. Shared memory changes this by explicitly staging reusable data, but I still pay the load and synchronization cost.",
+    status: "awaiting_assessment",
+    supports: [],
+    contradicts: [],
+  },
+};
+
+export const VISUAL_READ_ONLY_SNAPSHOT: WorkspaceSnapshot = {
+  ...VISUAL_SNAPSHOT,
+  projectStatus: "paused",
+  decision: VISUAL_SNAPSHOT.decision
+    ? { ...VISUAL_SNAPSHOT.decision, hasLearnerResponse: false }
+    : undefined,
+};
+
+export const VISUAL_ASSESSMENT_FAILURE = {
+  type: "provider_timeout",
+  message: "The saved response is intact, but the provider did not return a valid assessment before the timeout.",
+} as const;
