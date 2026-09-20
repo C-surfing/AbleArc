@@ -2708,6 +2708,14 @@ summary:focus-visible {
   color: var(--surface-strong) !important;
 }
 
+.composer-actions > button[type="submit"]:disabled {
+  border-color: var(--line) !important;
+  background: #e8e3da !important;
+  color: #8d8790 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
 .artifact-prediction {
   border-color: rgba(184, 139, 62, 0.26);
   background: rgba(247, 237, 217, 0.56);
