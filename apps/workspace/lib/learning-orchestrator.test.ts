@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { AgentAdapter, StructuredGenerationRequest } from "./agent-adapter.ts";
+import { AgentAdapterError, type AgentAdapter, type StructuredGenerationRequest } from "./agent-adapter.ts";
 import {
   generateTeachingAdvance,
   runtimeAdvancePayload,
+  TeachingAdvanceValidationError,
   validateTeachingAdvance,
 } from "./learning-orchestrator.ts";
 
@@ -290,4 +291,114 @@ test("orchestrator treats learner text as untrusted content and validates output
     "assessment",
     "next_decision",
   ]);
+});
+
+
+test("validator reports a typed path for structured-output drift", () => {
+  const extra = generatedAdvance();
+  (extra as Record<string, unknown>).session_note = "extra";
+  assert.throws(
+    () => validateTeachingAdvance(extra, "provider:test:model"),
+    (error: unknown) => error instanceof TeachingAdvanceValidationError
+      && error.path === "$"
+      && /exact keys/.test(error.expected)
+      && /session_note/.test(error.actual),
+  );
+
+  const nested = generatedAdvance();
+  ((nested.policy as Record<string, unknown>).session as Record<string, unknown>).extra = true;
+  assert.throws(
+    () => validateTeachingAdvance(nested, "provider:test:model"),
+    (error: unknown) => error instanceof TeachingAdvanceValidationError
+      && error.path === "policy.session",
+  );
+});
+
+test("orchestrator retries schema drift and feeds the exact validation error back", async () => {
+  const requests: StructuredGenerationRequest[] = [];
+  let attempts = 0;
+  const adapter: AgentAdapter = {
+    id: "fixture",
+    model: "fixture-model",
+    async generateStructured(request) {
+      requests.push(request);
+      attempts += 1;
+      const value = generatedAdvance();
+      if (attempts === 1) (value as Record<string, unknown>).session_note = "unsupported";
+      return value;
+    },
+  };
+
+  const result = await generateTeachingAdvance(adapter, {
+    mission: { goal: "Understand Bayes" },
+    decision: { id: "dec_example", learner_action: "Explain the denominator." },
+    observation: { observed_result: "It normalizes the posterior." },
+    learner_state: { concepts: {} },
+  });
+
+  assert.equal(result.assessment.outcome, "supports");
+  assert.equal(attempts, 2);
+  assert.match(requests[1]?.prompt || "", /Validation path: \$/);
+  assert.match(requests[1]?.prompt || "", /session_note/);
+  assert.match(requests[1]?.prompt || "", /do not add commentary or extra fields/);
+});
+
+test("orchestrator retries malformed provider JSON but not ordinary provider failures", async () => {
+  let invalidAttempts = 0;
+  const recovering: AgentAdapter = {
+    id: "fixture",
+    model: "fixture-model",
+    async generateStructured() {
+      invalidAttempts += 1;
+      if (invalidAttempts === 1) {
+        throw new AgentAdapterError("Provider structured content was not valid JSON.", "invalid_response");
+      }
+      return generatedAdvance();
+    },
+  };
+  const pending = {
+    mission: { goal: "Understand Bayes" },
+    decision: { id: "dec_example", learner_action: "Explain the denominator." },
+    observation: { observed_result: "It normalizes the posterior." },
+    learner_state: { concepts: {} },
+  };
+  await generateTeachingAdvance(recovering, pending);
+  assert.equal(invalidAttempts, 2);
+
+  let providerAttempts = 0;
+  const failing: AgentAdapter = {
+    id: "fixture",
+    model: "fixture-model",
+    async generateStructured() {
+      providerAttempts += 1;
+      throw new AgentAdapterError("Provider unavailable.", "provider", 503);
+    },
+  };
+  await assert.rejects(() => generateTeachingAdvance(failing, pending), /Provider unavailable/);
+  assert.equal(providerAttempts, 1);
+});
+
+test("orchestrator bounds structured-output repair attempts", async () => {
+  let attempts = 0;
+  const adapter: AgentAdapter = {
+    id: "fixture",
+    model: "fixture-model",
+    async generateStructured() {
+      attempts += 1;
+      const value = generatedAdvance();
+      (value as Record<string, unknown>).session_note = "still-extra";
+      return value;
+    },
+  };
+
+  await assert.rejects(
+    () => generateTeachingAdvance(adapter, {
+      mission: { goal: "Understand Bayes" },
+      decision: { id: "dec_example", learner_action: "Explain the denominator." },
+      observation: { observed_result: "It normalizes the posterior." },
+      learner_state: { concepts: {} },
+    }),
+    (error: unknown) => error instanceof TeachingAdvanceValidationError && error.path === "$",
+  );
+  assert.equal(attempts, 3);
 });
