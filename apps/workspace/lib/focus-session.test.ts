@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { focusScaffolds, focusSessionMode, isFocusSessionWritable } from "./focus-session.ts";
+import {
+  assessmentFailureLabel,
+  assessmentFailureStorageKey,
+  focusScaffolds,
+  focusSessionMode,
+  isFocusSessionWritable,
+  normalizeAssessmentFailureType,
+} from "./focus-session.ts";
 import type { WorkspaceSnapshot } from "./types.ts";
 
 function snapshot(overrides: Partial<WorkspaceSnapshot> = {}): WorkspaceSnapshot {
@@ -77,4 +84,16 @@ test("Focus scaffolds reuse Runtime decision boundaries instead of inventing an 
   assert.match(scaffolds[1]?.text || "", /Reverses the condition/);
   assert.match(scaffolds[2]?.text || "", /uncertain/);
   assert.equal(scaffolds.some((item) => item.text.includes("P(A|B) =")), false);
+});
+
+
+test("assessment failure state is typed but remains Host-only recovery metadata", () => {
+  assert.equal(normalizeAssessmentFailureType("provider_timeout"), "provider_timeout");
+  assert.equal(normalizeAssessmentFailureType("structured_output_validation"), "structured_output_validation");
+  assert.equal(normalizeAssessmentFailureType("anything-new"), "unknown");
+  assert.equal(assessmentFailureLabel("runtime_conflict"), "Runtime conflict");
+  assert.equal(
+    assessmentFailureStorageKey("Bayes / course", "dec_123"),
+    "ablearc:assessment-failure:Bayes%20%2F%20course:dec_123",
+  );
 });
