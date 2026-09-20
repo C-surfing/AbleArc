@@ -6,8 +6,11 @@ import test from "node:test";
 import {
   effectiveProviderEnvironment,
   providerSettingsMetadata,
+  ProviderCompatibilityError,
+  probeProviderSettings,
   readStoredProviderSettings,
   removeStoredProviderSettings,
+  verifyAndWriteStoredProviderSettings,
   writeStoredProviderSettings,
 } from "./provider-settings.ts";
 
@@ -81,6 +84,83 @@ test("web provider settings reject insecure remote URLs", () => {
       }),
       /HTTPS/,
     );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+
+test("provider setup probe verifies the selected structured-output mode", async () => {
+  let requestBody: Record<string, unknown> | undefined;
+  const fakeFetch: typeof fetch = async (_input, init) => {
+    requestBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({ ok: true }) } }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+
+  await probeProviderSettings({
+    apiKey: "secret",
+    model: "example-model",
+    baseUrl: "https://provider.example/v1",
+    structuredOutput: "json_schema",
+    timeoutMs: 45000,
+  }, fakeFetch);
+
+  assert.deepEqual(requestBody?.response_format, {
+    type: "json_schema",
+    json_schema: {
+      name: "ablearc_provider_probe",
+      strict: true,
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["ok"],
+        properties: { ok: { type: "boolean", const: true } },
+      },
+    },
+  });
+});
+
+test("provider setup reports structured-output incompatibility precisely", async () => {
+  const fakeFetch: typeof fetch = async () => new Response(
+    JSON.stringify({ error: { message: "response_format json_schema is not supported" } }),
+    { status: 400, headers: { "content-type": "application/json" } },
+  );
+
+  await assert.rejects(
+    () => probeProviderSettings({
+      apiKey: "secret",
+      model: "deepseek-example",
+      baseUrl: "https://api.deepseek.com",
+      structuredOutput: "json_schema",
+      timeoutMs: 45000,
+    }, fakeFetch),
+    (error: unknown) => error instanceof ProviderCompatibilityError
+      && error.code === "response_format"
+      && /structured-output mode/.test(error.message),
+  );
+});
+
+test("failed provider probe does not persist settings", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ablearc-provider-probe-"));
+  try {
+    const fakeFetch: typeof fetch = async () => new Response(
+      JSON.stringify({ error: { message: "invalid api key" } }),
+      { status: 401, headers: { "content-type": "application/json" } },
+    );
+    await assert.rejects(
+      () => verifyAndWriteStoredProviderSettings(root, {
+        apiKey: "bad-secret",
+        model: "example-model",
+        baseUrl: "https://provider.example/v1",
+        structuredOutput: "json_object",
+        timeoutMs: 45000,
+      }, fakeFetch),
+      (error: unknown) => error instanceof ProviderCompatibilityError
+        && error.code === "authentication",
+    );
+    assert.equal(readStoredProviderSettings(root), undefined);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
