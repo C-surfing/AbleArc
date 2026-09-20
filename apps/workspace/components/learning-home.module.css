@@ -926,3 +926,70 @@ button.primaryButton:disabled {
     padding-top: 48px;
   }
 }
+
+
+/* Rendered QA correction: mobile keeps all primary product destinations reachable. */
+@media (max-width: 900px) {
+  .todayHeader {
+    min-height: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 8px 14px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .productNav {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+    padding: 2px 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    scrollbar-width: none;
+  }
+
+  .productNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .productNav a,
+  .activeNav {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border: 1px solid rgba(222, 216, 206, 0.88);
+    border-radius: 9px;
+    background: rgba(255, 254, 249, 0.62);
+  }
+
+  .activeNav {
+    background: var(--surface-strong);
+  }
+}
+
+@media (max-width: 640px) {
+  .entryHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .entryHeaderLinks {
+    gap: 8px;
+  }
+
+  .entryHeaderLinks .quietLink:first-child {
+    display: inline-flex;
+  }
+
+  .entryHeaderLinks .quietLink {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .brand small {
+    display: none;
+  }
+}
