@@ -1,4 +1,5 @@
 import type { WorkspaceSnapshot } from "./types.ts";
+import type { LearnerUiLocale } from "./ui-locale.ts";
 
 export type FocusSessionMode = "Teach" | "Study";
 
@@ -23,28 +24,36 @@ export interface FocusScaffold {
   text: string;
 }
 
-export function focusScaffolds(snapshot: WorkspaceSnapshot): FocusScaffold[] {
+export function focusScaffolds(snapshot: WorkspaceSnapshot, locale: LearnerUiLocale = "en"): FocusScaffold[] {
   const scaffolds: FocusScaffold[] = [];
   if (snapshot.decision?.expectedEvidence) {
     scaffolds.push({
       level: 1,
-      label: "Evidence target",
+      label: locale === "zh" ? "证据目标" : "Evidence target",
       text: snapshot.decision.expectedEvidence,
     });
   }
   if (snapshot.decision?.falsificationSignal) {
     scaffolds.push({
       level: 2,
-      label: "Self-check",
-      text: `Before submitting, check whether your reasoning shows this failure signal: ${snapshot.decision.falsificationSignal}`,
+      label: locale === "zh" ? "提交前自检" : "Self-check",
+      text: locale === "zh"
+        ? `提交前检查一下：你的推理是否出现了这个失败信号：${snapshot.decision.falsificationSignal}`
+        : `Before submitting, check whether your reasoning shows this failure signal: ${snapshot.decision.falsificationSignal}`,
     });
   }
   scaffolds.push({
     level: 3,
-    label: snapshot.artifact ? "Use the representation" : "Expose the uncertain step",
+    label: snapshot.artifact
+      ? (locale === "zh" ? "使用这个表示" : "Use the representation")
+      : (locale === "zh" ? "暴露最不确定的一步" : "Expose the uncertain step"),
     text: snapshot.artifact
-      ? "Use the interactive representation as a thinking instrument, then explain the relation it reveals in your own words."
-      : "Write the first step you are least certain about. Make that uncertainty explicit instead of asking for the final answer.",
+      ? (locale === "zh"
+        ? "把交互式表示当作思考工具，然后用自己的话说明它揭示的关系。"
+        : "Use the interactive representation as a thinking instrument, then explain the relation it reveals in your own words.")
+      : (locale === "zh"
+        ? "写下你最不确定的第一步，把不确定点明确暴露出来，而不是直接索要最终答案。"
+        : "Write the first step you are least certain about. Make that uncertainty explicit instead of asking for the final answer."),
   });
   return scaffolds;
 }
