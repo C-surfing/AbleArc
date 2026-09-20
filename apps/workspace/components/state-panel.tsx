@@ -12,6 +12,13 @@ const stateMeta: Record<MasteryState, { glyph: string; label: string }> = {
 
 const levels: EvidenceLevel[] = ["recognition", "recall", "explanation", "application", "transfer"];
 
+function stateAuthorityLabel(authority: string): string {
+  if (authority.startsWith("runtime_policy:")) return "Applied automatically under conservative policy";
+  if (authority.startsWith("learner:")) return "Confirmed by you";
+  if (authority.startsWith("human_reviewer:")) return "Confirmed by a reviewer";
+  return "Accepted through learning-state review";
+}
+
 export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
   const strongest = snapshot.evidence.reduce(
     (max, item) => Math.max(max, levels.indexOf(item.level)),
@@ -76,7 +83,7 @@ export function StatePanel({ snapshot }: { snapshot: WorkspaceSnapshot }) {
       {snapshot.latestStateDecision ? (
         <section className="state-section">
           <div className="section-heading">
-            <span>Latest state decision</span>
+            <span>Latest learning-state update</span>
             <small>revision {snapshot.runtimeRevision ?? 0}</small>
           </div>
           <div className={`state-decision state-decision--${snapshot.latestStateDecision.decision}`}>
