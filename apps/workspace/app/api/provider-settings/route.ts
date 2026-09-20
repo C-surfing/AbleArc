@@ -3,7 +3,7 @@ import {
   providerSettingsMetadata,
   readStoredProviderSettings,
   removeStoredProviderSettings,
-  writeStoredProviderSettings,
+  verifyAndWriteStoredProviderSettings,
   type ProviderSettingsInput,
 } from "@/lib/provider-settings";
 import { sameOrigin } from "@/lib/server-request";
@@ -62,13 +62,14 @@ export async function POST(request: NextRequest) {
 
     const existing = readStoredProviderSettings(repoRoot);
     const submittedKey = typeof payload.apiKey === "string" ? payload.apiKey.trim() : "";
-    const settings = writeStoredProviderSettings(repoRoot, {
+    const settingsInput: ProviderSettingsInput = {
       apiKey: submittedKey || existing?.apiKey || "",
       model: payload.model as string,
       baseUrl: payload.baseUrl as string,
       structuredOutput: payload.structuredOutput as ProviderSettingsInput["structuredOutput"],
       timeoutMs: Number(payload.timeoutMs),
-    });
+    };
+    const settings = await verifyAndWriteStoredProviderSettings(repoRoot, settingsInput);
     return NextResponse.json({
       ok: true,
       settings: {
