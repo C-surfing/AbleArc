@@ -1,9 +1,9 @@
 .panel {
-  margin-top: 18px;
-  padding: 24px;
-  border: 1px solid var(--line);
+  margin-top: 22px;
+  padding: 26px;
+  border: 1px solid rgba(222, 216, 206, 0.9);
   border-radius: 18px;
-  background: var(--surface);
+  background: rgba(255, 254, 249, 0.62);
 }
 
 .header {
@@ -14,17 +14,20 @@
 }
 
 .header span {
-  color: var(--accent);
+  color: #8e692f;
   font-size: 10px;
-  font-weight: 760;
+  font-weight: 780;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .header h2 {
-  margin: 7px 0 0;
-  font-size: 22px;
-  letter-spacing: -0.03em;
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 560;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
 .header small,
@@ -37,20 +40,22 @@
 
 .list {
   display: grid;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 0;
+  margin-top: 20px;
+  border-top: 1px solid var(--line-soft);
 }
 
 .card {
   display: grid;
   gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--line-soft);
-  border-radius: 13px;
-  background: var(--surface-strong);
+  padding: 18px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  background: transparent;
 }
 
 .card strong {
+  color: var(--ink-soft);
   font-size: 14px;
 }
 
@@ -58,19 +63,20 @@
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .prompt {
-  padding: 12px;
-  border-radius: 10px;
-  background: var(--accent-soft);
+  padding: 13px 14px;
+  border-left: 3px solid var(--think);
+  border-radius: 0 11px 11px 0;
+  background: rgba(247, 237, 217, 0.48);
 }
 
 .prompt span {
-  color: var(--accent);
+  color: #8e692f;
   font-size: 9px;
-  font-weight: 750;
+  font-weight: 760;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -82,23 +88,29 @@
 }
 
 .card button {
-  padding: 7px 10px;
+  padding: 8px 11px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: white;
+  border-radius: 9px;
+  background: rgba(255, 254, 249, 0.78);
+  color: var(--ink-soft);
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
 }
 
+.card button:hover {
+  border-color: rgba(184, 139, 62, 0.3);
+  background: var(--think-soft);
+}
+
 .card button.primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: white;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface-strong);
 }
 
 .boundary {
-  margin: 14px 0 0;
+  margin: 15px 0 0;
   line-height: 1.45;
 }
 
