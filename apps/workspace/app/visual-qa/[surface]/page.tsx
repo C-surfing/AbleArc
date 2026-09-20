@@ -24,6 +24,7 @@ const SURFACES = new Set([
   "entry",
   "today",
   "focus",
+  "focus-support",
   "focus-zh",
   "paper",
   "reflection",
@@ -61,6 +62,16 @@ export default async function VisualQaSurface({
       <FocusSession
         snapshot={VISUAL_SNAPSHOT}
         dailyContext={VISUAL_DAILY_CONTEXT}
+      />
+    );
+  }
+
+  if (surface === "focus-support") {
+    return (
+      <FocusSession
+        snapshot={VISUAL_SNAPSHOT}
+        dailyContext={VISUAL_DAILY_CONTEXT}
+        initialSupportVisible
       />
     );
   }
