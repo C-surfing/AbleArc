@@ -525,6 +525,38 @@ export function LearningCanvas({ snapshot, mode }: { snapshot: WorkspaceSnapshot
         </section>
       ) : null}
 
+      {snapshot.latestExchange?.status === "assessed"
+      && snapshot.latestExchange.evidenceId
+      && snapshot.latestStateDecision?.decision === "accepted"
+      && snapshot.latestStateDecision.evidenceIds.includes(snapshot.latestExchange.evidenceId) ? (
+        <section className="feedback-card" aria-label="Learning state updated">
+          <div className="feedback-card__header">
+            <div>
+              <span className="section-kicker">Learning state updated</span>
+              <strong>{snapshot.latestStateDecision.concept}</strong>
+            </div>
+          </div>
+          <p className="feedback-card__message">
+            {snapshot.latestStateDecision.before} → {snapshot.latestStateDecision.after}. This accepted update is grounded in the assessed response; first exposure is not treated as stable mastery.
+          </p>
+        </section>
+      ) : snapshot.latestExchange?.status === "assessed" && snapshot.pendingStateProposalCount > 0 ? (
+        <section className="feedback-card" aria-label="Learning state update ready for review">
+          <div className="feedback-card__header">
+            <div>
+              <span className="section-kicker">Learning state review</span>
+              <strong>An evidence-backed update is waiting for your review</strong>
+            </div>
+          </div>
+          <p className="feedback-card__message">
+            Your accepted learning state has not changed yet. Review the evidence-backed update before deciding whether it is justified.
+          </p>
+          <div className="feedback-card__meta">
+            <Link href="/workspace">Review learning state</Link>
+          </div>
+        </section>
+      ) : null}
+
       {!snapshot.hasMission ? (
         <div className="demo-preview-note">
           <span>Example workspace</span>
