@@ -63,4 +63,20 @@ The user-facing runtime bridge activates the existing **Your move** surface. A l
 
 The agent-facing bridge now exposes the newest unanswered response and accepts one compact assessment + next-decision payload. It reuses the existing evidence, turn, and decision receipts; the Workspace joins those records into a learner-visible feedback card and unlocks the next move. A provider transport remains an adapter concern rather than a dependency of the learning runtime.
 
+## Current Web product gate — 2026-09-20
+
+Real dogfooding showed that a technically valid Runtime is not enough: the first-party Web product must make the **entire learner loop recoverable and trustworthy**.
+
+Before the Web path is considered ready for normal longitudinal product validation, it must guarantee:
+
+- Provider compatibility is checked before the first real learner answer is used;
+- a saved learner response is never lost when assessment fails;
+- assessment failure exposes retry and actionable status rather than a dead end;
+- long-running assessment shows immediate pending feedback;
+- malformed structured output is repaired through bounded retry rather than weakening schema validation;
+- learner-facing projection cannot turn templates or internal bookkeeping into mastery claims;
+- Web-generated Evidence can participate in the canonical StateProposal/authority path without direct client mastery writes.
+
+These repairs are tracked by Issue #132 and [`WEB-STABILIZATION-2026-09-20.md`](WEB-STABILIZATION-2026-09-20.md). They are a product-quality gate, not a reason to add a second learner model or reopen Kernel semantics.
+
 The typed `LearningArtifact` path is deliberately narrow: one prediction-first frequency-tree renderer is available when it serves the chosen move. Add another renderer only when a real learning arc earns it.

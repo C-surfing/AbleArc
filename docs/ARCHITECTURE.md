@@ -82,6 +82,33 @@ Runtime authority + persistence
 
 The facade does not own learner state. It removes Host-specific orchestration glue while keeping Provider selection, HTTP/authentication, UI state, and presentation outside the Kernel.
 
+### Host reliability and partial-success boundary
+
+A Host must represent the learning transaction honestly when only part of it succeeds. In particular, a learner Observation may be durably saved even when Provider assessment fails. The correct recovery model is:
+
+```text
+learner response
+  → Observation saved
+  → Provider assessment attempt
+      ├─ succeeds → Evidence / next Decision / optional StateProposal
+      └─ fails    → preserve Observation + expose retryable Host state
+```
+
+Retry counters, pending indicators, latency, provider diagnostics, and error banners are Host operational state. They do not enter learner truth.
+
+The Web Host must also complete the same learner-state authority path as other Hosts when an assessment justifies a state change:
+
+```text
+Evidence
+  → candidate StateProposal
+  → existing Runtime authority decision
+  → accepted state projection
+```
+
+Provider output or React state may propose, but may never directly write accepted mastery. Projection code must fail closed: template text, prose substrings, internal identifiers, and formatting artifacts are not learner Evidence or mastery.
+
+See [`WEB-STABILIZATION-2026-09-20.md`](WEB-STABILIZATION-2026-09-20.md).
+
 The protocol therefore separates **authority** from **projection**:
 
 - the learner model is the operational authority for teaching decisions;
