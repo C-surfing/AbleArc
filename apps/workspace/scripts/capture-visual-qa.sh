@@ -46,6 +46,9 @@ surfaces=(
   focus
   focus-support
   focus-zh
+  focus-pending
+  focus-error
+  focus-readonly
   paper
   reflection
   profile
