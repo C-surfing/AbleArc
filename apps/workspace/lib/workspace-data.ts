@@ -20,7 +20,7 @@ import type {
   SessionPoint,
   StateDecisionTrace,
   WorkspaceSnapshot,
-} from "./types";
+} from "./types.ts";
 
 interface RuntimeState {
   revision: number;
