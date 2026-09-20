@@ -69,9 +69,9 @@ export function StateProposalReview({
   const statusCopy = useMemo(() => {
     if (!proposal) return undefined;
     if (proposal.stale) return `Current state is ${proposal.currentState}; this proposal expected ${proposal.before}.`;
-    if (hasPolicyIssues) return "The Runtime transition policy does not approve this acceptance without an explicit learner override.";
-    if (proposal.risk === "high") return "High-risk learner-state changes remain explicit learner decisions.";
-    return "This proposal remains reviewable. Your decision becomes an immutable learner-authority receipt.";
+    if (hasPolicyIssues) return "AbleArc’s conservative learning-state safeguards do not approve this update without an explicit override.";
+    if (proposal.risk === "high") return "This is a consequential learning-state change, so it requires an explicit decision from you.";
+    return "The evidence suggests this update, but your accepted learning state has not changed yet.";
   }, [hasPolicyIssues, proposal]);
 
   async function decide(decision: "accepted" | "rejected") {
@@ -110,8 +110,8 @@ export function StateProposalReview({
   return (
     <section className="state-section">
       <div className="section-heading">
-        <span>State proposal review</span>
-        <small>{proposal ? `${proposals?.length ?? 1} pending` : "unavailable"}</small>
+        <span>Learning state update</span>
+        <small>{proposal ? `${proposals?.length ?? 1} to review` : "unavailable"}</small>
       </div>
       {error && !proposal ? <p className="empty-copy">{error}</p> : null}
       {proposal ? (
@@ -133,11 +133,11 @@ export function StateProposalReview({
             </ul>
           ) : null}
           <label className={styles.reason}>
-            <span>Your rationale</span>
+            <span>Why accept or keep the current state?</span>
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value.slice(0, 600))}
-              placeholder="Why should this proposal be accepted or rejected?"
+              placeholder="What does the evidence justify here?"
               rows={3}
               disabled={!writable || submitting}
             />
@@ -150,7 +150,7 @@ export function StateProposalReview({
                 onChange={(event) => setOverridePolicy(event.target.checked)}
                 disabled={!writable || submitting}
               />
-              <span>I explicitly understand and override these conservative Runtime policy checks.</span>
+              <span>I understand this update conflicts with conservative learning-state safeguards and want to accept it anyway.</span>
             </label>
           ) : null}
           {!writable ? <p className={styles.warning}>This Project is read-only; resume it or enter maintenance study before deciding.</p> : null}
@@ -160,7 +160,7 @@ export function StateProposalReview({
               Reject
             </button>
             <button type="button" onClick={() => void decide("accepted")} disabled={!canAccept}>
-              {hasPolicyIssues ? "Accept with override" : "Accept"}
+              {hasPolicyIssues ? "Accept update with override" : "Accept update"}
             </button>
           </div>
         </div>
