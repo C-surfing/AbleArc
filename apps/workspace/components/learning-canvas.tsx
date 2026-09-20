@@ -10,7 +10,7 @@ import {
   type AssessmentFailure,
 } from "@/lib/focus-session";
 import type { ArtifactInteraction, FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
-import { uiAssessmentFailure, uiText, type LearnerUiLocale } from "@/lib/ui-locale";
+import { uiAssessmentFailure, uiMasteryState, uiText, type LearnerUiLocale } from "@/lib/ui-locale";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 type Representation = "artifact" | "structure" | "evidence" | "contrast" | "flow";
@@ -367,7 +367,7 @@ export function LearningCanvas({
   } else if (submitted && snapshot.agent.configured) {
     composerMessage = locale === "zh" ? `已保存 · ${snapshot.agent.model} 可以开始评估` : `Saved locally · ${snapshot.agent.model} is ready to assess`;
   } else if (submitted && snapshot.agent.error) {
-    composerMessage = snapshot.agent.error;
+    composerMessage = locale === "zh" ? "模型配置当前不可用，请在学习空间中检查模型设置。" : snapshot.agent.error;
   } else if (submitted) {
     composerMessage = t("Saved locally · continue with an external Agent", "已保存 · 可继续使用外部 Agent 评估");
   } else if (snapshot.artifact && !artifactInteraction) {
@@ -492,7 +492,7 @@ export function LearningCanvas({
                 ? `${t("MODEL", "模型")} · ${snapshot.agent.model}`
                 : snapshot.agent.error
                   ? t("MODEL CONFIG ERROR", "模型配置错误")
-                   : t("EXTERNAL AGENT", "外部 AGENT")}
+                   : t("EXTERNAL AGENT", "外部智能体")}
             </span>
           </div>
           <h1>{snapshot.hasMission ? snapshot.frontier : t("What do you want to become able to do?", "你希望自己最终能够做到什么？")}</h1>
@@ -590,7 +590,7 @@ export function LearningCanvas({
             </div>
           </div>
           <p className="feedback-card__message">
-            {snapshot.latestStateDecision.before} → {snapshot.latestStateDecision.after}{t(". This accepted update is grounded in the assessed response; first exposure is not treated as stable mastery.", "。这次更新基于刚才评估过的真实表现；首次接触不会被当作稳定掌握。")}
+            {uiMasteryState(locale, snapshot.latestStateDecision.before)} → {uiMasteryState(locale, snapshot.latestStateDecision.after)}{t(". This accepted update is grounded in the assessed response; first exposure is not treated as stable mastery.", "。这次更新基于刚才评估过的真实表现；首次接触不会被当作稳定掌握。")}
           </p>
         </section>
       ) : snapshot.latestExchange?.status === "assessed" && snapshot.pendingStateProposalCount > 0 ? (
@@ -644,6 +644,7 @@ export function LearningCanvas({
               key={snapshot.artifact.id}
               artifact={snapshot.artifact}
               onInteractionChange={setArtifactInteraction}
+              locale={locale}
             />
           ) : null}
           {representation === "structure" ? <StructureView snapshot={snapshot} /> : null}
