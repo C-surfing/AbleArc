@@ -95,3 +95,16 @@ export function uiAssessmentFailure(
   };
   return messages[type] || messages.unknown;
 }
+
+
+export function uiMasteryState(locale: LearnerUiLocale, state: string): string {
+  if (locale !== "zh") return state;
+  const labels: Record<string, string> = {
+    unknown: "未知",
+    exposed: "已接触",
+    developing: "发展中",
+    stable: "稳定",
+    transferable: "可迁移",
+  };
+  return labels[state] || state;
+}
