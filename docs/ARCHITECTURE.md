@@ -100,12 +100,14 @@ The Web Host must also complete the same learner-state authority path as other H
 
 ```text
 Evidence
-  → candidate StateProposal
-  → existing Runtime authority decision
+  → Runtime-derived conservative candidate StateProposal
+  → risk / transition-policy inspection
+      ├─ low-risk unknown → exposed → runtime_policy may accept
+      └─ stronger claim → explicit learner/human review
   → accepted state projection
 ```
 
-Provider output or React state may propose, but may never directly write accepted mastery. Projection code must fail closed: template text, prose substrings, internal identifiers, and formatting artifacts are not learner Evidence or mastery.
+The Provider supplies assessment Evidence; it does not choose accepted mastery. The Web Host opts into the Runtime’s versioned `evidence-conservative-v0.1` candidate policy. Headless Agents may opt into that same policy or explicitly create StateProposals. Candidate creation and acceptance remain separate, and React state never writes mastery. Inconclusive Evidence and ordinary contradictions may remain evidence-only without any state transition. Projection code must fail closed: template text, prose substrings, internal identifiers, and formatting artifacts are not learner Evidence or mastery.
 
 See [`WEB-STABILIZATION-2026-09-20.md`](WEB-STABILIZATION-2026-09-20.md).
 

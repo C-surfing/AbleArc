@@ -99,7 +99,10 @@ export async function advancePendingLearningTurn(
   const value = await runRuntime(
     repoRoot,
     ["advance", decisionId, "-"],
-    runtimeAdvancePayload(advance),
+    {
+      ...runtimeAdvancePayload(advance),
+      state_candidate_policy: "evidence-conservative-v0.1",
+    },
   );
   return record(value, "Runtime advance result");
 }

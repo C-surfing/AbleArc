@@ -93,30 +93,8 @@ def decide_state_proposal(
 
 
 def reconcile_low_risk_state_proposals(repo_root: Path) -> list[dict[str, Any]]:
-    """Auto-accept only Runtime-classified low-risk exposure proposals."""
-    accepted: list[dict[str, Any]] = []
-    for proposal in pending_state_proposals(repo_root):
-        if not proposal["auto_accept_eligible"]:
-            continue
-        try:
-            accepted.append(
-                learning_runtime.decide_state_proposal(
-                    repo_root,
-                    proposal["id"],
-                    "accepted",
-                    "runtime_policy",
-                    "low-risk-v0.1",
-                    (
-                        "Automatically accepted descriptive first exposure "
-                        "(unknown → exposed); no mastery beyond exposure is claimed."
-                    ),
-                )
-            )
-        except learning_runtime.RuntimeContractError as exc:
-            if "stale state proposal" in str(exc) or "proposal already has a state decision" in str(exc):
-                continue
-            raise
-    return accepted
+    """Delegate low-risk reconciliation to the canonical Runtime policy."""
+    return learning_runtime.reconcile_low_risk_state_proposals(repo_root)
 
 
 def build_parser() -> argparse.ArgumentParser:

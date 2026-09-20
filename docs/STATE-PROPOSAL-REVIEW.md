@@ -5,7 +5,13 @@ The Workspace may let the learner review a pending evidence-grounded `StatePropo
 ## Flow
 
 ```text
-Agent / assessor
+learner Observation
+    ↓
+validated assessment
+    ↓
+Evidence
+    ↓
+Runtime conservative candidate derivation
     ↓
 StateProposal + Evidence references
     ↓
@@ -36,6 +42,22 @@ Risk is derived by the Runtime and is not stored as a new authority-bearing rece
 
 A stale proposal is never auto-accepted. Runtime policy cannot override its own safety checks. LearningMap topology is unaffected and remains proposal-first.
 
+## Evidence-derived candidate policy
+
+The Web Runtime bridge opts into `state_candidate_policy=evidence-conservative-v0.1`, so `advance_learning_turn` derives candidate state changes **after** validated Evidence is written. Headless/Agent callers remain backward-compatible: they may opt into the same policy or continue creating explicit StateProposals themselves. The Provider does not output accepted mastery, and React never writes learner state.
+
+The current conservative candidate rules are:
+
+- `supports + unknown` may propose `unknown → exposed`; this is the only candidate eligible for automatic `runtime_policy:low-risk-v0.1` acceptance.
+- `exposed → developing` is proposed only from at least explanation-level supporting Evidence with none/light scaffolding. It remains medium-risk learner/human review.
+- `developing → stable` is proposed only when the existing Runtime transition policy already finds the accumulated supporting Evidence sufficient for stable.
+- `stable → transferable` is proposed only from lightly scaffolded transfer Evidence in a novel context.
+- `inconclusive` Evidence creates no state candidate.
+- `contradicts` Evidence is preserved as Evidence but does not automatically downgrade mastery; downgrades remain explicit high-risk state decisions.
+- when an unresolved proposal already exists for the current concept state, later turns do not spam duplicate proposals.
+
+These rules determine whether a **candidate** is worth reviewing. They do not grant authority to accept it.
+
 ## Learner action
 
 A review shows only the learner-relevant fields:
@@ -44,10 +66,9 @@ A review shows only the learner-relevant fields:
 - proposed before → after transition;
 - proposal rationale;
 - number of grounding Evidence receipts;
-- proposer identity;
 - current-state mismatch when the proposal is stale;
-- Runtime risk level;
-- Runtime policy issues when acceptance would require an override.
+- review caution level;
+- conservative safeguard issues when acceptance would require an override.
 
 The learner must provide a rationale before accepting or rejecting. A rejection records a `state-decision` receipt but does not change state. A normal acceptance is allowed only when Runtime policy permits it and the proposal is not stale.
 

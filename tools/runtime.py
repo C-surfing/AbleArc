@@ -3,9 +3,11 @@
 
 The runtime records what an agent decided, what the learner actually did, how
 that observation was interpreted, and why a proposed learner-state change was
-accepted or rejected. It deliberately does not choose teaching moves or infer
-mastery: those remain agent responsibilities. This module makes their outputs
-inspectable and enforces a few conservative state-transition invariants.
+accepted or rejected. It does not choose teaching moves or grant mastery.
+Validated Evidence may deterministically produce a conservative candidate
+StateProposal, but acceptance authority remains separate. This module makes
+those boundaries inspectable and enforces conservative state-transition
+invariants.
 """
 
 from __future__ import annotations
@@ -1065,6 +1067,196 @@ def pending_learner_turn(repo_root: Path) -> dict[str, Any] | None:
     }
 
 
+def _same_evidence_mission(anchor: dict[str, Any], candidate: dict[str, Any]) -> bool:
+    if anchor.get("schema_version") != SCOPED_RECEIPT_SCHEMA_VERSION:
+        return candidate.get("schema_version") != SCOPED_RECEIPT_SCHEMA_VERSION
+    return (
+        candidate.get("schema_version") == SCOPED_RECEIPT_SCHEMA_VERSION
+        and candidate.get("workspace_id") == anchor.get("workspace_id")
+        and candidate.get("project_id") == anchor.get("project_id")
+        and candidate.get("mission_id") == anchor.get("mission_id")
+    )
+
+
+def _supporting_evidence_for_concept(
+    repo_root: Path,
+    concept_id: str,
+    anchor: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in list_receipts(repo_root, "evidence")
+        if item.get("outcome") == "supports"
+        and concept_id in item.get("concept_ids", [])
+        and _same_evidence_mission(anchor, item)
+    ]
+
+
+def _has_unresolved_state_proposal(
+    repo_root: Path,
+    concept_id: str,
+    before: str,
+) -> bool:
+    decided = {
+        str(item.get("proposal_id"))
+        for item in list_receipts(repo_root, "state-decision")
+    }
+    return any(
+        proposal.get("id") not in decided
+        and proposal.get("concept_id") == concept_id
+        and proposal.get("before") == before
+        for proposal in list_receipts(repo_root, "state-proposal")
+    )
+
+
+def _candidate_concept_label(
+    current_decision: dict[str, Any],
+    current_state: dict[str, Any],
+    concept_id: str,
+) -> str:
+    existing = current_state.get("concepts", {}).get(concept_id)
+    if isinstance(existing, dict):
+        label = existing.get("label")
+        if isinstance(label, str) and label.strip():
+            return label.strip()
+    target = current_decision.get("target")
+    concept_ids = current_decision.get("concept_ids", [])
+    if (
+        isinstance(target, str)
+        and target.strip()
+        and isinstance(concept_ids, list)
+        and len(concept_ids) == 1
+        and concept_ids[0] == concept_id
+    ):
+        return target.strip()
+    return concept_id.replace("-", " ").replace("_", " ").strip().title() or concept_id
+
+
+def derive_state_proposals_from_evidence(
+    repo_root: Path,
+    current_decision: dict[str, Any],
+    evidence: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Derive conservative candidate StateProposals from validated Evidence.
+
+    This function proposes only; it never grants acceptance authority.
+    Contradicting/inconclusive Evidence is preserved without an automatic
+    learner-state transition.
+    """
+    if evidence.get("outcome") != "supports":
+        return []
+
+    current_state = _current_state(repo_root)
+    proposals: list[dict[str, Any]] = []
+    for concept_id in evidence.get("concept_ids", []):
+        existing = current_state.get("concepts", {}).get(concept_id)
+        before = existing.get("state") if isinstance(existing, dict) else "unknown"
+        if before not in MASTERY_STATES or before == "transferable":
+            continue
+        if _has_unresolved_state_proposal(repo_root, concept_id, before):
+            continue
+
+        after: str | None = None
+        supporting = _supporting_evidence_for_concept(repo_root, concept_id, evidence)
+        if before == "unknown":
+            after = "exposed"
+            evidence_ids = [evidence["id"]]
+        elif (
+            before == "exposed"
+            and EVIDENCE_LEVELS.index(str(evidence.get("level"))) >= EVIDENCE_LEVELS.index("explanation")
+            and evidence.get("scaffolding") in ("none", "light")
+        ):
+            after = "developing"
+            evidence_ids = [evidence["id"]]
+        elif before == "developing":
+            evidence_ids = [item["id"] for item in supporting]
+            tentative = {
+                "before": "developing",
+                "after": "stable",
+                "evidence_ids": evidence_ids,
+            }
+            if evidence_ids and not transition_policy_issues(repo_root, tentative):
+                after = "stable"
+        elif (
+            before == "stable"
+            and evidence.get("level") == "transfer"
+            and evidence.get("context") == "novel"
+            and evidence.get("scaffolding") in ("none", "light")
+        ):
+            after = "transferable"
+            evidence_ids = [item["id"] for item in supporting]
+        else:
+            evidence_ids = []
+
+        if after is None:
+            continue
+
+        proposal = record_state_proposal(
+            repo_root,
+            {
+                "concept_id": concept_id,
+                "concept_label": _candidate_concept_label(
+                    current_decision,
+                    current_state,
+                    concept_id,
+                ),
+                "before": before,
+                "after": after,
+                "evidence_ids": evidence_ids,
+                "rationale": (
+                    f"Validated supporting evidence makes {before} → {after} "
+                    "worth reviewing; acceptance authority remains separate."
+                ),
+                "proposed_by": "runtime:evidence-candidate-v0.1",
+            },
+        )
+        proposals.append(proposal)
+    return proposals
+
+
+def reconcile_low_risk_state_proposals(
+    repo_root: Path,
+    proposal_ids: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Accept only unresolved Runtime-classified low-risk proposals."""
+    selected = set(proposal_ids) if proposal_ids is not None else None
+    decided = {
+        str(item.get("proposal_id"))
+        for item in list_receipts(repo_root, "state-decision")
+    }
+    accepted: list[dict[str, Any]] = []
+    for proposal in list_receipts(repo_root, "state-proposal"):
+        proposal_id = str(proposal.get("id", ""))
+        if not proposal_id or proposal_id in decided:
+            continue
+        if selected is not None and proposal_id not in selected:
+            continue
+        if not low_risk_auto_accept_eligible(repo_root, proposal):
+            continue
+        try:
+            accepted.append(
+                decide_state_proposal(
+                    repo_root,
+                    proposal_id,
+                    "accepted",
+                    "runtime_policy",
+                    "low-risk-v0.1",
+                    (
+                        "Automatically accepted descriptive first exposure "
+                        "(unknown → exposed); no mastery beyond exposure is claimed."
+                    ),
+                )
+            )
+        except RuntimeContractError as exc:
+            if (
+                "stale state proposal" in str(exc)
+                or "proposal already has a state decision" in str(exc)
+            ):
+                continue
+            raise
+    return accepted
+
+
 def advance_learning_turn(
     repo_root: Path,
     decision_id: str,
@@ -1118,7 +1310,26 @@ def advance_learning_turn(
     )
     _require_compatible_scope(repo_root, prepared_next, prepared_evidence)
 
+    state_candidate_policy = data.get("state_candidate_policy")
+    if state_candidate_policy not in (None, "evidence-conservative-v0.1"):
+        raise RuntimeContractError(
+            "state_candidate_policy must be evidence-conservative-v0.1 when provided"
+        )
+
     evidence = _save(repo_root, "evidence", prepared_evidence)
+    state_proposals = (
+        derive_state_proposals_from_evidence(
+            repo_root,
+            current_decision,
+            evidence,
+        )
+        if state_candidate_policy == "evidence-conservative-v0.1"
+        else []
+    )
+    state_decisions = reconcile_low_risk_state_proposals(
+        repo_root,
+        [proposal["id"] for proposal in state_proposals],
+    )
     next_decision = _save(repo_root, "decision", prepared_next)
     representation = current_decision.get("representation", {})
     artifact_refs = []
@@ -1131,14 +1342,20 @@ def advance_learning_turn(
             "decision_id": decision_id,
             "observation_ids": [observation["id"]],
             "evidence_ids": [evidence["id"]],
-            "state_proposal_ids": [],
-            "state_decision_ids": [],
+            "state_proposal_ids": [proposal["id"] for proposal in state_proposals],
+            "state_decision_ids": [decision["id"] for decision in state_decisions],
             "artifact_refs": artifact_refs,
             "outcome": "completed",
             "summary": evidence["result_summary"],
         },
     )
-    return {"evidence": evidence, "turn": turn, "next_decision": next_decision}
+    return {
+        "evidence": evidence,
+        "state_proposals": state_proposals,
+        "state_decisions": state_decisions,
+        "turn": turn,
+        "next_decision": next_decision,
+    }
 
 
 def record_state_proposal(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
