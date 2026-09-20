@@ -387,7 +387,7 @@ export function providerSettingsMetadata(
       structuredOutput: ((env.ABLEARC_PROVIDER_STRUCTURED_OUTPUT
         ?? env.AI4LEARNING_PROVIDER_STRUCTURED_OUTPUT
         ?? "json_schema") as ProviderStructuredOutput),
-      timeoutMs: Number(env.ABLEARC_PROVIDER_TIMEOUT_MS ?? env.AI4LEARNING_PROVIDER_TIMEOUT_MS ?? 45000),
+      timeoutMs: Number(env.ABLEARC_PROVIDER_TIMEOUT_MS ?? env.AI4LEARNING_PROVIDER_TIMEOUT_MS ?? 120000),
     };
   }
   const stored = readStoredProviderSettings(repoRoot);
