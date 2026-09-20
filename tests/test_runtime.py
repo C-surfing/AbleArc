@@ -326,7 +326,10 @@ class LearningRuntimeTests(unittest.TestCase):
         first_result = runtime.advance_learning_turn(
             self.root,
             first["id"],
-            self.advance_payload(),
+            {
+                **self.advance_payload(),
+                "state_candidate_policy": "evidence-conservative-v0.1",
+            },
         )
         second = first_result["next_decision"]
         runtime.record_learner_response(
