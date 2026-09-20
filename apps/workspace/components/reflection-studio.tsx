@@ -240,9 +240,9 @@ export function ReflectionStudio({
             {(missionId || currentDecisionId || currentConceptIds.length) ? (
               <small className={styles.currentContext}>
                 Current context:
-                {missionId ? " Mission " + missionId : ""}
-                {currentDecisionId ? " · Decision " + currentDecisionId : ""}
-                {currentConceptIds.length ? " · frontier " + currentConceptIds.join(", ") : ""}
+                {missionId ? " Current mission" : ""}
+                {currentDecisionId ? " · Current learning move" : ""}
+                {currentConceptIds.length ? " · focus " + currentConceptIds.join(", ") : ""}
               </small>
             ) : null}
 
