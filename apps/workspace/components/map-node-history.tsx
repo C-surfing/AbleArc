@@ -90,7 +90,7 @@ export function MapNodeHistory({ projectId, nodeId }: { projectId: string; nodeI
               </div>
               <p className={styles.rationale}>{event.rationale}</p>
               <div className={styles.meta}>
-                <span>{event.evidenceCount} evidence receipt(s)</span>
+                <span>{event.evidenceCount} supporting evidence item(s)</span>
                 <span>{event.updatedAt}</span>
               </div>
               <div className={styles.compare}>
