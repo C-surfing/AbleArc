@@ -4,6 +4,24 @@
 
 Its job is to remove bookkeeping friction while preserving the project's privacy and evidence boundaries.
 
+## CLI entry points vs library modules
+
+Not every Python file under `tools/` is a command-line product surface. Use these files directly as CLIs when their command contract is documented:
+
+| CLI | Purpose |
+|---|---|
+| `learning.py` | Workspace/Project lifecycle, learning materials, map operations, and evaluation helpers |
+| `runtime.py` | Structured Decision → Observation → Evidence → Turn runtime operations |
+| `state_proposals.py` | Learner-facing state-proposal inspection and decisions |
+| `learning_map_proposals.py` | LearningMap proposal/review operations |
+| `learner_state_replay.py` | Rebuild/inspect learner-state history |
+| `learning_map_history.py` | Inspect LearningMap revision history |
+| `review_observations.py` | Descriptive delayed-review observations |
+| `review_checkpoints.py` | Review checkpoint helpers |
+| `vnext_product_dogfood.py` | Local product-dogfood records and summaries |
+
+The following are primarily importable implementation modules used by those CLIs and by tests, not standalone user-facing commands: `project_store.py`, `project_lifecycle.py`, `learning_map.py`, `learning_library.py`, and `completion_gate.py`. Import their functions through the documented CLI/service boundary instead of assuming that `python tools/<module>.py` is supported.
+
 `tools/project_store.py` is the read-only storage resolver shared by upcoming
 project-aware operations. It distinguishes an uninitialized workspace, the
 existing unscoped v0.1 layout, and the canonical v0.2
@@ -99,7 +117,7 @@ python tools/runtime.py --repo . pending
 python tools/runtime.py --repo . advance <decision-id> assessment.json
 ```
 
-`advance` validates the assessment and next move before writing anything, then records feedback as evidence, closes the completed turn, and grounds the next decision in that evidence. It does not change mastery state.
+`advance` validates the assessment and next move before writing anything, then records feedback as Evidence, closes the completed turn, and grounds the next decision in that Evidence. The default headless/Agent call does not derive a state change. A Host may explicitly opt into the versioned `state_candidate_policy=evidence-conservative-v0.1`; the first-party Web bridge does so. That policy creates conservative candidate StateProposals after validated Evidence, and only the existing Runtime authority path may accept them. Stronger learner-state claims still require explicit review.
 
 If that Evidence refutes an earlier frontier hypothesis, record the correction
 without changing mastery:
@@ -284,6 +302,19 @@ python tools/learning.py doctor
 
 Checks that required templates, evaluation contracts, all registered domain briefs, and the `.learning/` / `.dogfooding/` privacy ignores are present.
 
+## Scripting safely
+
+Commands that accept `-` read their JSON payload from stdin. Commands documented as returning JSON write that payload to stdout; diagnostics/errors belong on stderr. When a command's output is piped through another program such as `tee` or `jq`, the shell may otherwise report only the final program's exit code. In Bash/Zsh automation, enable `pipefail` before relying on a multi-stage pipeline:
+
+```bash
+set -o pipefail
+printf '%s' '{"goal":"Explain Bayes independently"}' \
+  | python tools/learning.py start-mission - \
+  | tee /tmp/ablearc-start.json
+```
+
+For scripts that need the exact AbleArc command status, an even simpler pattern is to redirect its stdout to a file first and inspect/process that JSON in a second command. Do not treat downstream pretty-printing success as proof that the AbleArc command succeeded.
+
 ## Tests
 
 The runner uses only the Python standard library:
@@ -298,4 +329,4 @@ GitHub Actions runs both checks on pushes and pull requests.
 
 ## Boundary
 
-Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. `start-mission` stores explicit learner input and attaches only the fixed baseline probe described above. Learner-model inference, domain teaching, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The runtime may reject unsafe state transitions, but it never auto-promotes mastery.
+Keep these tools deliberately boring. New commands should remove repeated operational friction or enforce an important audit invariant, not move teaching policy into Python. `start-mission` stores explicit learner input and attaches only the fixed baseline probe described above. Learner-model inference, domain teaching, roadmap revision, and representation choice remain responsibilities of the Teach/Study protocol. The Runtime may reject unsafe state transitions. Under the explicit `evidence-conservative-v0.1` Host policy it may also accept only the already-defined low-risk descriptive `unknown → exposed` transition through `runtime_policy:low-risk-v0.1`; stronger learner-state claims remain proposal/review decisions and are never silently promoted from Provider prose.
