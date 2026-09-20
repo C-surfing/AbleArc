@@ -292,3 +292,22 @@ test("workspace projection import closure uses explicit TypeScript extensions", 
     }
   }
 });
+
+
+test("workspace snapshot exposes explicit learner language for Host UI only", () => {
+  const root = makeWorkspace({ state: FILLED_STATE });
+  fs.writeFileSync(
+    path.join(root, ".learning", "LEARNER.md"),
+    [
+      "# Learner Model — Durable Profile",
+      "",
+      "## Language and communication",
+      "",
+      "- Preferred language: Chinese",
+      "",
+    ].join("\n"),
+  );
+
+  const snapshot = loadWorkspaceSnapshot(root);
+  assert.equal(snapshot.preferredLanguage, "Chinese");
+});
