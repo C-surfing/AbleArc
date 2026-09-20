@@ -10,8 +10,11 @@ import { WorkspaceShell } from "@/components/workspace-shell";
 import {
   VISUAL_DAILY_CONTEXT,
   VISUAL_ENTRY_SNAPSHOT,
+  VISUAL_ASSESSMENT_FAILURE,
   VISUAL_PAPER_PLAN,
+  VISUAL_PENDING_SNAPSHOT,
   VISUAL_PROFILE,
+  VISUAL_READ_ONLY_SNAPSHOT,
   VISUAL_REFLECTIONS,
   VISUAL_SESSION_CLOSE,
   VISUAL_SNAPSHOT,
@@ -26,6 +29,9 @@ const SURFACES = new Set([
   "focus",
   "focus-support",
   "focus-zh",
+  "focus-pending",
+  "focus-error",
+  "focus-readonly",
   "paper",
   "reflection",
   "profile",
@@ -80,6 +86,42 @@ export default async function VisualQaSurface({
     return (
       <FocusSession
         snapshot={VISUAL_ZH_SNAPSHOT}
+        dailyContext={VISUAL_DAILY_CONTEXT}
+      />
+    );
+  }
+
+  if (surface === "focus-pending") {
+    return (
+      <FocusSession
+        snapshot={VISUAL_PENDING_SNAPSHOT}
+        dailyContext={VISUAL_DAILY_CONTEXT}
+      />
+    );
+  }
+
+  if (surface === "focus-error") {
+    const storageKey = "ablearc:assessment-failure:prj_visual_cuda:dec_visual_cache";
+    const failure = JSON.stringify(VISUAL_ASSESSMENT_FAILURE);
+    return (
+      <>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.localStorage.setItem(${JSON.stringify(storageKey)}, ${JSON.stringify(failure)});`,
+          }}
+        />
+        <FocusSession
+          snapshot={VISUAL_PENDING_SNAPSHOT}
+          dailyContext={VISUAL_DAILY_CONTEXT}
+        />
+      </>
+    );
+  }
+
+  if (surface === "focus-readonly") {
+    return (
+      <FocusSession
+        snapshot={VISUAL_READ_ONLY_SNAPSHOT}
         dailyContext={VISUAL_DAILY_CONTEXT}
       />
     );
