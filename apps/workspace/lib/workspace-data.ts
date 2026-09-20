@@ -533,7 +533,7 @@ function field(markdown: string | undefined, label: string): string | undefined 
     : value;
 }
 
-function section(function section(markdown: string | undefined, heading: string): string {
+function section(markdown: string | undefined, heading: string): string {
   if (!markdown) return "";
   const lines = markdown.split(/\r?\n/);
   const index = lines.findIndex((line) => line.trim().toLowerCase() === `## ${heading.toLowerCase()}`);
@@ -602,7 +602,7 @@ function normalizeState(value: string | undefined): MasteryState {
   return MASTERY_STATES.find((state) => text === state) ?? "unknown";
 }
 
-function slug(function slug(value: string, fallback: string): string {
+function slug(value: string, fallback: string): string {
   const cleaned = value
     .toLowerCase()
     .replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-")
@@ -670,7 +670,7 @@ function parseRoadmap(markdown: string | undefined): { nodes: RoadmapNode[]; edg
   return { nodes, edges };
 }
 
-function readCanonicalLearningMap(function readCanonicalLearningMap(filePath: string | undefined, projectId: string): LearningMapView | undefined {
+function readCanonicalLearningMap(filePath: string | undefined, projectId: string): LearningMapView | undefined {
   if (!filePath || !fs.existsSync(filePath)) return undefined;
   const value = readJsonOptional<unknown>(filePath);
   return parseCanonicalLearningMap(value, projectId);
@@ -769,7 +769,7 @@ function localTimeline(repoRoot: string): { sessions: SessionPoint[]; activeArc?
   };
 }
 
-function runtimeTimeline(function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
+function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
   return readReceiptDirectory(runtimeRoot, "turns").map((item, index) => {
     const artifacts = Array.isArray(item.artifact_refs) ? item.artifact_refs : [];
     const decisions = Array.isArray(item.state_decision_ids) ? item.state_decision_ids : [];
