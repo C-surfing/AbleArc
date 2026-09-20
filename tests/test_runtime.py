@@ -279,6 +279,115 @@ class LearningRuntimeTests(unittest.TestCase):
         self.assertIn(result["evidence"]["id"], result["next_decision"]["evidence_used"])
         self.assertEqual(runtime.verify_runtime(self.root), [])
 
+    def test_assessed_supporting_evidence_enters_state_authority_path(self):
+        decision = self.decision()
+        runtime.record_learner_response(
+            self.root,
+            decision["id"],
+            "The prior changes the reference population, so false positives compete differently.",
+        )
+
+        result = runtime.advance_learning_turn(
+            self.root,
+            decision["id"],
+            self.advance_payload(),
+        )
+
+        self.assertEqual(len(result["state_proposals"]), 1)
+        proposal = result["state_proposals"][0]
+        self.assertEqual(proposal["before"], "unknown")
+        self.assertEqual(proposal["after"], "exposed")
+        self.assertEqual(proposal["evidence_ids"], [result["evidence"]["id"]])
+        self.assertEqual(len(result["state_decisions"]), 1)
+        authority = result["state_decisions"][0]
+        self.assertEqual(authority["decision"], "accepted")
+        self.assertEqual(
+            authority["authority"],
+            {"type": "runtime_policy", "id": "low-risk-v0.1"},
+        )
+        self.assertEqual(
+            runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+        self.assertEqual(result["turn"]["state_proposal_ids"], [proposal["id"]])
+        self.assertEqual(result["turn"]["state_decision_ids"], [authority["id"]])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+    def test_stronger_followup_evidence_creates_reviewable_developing_proposal(self):
+        first = self.decision()
+        runtime.record_learner_response(
+            self.root,
+            first["id"],
+            "The prior changes the competing populations.",
+        )
+        first_result = runtime.advance_learning_turn(
+            self.root,
+            first["id"],
+            self.advance_payload(),
+        )
+        second = first_result["next_decision"]
+        runtime.record_learner_response(
+            self.root,
+            second["id"],
+            "Both true positives and false positives belong in the denominator.",
+        )
+
+        second_result = runtime.advance_learning_turn(
+            self.root,
+            second["id"],
+            self.advance_payload(),
+        )
+
+        self.assertEqual(len(second_result["state_proposals"]), 1)
+        proposal = second_result["state_proposals"][0]
+        self.assertEqual((proposal["before"], proposal["after"]), ("exposed", "developing"))
+        self.assertEqual(second_result["state_decisions"], [])
+        self.assertEqual(runtime.state_transition_risk(self.root, proposal), "medium")
+        self.assertEqual(
+            runtime.rebuild_state(self.root)["concepts"]["bayes-base-rate"]["state"],
+            "exposed",
+        )
+        self.assertEqual(second_result["turn"]["state_proposal_ids"], [proposal["id"]])
+        self.assertEqual(second_result["turn"]["state_decision_ids"], [])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+    def test_inconclusive_or_contradicting_evidence_does_not_auto_change_state(self):
+        decision = self.decision()
+        runtime.record_learner_response(self.root, decision["id"], "I am not sure.")
+        inconclusive = self.advance_payload()
+        inconclusive["assessment"] = {
+            **inconclusive["assessment"],
+            "outcome": "inconclusive",
+            "supports": [],
+        }
+        result = runtime.advance_learning_turn(self.root, decision["id"], inconclusive)
+        self.assertEqual(result["state_proposals"], [])
+        self.assertEqual(result["state_decisions"], [])
+        self.assertEqual(runtime.rebuild_state(self.root)["concepts"], {})
+
+        next_decision = result["next_decision"]
+        runtime.record_learner_response(
+            self.root,
+            next_decision["id"],
+            "Sensitivity is the posterior probability.",
+        )
+        contradicting = self.advance_payload()
+        contradicting["assessment"] = {
+            **contradicting["assessment"],
+            "outcome": "contradicts",
+            "supports": [],
+            "contradicts": ["confuses sensitivity with posterior"],
+        }
+        contradicted = runtime.advance_learning_turn(
+            self.root,
+            next_decision["id"],
+            contradicting,
+        )
+        self.assertEqual(contradicted["state_proposals"], [])
+        self.assertEqual(contradicted["state_decisions"], [])
+        self.assertEqual(runtime.rebuild_state(self.root)["concepts"], {})
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
     def test_observation_and_evidence_are_distinct_immutable_receipts(self):
         evidence = self.evidence()
         observation = runtime.load_receipt(self.root, "observation", evidence["observation_id"])
