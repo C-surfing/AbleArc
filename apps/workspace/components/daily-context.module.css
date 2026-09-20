@@ -1,11 +1,11 @@
 .dailyContext {
   display: grid;
   gap: 13px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(251, 251, 248, 0.82);
-  box-shadow: 0 10px 30px rgba(29, 31, 35, 0.04);
+  padding: 17px;
+  border: 1px solid rgba(222, 216, 206, 0.9);
+  border-radius: 15px;
+  background: rgba(255, 254, 249, 0.66);
+  box-shadow: none;
 }
 
 .contextHeader {
@@ -31,8 +31,10 @@
 }
 
 .contextHeader strong {
-  font-size: 13px;
-  letter-spacing: -0.015em;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .contextHeader small,
@@ -61,21 +63,21 @@
 
 .scaleButtons button {
   min-width: 0;
-  height: 31px;
+  height: 32px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--surface-strong);
   color: var(--muted);
   cursor: pointer;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 730;
 }
 
 .scaleButtons button:hover,
 .scaleButtons button.isSelected {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
+  border-color: rgba(135, 153, 92, 0.36);
+  color: #697944;
+  background: var(--growth-soft);
 }
 
 .contextFields {
@@ -94,7 +96,7 @@
 .contextNote textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--surface-strong);
   color: var(--ink);
   outline: none;
@@ -103,7 +105,7 @@
 
 .contextFields input,
 .contextFields select {
-  height: 34px;
+  height: 35px;
   padding: 0 9px;
   font-size: 11px;
 }
@@ -111,8 +113,8 @@
 .contextFields input:focus,
 .contextFields select:focus,
 .contextNote textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  border-color: rgba(135, 153, 92, 0.44);
+  box-shadow: 0 0 0 3px rgba(135, 153, 92, 0.09);
 }
 
 .contextNote {
@@ -127,22 +129,27 @@
 
 .contextNote textarea {
   margin-top: 7px;
-  min-height: 54px;
+  min-height: 58px;
   resize: vertical;
-  padding: 8px;
+  padding: 9px;
   font-size: 11px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .contextSave {
-  min-height: 34px;
+  min-height: 36px;
   border: 1px solid var(--ink);
-  border-radius: 9px;
+  border-radius: 10px 10px 10px 5px;
   background: var(--ink);
   color: var(--surface-strong);
   cursor: pointer;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 740;
+}
+
+.contextSave:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #383442;
 }
 
 .contextSave:disabled {
@@ -158,15 +165,16 @@
   margin-top: 20px;
   max-width: 780px;
   padding: 14px 15px;
-  border: 1px solid rgba(87, 85, 217, 0.18);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(135, 153, 92, 0.2);
+  border-left: 3px solid var(--growth);
+  border-radius: 0 12px 12px 0;
+  background: rgba(238, 241, 227, 0.46);
 }
 
 .sessionShape > span {
   display: block;
   margin-bottom: 5px;
-  color: var(--accent);
+  color: #697944;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
