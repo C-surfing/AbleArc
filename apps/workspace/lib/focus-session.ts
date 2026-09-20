@@ -48,3 +48,47 @@ export function focusScaffolds(snapshot: WorkspaceSnapshot): FocusScaffold[] {
   });
   return scaffolds;
 }
+
+
+export const ASSESSMENT_FAILURE_TYPES = [
+  "provider_configuration",
+  "provider_timeout",
+  "provider_refusal",
+  "provider_request",
+  "provider_invalid_response",
+  "structured_output_validation",
+  "runtime_conflict",
+  "runtime_failure",
+  "network",
+  "unknown",
+] as const;
+
+export type AssessmentFailureType = typeof ASSESSMENT_FAILURE_TYPES[number];
+
+export interface AssessmentFailure {
+  type: AssessmentFailureType;
+  message: string;
+}
+
+export function normalizeAssessmentFailureType(value: unknown): AssessmentFailureType {
+  return typeof value === "string" && (ASSESSMENT_FAILURE_TYPES as readonly string[]).includes(value)
+    ? value as AssessmentFailureType
+    : "unknown";
+}
+
+export function assessmentFailureLabel(type: AssessmentFailureType): string {
+  if (type === "provider_configuration") return "Provider configuration";
+  if (type === "provider_timeout") return "Provider timeout";
+  if (type === "provider_refusal") return "Provider refusal";
+  if (type === "provider_request") return "Provider request";
+  if (type === "provider_invalid_response") return "Provider response";
+  if (type === "structured_output_validation") return "Structured-output validation";
+  if (type === "runtime_conflict") return "Runtime conflict";
+  if (type === "runtime_failure") return "Runtime failure";
+  if (type === "network") return "Network failure";
+  return "Assessment failure";
+}
+
+export function assessmentFailureStorageKey(projectId: string, decisionId: string): string {
+  return `ablearc:assessment-failure:${encodeURIComponent(projectId)}:${encodeURIComponent(decisionId)}`;
+}

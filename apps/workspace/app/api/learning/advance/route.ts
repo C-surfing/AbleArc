@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     if (error instanceof LearningKernelConflictError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
+      return NextResponse.json({ error: error.message, errorType: "runtime_conflict" }, { status: 409 });
     }
     if (error instanceof AgentAdapterError) {
       const status = error.code === "configuration"
@@ -59,7 +59,16 @@ export async function POST(request: NextRequest) {
           : error.code === "refusal"
             ? "The Provider declined this assessment. Continue with an external Agent."
             : "The Provider could not produce a valid structured learning turn.";
-      return NextResponse.json({ error: message }, { status });
+      const errorType = error.code === "configuration"
+        ? "provider_configuration"
+        : error.code === "timeout"
+          ? "provider_timeout"
+          : error.code === "refusal"
+            ? "provider_refusal"
+            : error.code === "invalid_response"
+              ? "provider_invalid_response"
+              : "provider_request";
+      return NextResponse.json({ error: message, errorType }, { status });
     }
     if (error instanceof TeachingAdvanceValidationError) {
       return NextResponse.json(
@@ -73,12 +82,16 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof RuntimeBridgeError) {
       return NextResponse.json(
-        { error: error.message },
+        {
+          error: error.message,
+          errorType: error.kind === "conflict" ? "runtime_conflict" : "runtime_failure",
+        },
         { status: error.kind === "conflict" ? 409 : 500 },
       );
     }
+    console.error("Unexpected learning-advance failure.", error);
     return NextResponse.json(
-      { error: "Could not advance the learning turn safely." },
+      { error: "Could not advance the learning turn safely.", errorType: "unknown" },
       { status: 500 },
     );
   }
