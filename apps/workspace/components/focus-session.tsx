@@ -81,6 +81,7 @@ export function FocusSession({
 
   useEffect(() => {
     setScaffoldLevel(0);
+    setSupportVisible(false);
   }, [snapshot.projectId, snapshot.decision?.id]);
 
   function resetTimer() {
