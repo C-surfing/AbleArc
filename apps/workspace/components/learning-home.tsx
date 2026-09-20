@@ -17,7 +17,7 @@ import styles from "./learning-home.module.css";
 function Brand() {
   return (
     <div className={styles.brand}>
-      <span className={styles.brandMark}>AA</span>
+      <span className={styles.brandMark}>A·</span>
       <span>
         <strong>AbleArc</strong>
         <small>Learning OS</small>
@@ -84,67 +84,50 @@ function Entry() {
 
       <main className={styles.entryMain}>
         <section className={styles.entryPrompt}>
-          <span className={styles.kicker}>Start one learning arc</span>
-          <h1>What do you want to learn or become able to do?</h1>
+          <span className={styles.kicker}>Begin with curiosity</span>
+          <h1>What’s worth understanding?</h1>
           <p>
-            Describe an observable capability. AbleArc will keep the learning state local,
-            open with a representative attempt, and build the map from evidence rather than assumptions.
+            Start from a question, a mechanism, or something you want to become able to do.
+            AbleArc will keep the path focused and adapt from what you actually show.
           </p>
 
           <form className={styles.entryForm} onSubmit={begin}>
             <label className={styles.primaryField}>
-              <span>Capability goal</span>
+              <span>What are you trying to understand or become able to do?</span>
               <textarea
                 autoFocus
                 value={goal}
                 onChange={(event) => setGoal(event.target.value)}
                 rows={5}
                 maxLength={1200}
-                placeholder="For example: derive and implement backpropagation for a small MLP without relying on a memorized formula."
+                placeholder="For example: Why is CUDA shared memory actually fast, and when should I use it?"
                 required
               />
             </label>
 
             <details className={styles.optionalDetails}>
-              <summary>Optional: name this Project</summary>
+              <summary>Optional · name this learning arc</summary>
               <label>
                 <span>Project name</span>
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   maxLength={200}
-                  placeholder="Backpropagation from first principles"
+                  placeholder="CUDA memory hierarchy"
                 />
               </label>
             </details>
 
             <div className={styles.entryActions}>
               <button className={styles.primaryButton} type="submit" disabled={busy || !goal.trim()}>
-                {busy ? "Creating…" : "Begin learning"}
+                {busy ? "Creating…" : "Start exploring"}
               </button>
-              <span>One goal first. No dashboard setup required.</span>
+              <span>One useful question first. Refine the goal as you learn.</span>
             </div>
             {error ? <p className={styles.error} role="alert">{error}</p> : null}
           </form>
         </section>
 
-        <aside className={styles.entryPrinciples} aria-label="AbleArc learning principles">
-          <div>
-            <span>01</span>
-            <strong>One cognitive move at a time</strong>
-            <p>The product foregrounds what you should do, not every internal subsystem.</p>
-          </div>
-          <div>
-            <span>02</span>
-            <strong>Evidence before confidence</strong>
-            <p>Time spent, clicks, and model praise do not become mastery evidence.</p>
-          </div>
-          <div>
-            <span>03</span>
-            <strong>Runtime remains authoritative</strong>
-            <p>The Web experience can guide learning without inventing learner truth.</p>
-          </div>
-        </aside>
       </main>
     </div>
   );
@@ -230,7 +213,7 @@ function Today({
         <section className={styles.todayIntro}>
           <div>
             <span className={styles.kicker}>Today · {snapshot.projectTitle || "Current Project"}</span>
-            <h1>One useful move, then reassess.</h1>
+            <h1>Continue at the edge of what you understand.</h1>
             <p>{snapshot.mission}</p>
           </div>
 
