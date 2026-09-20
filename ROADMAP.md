@@ -4,6 +4,8 @@
 
 AbleArc has completed **Kernel v1 implementation phases K1–K7** and is now in the **K8 longitudinal validation phase**.
 
+**2026-09-20 Web stabilization interrupt:** real Web dogfooding exposed blocking Host/provider/authority-path failures. K8 remains active, but the first-party Web path must pass the bounded stabilization gate in [`docs/WEB-STABILIZATION-2026-09-20.md`](docs/WEB-STABILIZATION-2026-09-20.md) / Issue #132 before Web failures are treated as clean evidence about Kernel pedagogy. Agent-mode K8 evidence may continue.
+
 Current sources of truth:
 
 - [`docs/KERNEL-V1.md`](docs/KERNEL-V1.md) — canonical Learning Kernel v1 architecture and anti-bloat boundary;
