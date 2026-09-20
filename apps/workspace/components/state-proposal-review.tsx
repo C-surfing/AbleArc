@@ -123,8 +123,7 @@ export function StateProposalReview({
           <p>{proposal.rationale}</p>
           <div className={styles.meta}>
             <span>{proposal.evidenceCount} supporting evidence item(s)</span>
-            <span>{proposal.risk} risk</span>
-            <span>proposed by {proposal.proposedBy}</span>
+            <span>{proposal.risk} review caution</span>
           </div>
           {statusCopy ? <p className={proposal.stale || hasPolicyIssues ? styles.warning : styles.status}>{statusCopy}</p> : null}
           {proposal.policyIssues.length ? (
@@ -157,7 +156,7 @@ export function StateProposalReview({
           {error ? <p className={styles.warning}>{error}</p> : null}
           <div className={styles.actions}>
             <button type="button" onClick={() => void decide("rejected")} disabled={!canSubmit}>
-              Reject
+              Keep current state
             </button>
             <button type="button" onClick={() => void decide("accepted")} disabled={!canAccept}>
               {hasPolicyIssues ? "Accept update with override" : "Accept update"}
