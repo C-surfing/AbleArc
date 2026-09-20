@@ -33,6 +33,27 @@ export interface ProviderSettingsMetadata {
   updatedAt?: string;
 }
 
+
+export type ProviderCompatibilityCode =
+  | "authentication"
+  | "response_format"
+  | "endpoint_or_model"
+  | "rate_limit"
+  | "timeout"
+  | "provider"
+  | "invalid_response";
+
+export class ProviderCompatibilityError extends Error {
+  constructor(
+    message: string,
+    readonly code: ProviderCompatibilityCode,
+    readonly status?: number,
+  ) {
+    super(message);
+    this.name = "ProviderCompatibilityError";
+  }
+}
+
 type Environment = Readonly<Record<string, string | undefined>>;
 
 const MAX_SETTINGS_BYTES = 16 * 1024;
@@ -120,6 +141,168 @@ export function readStoredProviderSettings(repoRoot: string): StoredProviderSett
     ...normalized,
     updatedAt: item.updatedAt,
   };
+}
+
+function responseFormat(mode: ProviderStructuredOutput): Record<string, unknown> {
+  return mode === "json_object"
+    ? { type: "json_object" }
+    : {
+        type: "json_schema",
+        json_schema: {
+          name: "ablearc_provider_probe",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["ok"],
+            properties: { ok: { type: "boolean", const: true } },
+          },
+        },
+      };
+}
+
+function providerFailureMessage(
+  status: number,
+  detail: string,
+  mode: ProviderStructuredOutput,
+): ProviderCompatibilityError {
+  if (status === 401 || status === 403) {
+    return new ProviderCompatibilityError(
+      "Provider authentication failed. Check the API key and account access.",
+      "authentication",
+      status,
+    );
+  }
+  if (status === 429) {
+    return new ProviderCompatibilityError(
+      "Provider rate-limited the setup check. Try again after the provider limit resets.",
+      "rate_limit",
+      status,
+    );
+  }
+  if (
+    (status === 400 || status === 422)
+    && /response[_ -]?format|json[_ -]?schema|schema|unsupported|not supported/i.test(detail)
+  ) {
+    const label = mode === "json_schema" ? "Strict JSON Schema" : "JSON Object";
+    return new ProviderCompatibilityError(
+      `Provider rejected the selected structured-output mode (${label}). Choose a compatible mode before saving.`,
+      "response_format",
+      status,
+    );
+  }
+  if (status === 400 || status === 404 || status === 422) {
+    return new ProviderCompatibilityError(
+      "Provider rejected the setup check. Verify the model ID and base URL.",
+      "endpoint_or_model",
+      status,
+    );
+  }
+  return new ProviderCompatibilityError(
+    `Provider setup check failed with status ${status}.`,
+    "provider",
+    status,
+  );
+}
+
+export async function probeProviderSettings(
+  input: ProviderSettingsInput,
+  fetchImplementation: typeof fetch = fetch,
+): Promise<void> {
+  const normalized = normalizeSettings(input);
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort("provider setup timeout"),
+    Math.min(normalized.timeoutMs, 20_000),
+  );
+  try {
+    const response = await fetchImplementation(
+      `${normalized.baseUrl}/chat/completions`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${normalized.apiKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: normalized.model,
+          messages: [
+            {
+              role: "system",
+              content: "This is an AbleArc provider compatibility check. Return only the requested JSON object.",
+            },
+            { role: "user", content: "Return {\\\"ok\\\": true}." },
+          ],
+          response_format: responseFormat(normalized.structuredOutput),
+          max_tokens: 64,
+        }),
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 4096);
+      throw providerFailureMessage(response.status, detail, normalized.structuredOutput);
+    }
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new ProviderCompatibilityError(
+        "Provider setup check returned invalid JSON.",
+        "invalid_response",
+      );
+    }
+    const content = (payload as {
+      choices?: Array<{ message?: { content?: unknown } }>;
+    }).choices?.[0]?.message?.content;
+    if (typeof content !== "string") {
+      throw new ProviderCompatibilityError(
+        "Provider setup check returned no structured content.",
+        "invalid_response",
+      );
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new ProviderCompatibilityError(
+        "Provider setup check returned content that was not valid JSON.",
+        "invalid_response",
+      );
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || (parsed as { ok?: unknown }).ok !== true) {
+      throw new ProviderCompatibilityError(
+        "Provider setup check did not honor the requested structured output.",
+        "invalid_response",
+      );
+    }
+  } catch (error) {
+    if (error instanceof ProviderCompatibilityError) throw error;
+    if (controller.signal.aborted) {
+      throw new ProviderCompatibilityError(
+        "Provider setup check timed out. Verify the endpoint/model or increase the timeout.",
+        "timeout",
+      );
+    }
+    throw new ProviderCompatibilityError(
+      "Provider setup check could not reach the configured endpoint.",
+      "provider",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function verifyAndWriteStoredProviderSettings(
+  repoRoot: string,
+  input: ProviderSettingsInput,
+  fetchImplementation: typeof fetch = fetch,
+  now = new Date().toISOString(),
+): Promise<StoredProviderSettings> {
+  await probeProviderSettings(input, fetchImplementation);
+  return writeStoredProviderSettings(repoRoot, input, now);
 }
 
 export function writeStoredProviderSettings(
