@@ -176,6 +176,54 @@ class ProjectLifecycleTests(unittest.TestCase):
         decision = runtime.record_decision(self.root, self.decision_payload())
         self.assertEqual(decision["project_id"], "bayes")
 
+    def test_abandon_selected_project_preserves_history_and_selects_another_learning_line(self):
+        first = self.create()
+        first_decision = runtime.list_receipts(self.root, "decision")[-1]["id"]
+        project_lifecycle.create_project(
+            self.root,
+            title="Rust ownership",
+            goal="Debug ownership-sensitive Rust programs independently",
+            project_id="rust",
+        )
+
+        abandoned = project_lifecycle.abandon_project(self.root, "rust")
+
+        self.assertEqual(abandoned["status"], "abandoned")
+        self.assertEqual(abandoned["selected_project_id"], first["project_id"])
+        selected = project_store.resolve_project_context(self.root)
+        self.assertEqual(selected.project_id, first["project_id"])
+        retained = project_store.resolve_project_context(self.root, project_id="rust")
+        self.assertEqual(retained.project_status, "abandoned")
+        self.assertEqual(retained.maintenance_status, "none")
+        manifest = json.loads(retained.project_manifest_path.read_text(encoding="utf-8"))
+        self.assertIsInstance(manifest["abandoned_at"], str)
+        self.assertIsNone(manifest["archived_at"])
+        project_lifecycle.switch_project(self.root, first["project_id"])
+        self.assertEqual(
+            [item["id"] for item in runtime.list_receipts(self.root, "decision")],
+            [first_decision],
+        )
+        with self.assertRaisesRegex(project_lifecycle.ProjectLifecycleError, "abandoned"):
+            project_lifecycle.switch_project(self.root, "rust")
+
+    def test_abandon_last_project_clears_selection_but_keeps_retained_project(self):
+        self.create()
+        retained_root = project_store.resolve_project_context(self.root).project_root
+
+        result = project_lifecycle.abandon_project(self.root, "bayes")
+
+        self.assertEqual(result["selected_project_id"], None)
+        workspace = project_store.load_workspace_manifest(self.root)
+        self.assertIsNone(workspace["active_project_id"])
+        self.assertTrue(retained_root.is_dir())
+        retained = project_store.resolve_project_context(self.root, project_id="bayes")
+        self.assertEqual(retained.project_status, "abandoned")
+        brief = project_lifecycle.learning_brief(self.root)
+        self.assertEqual(brief["status"], "no_active_project")
+        self.assertEqual(brief["next_action"], "create-project")
+        with self.assertRaisesRegex(project_store.ProjectStoreError, "no active Project"):
+            project_store.resolve_project_context(self.root)
+
     def test_archive_is_read_only_but_maintenance_can_append_evidence_chain(self):
         self.create()
         context = project_store.resolve_project_context(self.root)
