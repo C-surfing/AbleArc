@@ -223,7 +223,8 @@ class ProjectStoreTests(unittest.TestCase):
 
         self.assertEqual(workspace["properties"]["schema_version"]["const"], "0.2")
         self.assertIn("active_project_id", workspace["required"])
-        self.assertEqual(project["properties"]["status"]["enum"], ["active", "paused", "archived"])
+        self.assertEqual(project["properties"]["status"]["enum"], ["active", "paused", "archived", "abandoned"])
+        self.assertIn("abandoned_at", project["properties"])
         self.assertIn("active_mission_id", project["required"])
         self.assertIn("project_id", mission["required"])
         self.assertIn("criteria", mission["required"])
