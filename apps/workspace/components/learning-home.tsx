@@ -79,7 +79,7 @@ function Entry({ projects }: { projects: WorkspaceSnapshot["projects"] }) {
     <div className={styles.entryPage}>
       <header className={styles.entryHeader}>
         <Brand />
-        <span className={styles.entryHeaderLinks}><ProjectSwitcher projects={projects} /><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></span>
+        <div className={styles.entryHeaderLinks}><ProjectSwitcher projects={projects} /><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></div>
       </header>
 
       <main className={styles.entryMain}>
