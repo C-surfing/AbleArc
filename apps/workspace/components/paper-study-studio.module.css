@@ -1,18 +1,19 @@
 .studio {
   display: grid;
-  gap: 18px;
+  gap: 24px;
 }
 
 .sourcePanel,
 .plan,
 .emptyState {
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface);
+  border: 1px solid rgba(222, 216, 206, 0.9);
+  background: rgba(255, 254, 249, 0.72);
 }
 
 .sourcePanel {
-  padding: 22px;
+  padding: clamp(22px, 4vw, 36px);
+  border-radius: 24px 24px 24px 9px;
+  box-shadow: var(--shadow-soft);
 }
 
 .sourcePanel > header,
@@ -20,7 +21,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 24px;
 }
 
 .sourcePanel > header span,
@@ -28,18 +29,21 @@
 .path > span,
 .firstMove > span,
 .planSection > h3 {
-  color: var(--accent);
+  color: var(--accent-strong);
   font-size: 10px;
-  font-weight: 760;
-  letter-spacing: .08em;
+  font-weight: 780;
+  letter-spacing: .09em;
   text-transform: uppercase;
 }
 
 .sourcePanel h2,
 .planHeader h2 {
-  margin: 7px 0 0;
-  font-size: 24px;
-  letter-spacing: -.035em;
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 560;
+  line-height: 1.04;
+  letter-spacing: -.045em;
 }
 
 .sourcePanel header small,
@@ -53,15 +57,15 @@
 
 .intro {
   max-width: 760px;
-  margin: 12px 0 20px;
+  margin: 15px 0 24px;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .sourcePanel form {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .sourcePanel label {
@@ -70,9 +74,9 @@
 }
 
 .sourcePanel label > span {
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 680;
 }
 
 .sourcePanel input,
@@ -80,7 +84,6 @@
 .sourcePanel textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 10px;
   background: var(--surface-strong);
   color: var(--ink);
   outline: none;
@@ -88,23 +91,27 @@
 
 .sourcePanel input,
 .sourcePanel select {
-  min-height: 40px;
-  padding: 0 11px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 11px;
 }
 
 .sourcePanel textarea {
   min-height: 320px;
-  padding: 13px;
+  padding: 17px 18px;
   resize: vertical;
+  border-radius: 16px 16px 16px 6px;
   font: inherit;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.7;
+  box-shadow: inset 0 0 0 1px rgba(255, 254, 249, 0.4);
 }
 
 .sourcePanel input:focus,
 .sourcePanel select:focus,
 .sourcePanel textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: rgba(116, 99, 168, 0.52);
+  box-shadow: 0 0 0 4px rgba(116, 99, 168, 0.1);
 }
 
 .actions {
@@ -115,18 +122,23 @@
 }
 
 .actions button {
-  min-height: 39px;
-  padding: 0 14px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  background: var(--accent);
-  color: white;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 11px 11px 11px 5px;
+  background: var(--ink);
+  color: var(--surface-strong);
   font-weight: 740;
   cursor: pointer;
 }
 
+.actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #383442;
+}
+
 .actions button:disabled {
-  opacity: .55;
+  opacity: .5;
   cursor: not-allowed;
 }
 
@@ -138,7 +150,7 @@
 }
 
 .warning {
-  color: #9a4437;
+  color: var(--warning);
 }
 
 .status {
@@ -146,41 +158,38 @@
 }
 
 .plan {
-  padding: 22px;
+  padding: clamp(22px, 4vw, 34px);
+  border-radius: 24px;
 }
 
 .summaryGrid,
 .twoColumn {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .summaryGrid {
-  margin-top: 18px;
+  margin-top: 22px;
 }
 
-.summaryGrid article,
-.stack article,
-.methodCard,
-.path,
-.firstMove {
-  border: 1px solid var(--line-soft);
-  border-radius: 12px;
-  background: var(--surface-strong);
+.summaryGrid article {
+  padding: 18px;
+  border: 1px solid rgba(110, 152, 182, 0.18);
+  border-radius: 14px;
+  background: rgba(232, 240, 245, 0.42);
 }
 
-.summaryGrid article,
-.stack article,
-.methodCard {
-  padding: 14px;
+.summaryGrid article:last-child {
+  border-color: rgba(135, 153, 92, 0.18);
+  background: rgba(238, 241, 227, 0.5);
 }
 
 .summaryGrid span {
-  color: var(--faint);
+  color: var(--muted);
   font-size: 9px;
-  font-weight: 720;
-  letter-spacing: .06em;
+  font-weight: 760;
+  letter-spacing: .07em;
   text-transform: uppercase;
 }
 
@@ -193,26 +202,36 @@
   margin: 7px 0 0;
   color: var(--muted);
   font-size: 11px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 .planSection {
-  margin-top: 20px;
+  margin-top: 28px;
 }
 
 .planSection > h3 {
-  margin: 0 0 9px;
+  margin: 0 0 10px;
 }
 
 .stack {
   display: grid;
-  gap: 8px;
+  gap: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.stack article,
+.methodCard {
+  padding: 15px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  background: transparent;
 }
 
 .stack strong,
 .methodCard strong {
+  color: var(--ink-soft);
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .inlineTitle {
@@ -223,11 +242,11 @@
 
 .methodCard ol,
 .path ol {
-  margin: 10px 0 0;
+  margin: 11px 0 0;
   padding-left: 20px;
   color: var(--muted);
   font-size: 11px;
-  line-height: 1.55;
+  line-height: 1.65;
 }
 
 .empty {
@@ -238,12 +257,18 @@
 
 .path,
 .firstMove {
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 26px;
+  padding: 18px 20px;
+}
+
+.path {
+  border: 1px solid rgba(116, 99, 168, 0.16);
+  border-radius: 14px;
+  background: rgba(239, 236, 247, 0.42);
 }
 
 .path li + li {
-  margin-top: 8px;
+  margin-top: 9px;
 }
 
 .path strong,
@@ -251,10 +276,23 @@
   font-size: 12px;
 }
 
+.firstMove {
+  border: 1px solid rgba(184, 139, 62, 0.2);
+  border-left: 4px solid var(--think);
+  border-radius: 0 16px 16px 0;
+  background: rgba(247, 237, 217, 0.48);
+}
+
+.firstMove > span {
+  color: #8e692f;
+}
+
 .firstMove h3 {
-  margin: 8px 0 0;
-  font-size: 20px;
-  letter-spacing: -.025em;
+  margin: 9px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(23px, 3vw, 32px);
+  font-weight: 560;
+  letter-spacing: -.035em;
 }
 
 .firstMove > strong {
@@ -264,29 +302,38 @@
 
 .firstMove a {
   display: inline-block;
-  margin-top: 14px;
-  color: var(--accent);
+  margin-top: 16px;
+  color: var(--ink);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 740;
   text-decoration: none;
 }
 
+.firstMove a:hover {
+  color: var(--accent-strong);
+}
+
 .emptyState {
-  padding: 24px;
+  padding: 28px;
+  border-radius: 18px;
+  border-style: dashed;
+  background: rgba(255, 254, 249, 0.44);
 }
 
 .emptyState span {
-  color: var(--accent);
+  color: var(--accent-strong);
   font-size: 10px;
-  font-weight: 760;
+  font-weight: 780;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .emptyState strong {
   display: block;
-  margin-top: 8px;
-  font-size: 17px;
+  margin-top: 9px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 560;
 }
 
 @media (max-width: 720px) {

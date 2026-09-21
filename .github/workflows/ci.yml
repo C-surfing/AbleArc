@@ -45,3 +45,13 @@ jobs:
             echo "$dirty"
             exit 1
           fi
+      - name: Capture rendered Web visual QA
+        run: bash scripts/capture-visual-qa.sh
+      - name: Upload Web visual QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ablearc-web-visual-qa
+          path: apps/workspace/test-results/visual-qa
+          if-no-files-found: warn
+          retention-days: 14

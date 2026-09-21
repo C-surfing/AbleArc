@@ -24,15 +24,18 @@ function defaultTimerMinutes(context?: DailyContext): number {
 export function FocusSession({
   snapshot,
   dailyContext,
+  initialSupportVisible = false,
 }: {
   snapshot: WorkspaceSnapshot;
   dailyContext?: DailyContext;
+  initialSupportVisible?: boolean;
 }) {
   const initialMinutes = useMemo(() => defaultTimerMinutes(dailyContext), [dailyContext]);
   const [remainingSeconds, setRemainingSeconds] = useState(initialMinutes * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerVisible, setTimerVisible] = useState(false);
   const [scaffoldLevel, setScaffoldLevel] = useState(0);
+  const [supportVisible, setSupportVisible] = useState(initialSupportVisible);
   const locale = useMemo(
     () => resolveLearnerUiLocale(snapshot.preferredLanguage, [
       snapshot.mission,
@@ -80,7 +83,8 @@ export function FocusSession({
 
   useEffect(() => {
     setScaffoldLevel(0);
-  }, [snapshot.projectId, snapshot.decision?.id]);
+    setSupportVisible(initialSupportVisible);
+  }, [snapshot.projectId, snapshot.decision?.id, initialSupportVisible]);
 
   function resetTimer() {
     setTimerRunning(false);
@@ -96,7 +100,7 @@ export function FocusSession({
       <header className={styles.focusHeader}>
         <div className={styles.headerIdentity}>
           <Link href="/" aria-label={t("Back to Today", "返回今日")}>←</Link>
-          <span className={styles.brandMark}>AA</span>
+          <span className={styles.brandMark}>A·</span>
           <div>
             <strong>{t("Focus", "专注")}</strong>
             <small>{snapshot.projectTitle || t("Current Project", "当前项目")}</small>
@@ -108,6 +112,14 @@ export function FocusSession({
         </div>
 
         <div className={styles.headerActions}>
+          <button
+            className={`${styles.supportToggle} ${supportVisible ? styles.isActive : ""}`}
+            type="button"
+            aria-pressed={supportVisible}
+            onClick={() => setSupportVisible((visible) => !visible)}
+          >
+            {supportVisible ? t("Hide support", "收起辅助") : t("Support", "辅助")}
+          </button>
           {timerVisible ? (
             <div className={styles.timer} aria-label={t("Optional focus timer", "可选专注计时器")}>
               <strong aria-live="polite">{formatTimer(remainingSeconds)}</strong>
@@ -149,12 +161,12 @@ export function FocusSession({
         </section>
       ) : null}
 
-      <div className={styles.focusBody}>
+      <div className={`${styles.focusBody} ${supportVisible ? styles.hasSupport : ""}`}>
         <div className={styles.canvasColumn}>
           <LearningCanvas snapshot={snapshot} mode={mode} locale={locale} />
         </div>
 
-        <aside className={styles.supportRail} aria-label={t("Focus Session support", "专注学习辅助区")}>
+        <aside className={`${styles.supportRail} ${supportVisible ? styles.isOpen : ""}`} aria-label={t("Focus Session support", "专注学习辅助区")}>
           <section className={styles.sessionShape}>
             <span>{t("Session shape", "本次学习节奏")}</span>
             <strong>{uiMoveLabel(locale, recommendation.moveType)}</strong>
