@@ -826,7 +826,8 @@ def build_parser() -> argparse.ArgumentParser:
         ("switch-project", "select an existing non-archived Project"),
         ("pause-project", "make an active Project read-only"),
         ("resume-project", "resume and select a paused Project"),
-        ("archive-project", "archive a Project without deleting its learning state"),
+        ("archive-project", "archive a completed Project without deleting its learning state"),
+        ("abandon-project", "retire an obsolete Project without deleting its learning history"),
         ("maintenance-start", "temporarily open an archived Project for review"),
         ("maintenance-due", "mark an archived Project due for review"),
     ):
@@ -968,6 +969,7 @@ def main(argv: list[str] | None = None, repo_root: Path | None = None) -> int:
             "pause-project": project_lifecycle.pause_project,
             "resume-project": project_lifecycle.resume_project,
             "archive-project": project_lifecycle.archive_project,
+            "abandon-project": project_lifecycle.abandon_project,
             "maintenance-start": project_lifecycle.maintenance_start,
             "maintenance-due": project_lifecycle.maintenance_due,
         }
