@@ -709,6 +709,10 @@
                   "maximum": 600000
                 }
               }
+            },
+            "superseded_by_decision_id": {
+              "type": "string",
+              "pattern": "^dec_"
             }
           }
         }

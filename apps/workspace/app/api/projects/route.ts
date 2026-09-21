@@ -12,6 +12,7 @@ const ACTION_COMMANDS = {
   pause: "pause-project",
   resume: "resume-project",
   archive: "archive-project",
+  abandon: "abandon-project",
   "maintenance-start": "maintenance-start",
 } as const;
 

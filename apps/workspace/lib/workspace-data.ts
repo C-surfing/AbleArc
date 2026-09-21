@@ -305,7 +305,14 @@ function runtimeEvidence(runtimeRoot: string): EvidenceItem[] {
 }
 
 function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
-  const item = readReceiptDirectory(runtimeRoot, "decisions").at(-1);
+  const closed = new Set(
+    readReceiptDirectory(runtimeRoot, "turns")
+      .filter((turn) => turn.outcome === "completed" || turn.outcome === "abandoned")
+      .map((turn) => String(turn.decision_id)),
+  );
+  const item = readReceiptDirectory(runtimeRoot, "decisions")
+    .filter((decision) => !closed.has(decision.id))
+    .at(-1);
   if (!item) return undefined;
   const representation = (item.representation || {}) as Record<string, unknown>;
   const hasLearnerResponse = readReceiptDirectory(runtimeRoot, "observations")
@@ -424,8 +431,15 @@ function runtimeArtifact(artifactRoot: string, artifactRef: string | undefined):
 }
 
 function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefined {
+  const abandonedDecisionIds = new Set(
+    readReceiptDirectory(runtimeRoot, "turns")
+      .filter((turn) => turn.outcome === "abandoned")
+      .map((turn) => String(turn.decision_id)),
+  );
   const observations = readReceiptDirectory(runtimeRoot, "observations");
-  const observation = observations.filter((item) => item.source === "learner").at(-1);
+  const observation = observations
+    .filter((item) => item.source === "learner" && !abandonedDecisionIds.has(String(item.decision_id)))
+    .at(-1);
   if (!observation) return undefined;
 
   const evidence = readReceiptDirectory(runtimeRoot, "evidence")
@@ -793,11 +807,15 @@ function runtimeTimeline(runtimeRoot: string): SessionPoint[] {
 
 export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): WorkspaceSnapshot {
   const agent = getWorkspaceProviderStatus(repoRoot);
+  const projects = listProjectSummaries(repoRoot);
   const context = resolveProjectReadContext(repoRoot);
-  if (!context) return { ...DEMO, agent };
-  const projects = context.layout === "workspace-v0.2"
-    ? listProjectSummaries(repoRoot)
-    : [];
+  if (!context) return {
+    ...DEMO,
+    agent,
+    source: projects.length > 0 ? "local" : "demo",
+    projects,
+  };
+  const scopedProjects = context.layout === "workspace-v0.2" ? projects : [];
   const state = readOptional(context.statePath);
   const roadmap = readOptional(context.roadmapMarkdownPath);
   const mission = context.missionMarkdownPath ? readOptional(context.missionMarkdownPath) : undefined;
@@ -840,8 +858,8 @@ export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): Worksp
   const evidence = structuredEvidence.length > 0 ? structuredEvidence : parseEvidence(state);
   const misconceptions = parseMisconceptions(state);
   const reviewCandidates = parseReview(state);
-  const dueReviews = projects.filter((project) => project.maintenanceStatus === "due").length;
-  const projectCountLabel = `${projects.length} ${projects.length === 1 ? "PROJECT" : "PROJECTS"}`;
+  const dueReviews = scopedProjects.filter((project) => project.maintenanceStatus === "due").length;
+  const projectCountLabel = `${scopedProjects.length} ${scopedProjects.length === 1 ? "PROJECT" : "PROJECTS"}`;
   const sessionBrief = context.projectStatus === "paused"
     ? {
         label: `SESSION BRIEF · ${projectCountLabel}`,
@@ -913,7 +931,7 @@ export function loadWorkspaceSnapshot(repoRoot: string = findRepoRoot()): Worksp
     missionId: context.layout === "workspace-v0.2" ? context.missionId : undefined,
     projectStatus: context.projectStatus,
     maintenanceStatus: context.maintenanceStatus,
-    projects,
+    projects: scopedProjects,
     materials,
     pendingStateProposalCount: stateProposalCount,
     pendingMapProposalCount: mapProposalCount,

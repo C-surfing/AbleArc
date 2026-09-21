@@ -537,6 +537,71 @@ class LearningRuntimeTests(unittest.TestCase):
             if item["observation_id"] == response["id"]
         ])
 
+    def test_supersede_decision_closes_obsolete_move_without_deleting_response_or_creating_evidence(self):
+        obsolete = self.decision()
+        observation = runtime.record_learner_response(
+            self.root,
+            obsolete["id"],
+            "I want to pivot; this move no longer matches the question I am pursuing.",
+        )
+        replacement = self.decision()
+
+        turn = runtime.supersede_decision(
+            self.root,
+            obsolete["id"],
+            replacement["id"],
+            "Learner pivoted to a more relevant move.",
+        )
+
+        self.assertEqual(turn["outcome"], "abandoned")
+        self.assertEqual(turn["decision_id"], obsolete["id"])
+        self.assertEqual(turn["superseded_by_decision_id"], replacement["id"])
+        self.assertEqual(turn["observation_ids"], [observation["id"]])
+        self.assertEqual(turn["evidence_ids"], [])
+        self.assertEqual(runtime.pending_learner_turn(self.root), None)
+        self.assertEqual(
+            [item["id"] for item in runtime.unanswered_decisions(self.root)],
+            [replacement["id"]],
+        )
+        self.assertEqual(
+            runtime.load_receipt(self.root, "observation", observation["id"])["observed_result"],
+            "I want to pivot; this move no longer matches the question I am pursuing.",
+        )
+        self.assertEqual(runtime.list_receipts(self.root, "evidence"), [])
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
+    def test_supersede_rejects_completed_or_invalid_replacement_links(self):
+        obsolete = self.decision()
+        replacement = self.decision()
+        with self.assertRaisesRegex(runtime.RuntimeContractError, "outcome=abandoned"):
+            runtime.record_turn(
+                self.root,
+                {
+                    "decision_id": obsolete["id"],
+                    "observation_ids": [],
+                    "evidence_ids": [],
+                    "state_proposal_ids": [],
+                    "state_decision_ids": [],
+                    "artifact_refs": [],
+                    "outcome": "completed",
+                    "summary": "Invalid supersession marker.",
+                    "superseded_by_decision_id": replacement["id"],
+                },
+            )
+        runtime.supersede_decision(
+            self.root,
+            obsolete["id"],
+            replacement["id"],
+            "Replace the obsolete move.",
+        )
+        with self.assertRaisesRegex(runtime.RuntimeContractError, "terminal turn"):
+            runtime.supersede_decision(
+                self.root,
+                obsolete["id"],
+                replacement["id"],
+                "Try to supersede twice.",
+            )
+
     def test_invalid_next_move_is_rejected_before_feedback_is_persisted(self):
         decision = self.decision()
         response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")

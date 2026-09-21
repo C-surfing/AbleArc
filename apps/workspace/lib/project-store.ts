@@ -51,7 +51,7 @@ function readObject(filePath: string, label: string): Record<string, unknown> {
 }
 
 function projectStatus(value: unknown): ProjectStatus {
-  if (value !== "active" && value !== "paused" && value !== "archived") {
+  if (value !== "active" && value !== "paused" && value !== "archived" && value !== "abandoned") {
     throw new Error("Project manifest status is invalid");
   }
   return value;
@@ -121,7 +121,7 @@ export function listProjectSummaries(repoRoot: string): ProjectSummary[] {
     })
     .sort((left, right) => (
       Number(right.selected) - Number(left.selected)
-      || Number(left.status === "archived") - Number(right.status === "archived")
+      || ({ active: 0, paused: 1, archived: 2, abandoned: 3 }[left.status] - { active: 0, paused: 1, archived: 2, abandoned: 3 }[right.status])
       || left.title.localeCompare(right.title)
     ));
 }
@@ -163,9 +163,10 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
   }
 
   const workspace = readWorkspace(learningRoot);
-  const projectId = localId(workspace.active_project_id, "active_project_id");
-  const projectRoot = path.join(learningRoot, "projects", projectId!);
-  const summary = readProjectSummary(learningRoot, projectId!, true);
+  const projectId = localId(workspace.active_project_id, "active_project_id", true);
+  if (!projectId) return undefined;
+  const projectRoot = path.join(learningRoot, "projects", projectId);
+  const summary = readProjectSummary(learningRoot, projectId, true);
   const missionId = summary.missionId;
   let missionMarkdownPath: string | undefined;
   if (missionId) {
@@ -182,7 +183,7 @@ export function resolveProjectReadContext(repoRoot: string): ProjectReadContext 
   return {
     layout: "workspace-v0.2",
     workspaceId: String(workspace.id),
-    projectId: projectId!,
+    projectId: projectId,
     projectTitle: summary.title,
     projectStatus: summary.status,
     maintenanceStatus: summary.maintenanceStatus,

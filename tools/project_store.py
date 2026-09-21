@@ -204,7 +204,7 @@ def _validate_project(data: dict[str, Any], expected_id: str) -> tuple[str | Non
         raise ProjectStoreError("project manifest id does not match its directory")
     _required_string(data, "title", "project manifest")
     status = data.get("status")
-    if status not in ("active", "paused", "archived"):
+    if status not in ("active", "paused", "archived", "abandoned"):
         raise ProjectStoreError("project manifest status is invalid")
     maintenance_status = data.get("maintenance_status")
     if maintenance_status not in ("none", "scheduled", "due", "study_active"):
@@ -214,6 +214,11 @@ def _validate_project(data: dict[str, Any], expected_id: str) -> tuple[str | Non
     archived_at = data.get("archived_at")
     if archived_at is not None and (not isinstance(archived_at, str) or not archived_at.strip()):
         raise ProjectStoreError("project manifest archived_at must be null or a timestamp")
+    abandoned_at = data.get("abandoned_at")
+    if abandoned_at is not None and (not isinstance(abandoned_at, str) or not abandoned_at.strip()):
+        raise ProjectStoreError("project manifest abandoned_at must be null or a timestamp")
+    if status == "abandoned" and not isinstance(abandoned_at, str):
+        raise ProjectStoreError("abandoned Project must record abandoned_at")
     active_mission_id = _local_id(
         data.get("active_mission_id"),
         "active_mission_id",
@@ -330,6 +335,8 @@ def resolve_project_context(
     workspace_path = learning_root / "workspace.json"
     workspace = _read_object(workspace_path, "workspace manifest")
     workspace_id, active_project_id = _validate_workspace(workspace)
+    if project_id is None and active_project_id is None:
+        raise ProjectStoreError("workspace has no active Project")
     selected_project_id = _local_id(
         project_id if project_id is not None else active_project_id,
         "project_id",

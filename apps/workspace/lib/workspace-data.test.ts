@@ -161,6 +161,65 @@ function makeWorkspace(options: FixtureOptions = {}): string {
   return root;
 }
 
+test("workspace with no active Project stays local and keeps retained Projects reachable", () => {
+  const root = makeWorkspace({ state: FILLED_STATE });
+  const workspacePath = path.join(root, ".learning", "workspace.json");
+  const workspace = JSON.parse(fs.readFileSync(workspacePath, "utf8")) as Record<string, unknown>;
+  workspace.active_project_id = null;
+  fs.writeFileSync(workspacePath, JSON.stringify(workspace));
+
+  const snapshot = loadWorkspaceSnapshot(root);
+
+  assert.equal(snapshot.source, "local");
+  assert.equal(snapshot.hasMission, false);
+  assert.equal(snapshot.projectId, undefined);
+  assert.equal(snapshot.projects.length, 1);
+  assert.equal(snapshot.projects[0]?.title, "MLP representations");
+  assert.equal(snapshot.projects[0]?.selected, false);
+});
+
+test("abandoned Turn closes its Decision in the learner-facing projection", () => {
+  const root = makeWorkspace({ state: FILLED_STATE });
+  const runtimeRoot = path.join(root, ".learning", "projects", "mlp-representations", "runtime", "receipts");
+  const decisions = path.join(runtimeRoot, "decisions");
+  const turns = path.join(runtimeRoot, "turns");
+  fs.mkdirSync(decisions, { recursive: true });
+  fs.mkdirSync(turns, { recursive: true });
+  const decisionId = "dec_obsolete_move";
+  fs.writeFileSync(path.join(decisions, `${decisionId}.json`), JSON.stringify({
+    schema_version: "0.2",
+    kind: "decision",
+    id: decisionId,
+    created_at: "2026-09-18T00:01:00Z",
+    target: "Obsolete move",
+    move: "probe",
+    rationale: "Old route.",
+    learner_action: "Answer the obsolete prompt.",
+    uncertainty: "high",
+    representation: { kind: "conversation", purpose: "Probe." },
+    evidence_used: [],
+    expected_evidence: "A response.",
+    falsification_signal: "No response.",
+  }));
+  fs.writeFileSync(path.join(turns, "turn_abandoned_move.json"), JSON.stringify({
+    schema_version: "0.2",
+    kind: "turn",
+    id: "turn_abandoned_move",
+    created_at: "2026-09-18T00:02:00Z",
+    decision_id: decisionId,
+    observation_ids: [],
+    evidence_ids: [],
+    state_proposal_ids: [],
+    state_decision_ids: [],
+    artifact_refs: [],
+    outcome: "abandoned",
+    summary: "Superseded by a better move.",
+  }));
+
+  const snapshot = loadWorkspaceSnapshot(root);
+  assert.equal(snapshot.decision, undefined);
+});
+
 test("unfilled STATE template never leaks or claims mastery", () => {
   const snapshot = loadWorkspaceSnapshot(makeWorkspace());
 

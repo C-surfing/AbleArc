@@ -323,6 +323,7 @@ def create_project(
                     "created_at": timestamp,
                     "updated_at": timestamp,
                     "archived_at": None,
+                    "abandoned_at": None,
                 },
             )
             _initialize_project_runtime(staging)
@@ -412,7 +413,7 @@ def list_projects(repo_root: Path) -> list[dict]:
         projects,
         key=lambda item: (
             not item["selected"],
-            item["status"] == "archived",
+            {"active": 0, "paused": 1, "archived": 2, "abandoned": 3}.get(item["status"], 4),
             item["title"].lower(),
         ),
     )
@@ -431,6 +432,20 @@ def learning_brief(repo_root: Path) -> dict:
             "project_count": 0,
             "due_review_count": 0,
         }
+
+    if layout == project_store.LAYOUT_WORKSPACE:
+        workspace = project_store.load_workspace_manifest(repo_root)
+        if workspace.get("active_project_id") is None:
+            projects = list_projects(repo_root)
+            due_review_count = sum(item["maintenance_status"] == "due" for item in projects)
+            return {
+                "status": "no_active_project",
+                "headline": "No current learning Project is selected.",
+                "detail": "Start a new learning line or reopen a retained Project explicitly.",
+                "next_action": "create-project",
+                "project_count": len(projects),
+                "due_review_count": due_review_count,
+            }
 
     try:
         context = project_store.resolve_project_context(repo_root)
@@ -533,6 +548,8 @@ def _select(repo_root: Path, project_id: str, *, allow_archived: bool = False) -
     _, workspace_path, workspace = _require_workspace(repo_root)
     original_workspace = workspace_path.read_bytes()
     context, manifest = _project_data(repo_root, project_id)
+    if context.project_status == "abandoned":
+        raise ProjectLifecycleError("abandoned Project cannot become active again")
     if context.project_status == "archived" and not (
         allow_archived and context.maintenance_status == "study_active"
     ):
@@ -652,6 +669,79 @@ def archive_project(repo_root: Path, project_id: str) -> dict:
             maintenance_status="scheduled",
             select=False,
         )
+
+
+def _fallback_project_id(repo_root: Path, abandoned_project_id: str) -> str | None:
+    candidates = [
+        item
+        for item in list_projects(repo_root)
+        if item["id"] != abandoned_project_id and item["status"] in ("active", "paused")
+    ]
+    candidates.sort(
+        key=lambda item: (
+            item["status"] != "active",
+            str(item.get("updated_at") or ""),
+            item["id"],
+        ),
+        reverse=False,
+    )
+    active = [item for item in candidates if item["status"] == "active"]
+    pool = active or [item for item in candidates if item["status"] == "paused"]
+    if not pool:
+        return None
+    pool.sort(key=lambda item: (str(item.get("updated_at") or ""), item["id"]), reverse=True)
+    return pool[0]["id"]
+
+
+def abandon_project(repo_root: Path, project_id: str) -> dict:
+    """Retire an obsolete learning line without deleting its retained history."""
+    learning_root = repo_root.resolve() / ".learning"
+    with _lifecycle_lock(learning_root):
+        _, workspace_path, workspace = _require_workspace(repo_root)
+        context, project = _project_data(repo_root, project_id)
+        if context.project_status not in ("active", "paused"):
+            raise ProjectLifecycleError(
+                f"Project {project_id} must be active or paused; current status is {context.project_status}"
+            )
+        timestamp = _now()
+        original_project = context.project_manifest_path.read_bytes()
+        original_workspace = workspace_path.read_bytes()
+        project["status"] = "abandoned"
+        project["maintenance_status"] = "none"
+        project["updated_at"] = timestamp
+        project["archived_at"] = None
+        project["abandoned_at"] = timestamp
+        replacement_id = workspace.get("active_project_id")
+        if replacement_id == context.project_id:
+            replacement_id = _fallback_project_id(repo_root, context.project_id)
+            workspace["active_project_id"] = replacement_id
+            workspace["updated_at"] = timestamp
+        try:
+            _write_json_atomic(context.project_manifest_path, project)
+            _write_json_atomic(workspace_path, workspace)
+            abandoned = project_store.resolve_project_context(
+                repo_root,
+                project_id=context.project_id,
+            )
+            if abandoned.project_status != "abandoned":
+                raise ProjectLifecycleError("Project abandon transition did not persist")
+            if replacement_id is not None:
+                selected = project_store.resolve_project_context(repo_root)
+                if selected.project_id != replacement_id:
+                    raise ProjectLifecycleError("fallback Project selection did not persist")
+            else:
+                verified_workspace = project_store.load_workspace_manifest(repo_root)
+                if verified_workspace.get("active_project_id") is not None:
+                    raise ProjectLifecycleError("workspace did not clear the abandoned Project selection")
+        except Exception:
+            _write_bytes_atomic(context.project_manifest_path, original_project)
+            _write_bytes_atomic(workspace_path, original_workspace)
+            raise
+        return {
+            "status": "abandoned",
+            "project_id": context.project_id,
+            "selected_project_id": replacement_id,
+        }
 
 
 def maintenance_start(repo_root: Path, project_id: str) -> dict:

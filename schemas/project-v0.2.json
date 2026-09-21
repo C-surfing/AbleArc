@@ -16,23 +16,71 @@
     "archived_at"
   ],
   "properties": {
-    "schema_version": { "const": "0.2" },
-    "id": { "$ref": "#/$defs/localId" },
-    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
-    "status": { "enum": ["active", "paused", "archived"] },
-    "active_mission_id": {
-      "oneOf": [
-        { "$ref": "#/$defs/localId" },
-        { "type": "null" }
+    "schema_version": {
+      "const": "0.2"
+    },
+    "id": {
+      "$ref": "#/$defs/localId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "status": {
+      "enum": [
+        "active",
+        "paused",
+        "archived",
+        "abandoned"
       ]
     },
-    "maintenance_status": { "enum": ["none", "scheduled", "due", "study_active"] },
-    "created_at": { "type": "string", "format": "date-time" },
-    "updated_at": { "type": "string", "format": "date-time" },
+    "active_mission_id": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/localId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "maintenance_status": {
+      "enum": [
+        "none",
+        "scheduled",
+        "due",
+        "study_active"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "archived_at": {
       "oneOf": [
-        { "type": "string", "format": "date-time" },
-        { "type": "null" }
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "abandoned_at": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
       ]
     }
   },
