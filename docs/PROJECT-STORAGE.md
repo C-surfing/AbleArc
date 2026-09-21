@@ -101,12 +101,15 @@ read-only. The supported transitions are:
 | active | `pause-project` | paused | blocked |
 | paused | `resume-project` | active and selected | allowed |
 | active or paused | `archive-project` | archived + maintenance scheduled | blocked |
+| active or paused | `abandon-project` | abandoned + removed from default routing | blocked |
 | active + gate ready | `complete-project` | Mission completed, Project archived + maintenance scheduled | blocked |
 | archived | `maintenance-due` | maintenance due | blocked |
 | archived | `maintenance-start` | temporary `study_active` | allowed |
 | archived + `study_active` | `maintenance-finish` | scheduled or due | blocked |
 
-Archive means the main learning line is no longer active; it is not deletion. Mission
+Archive means the main learning line is complete or intentionally retained for future maintenance; it is not deletion. Abandon is distinct: it retires an obsolete learning line without claiming completion and without scheduling maintenance. Both states preserve Mission manifests, maps, materials, artifacts, Evidence, and Runtime receipts. If the abandoned Project was selected, the lifecycle selects another active/paused Project when one exists; otherwise `workspace.json` legitimately carries `active_project_id: null` until the learner starts or selects another line.
+
+Mission
 manifests, maps, materials, artifacts, evidence, and Runtime receipts stay in
 place. A maintenance study appends new scoped receipts to the retained Project
 and does not change its archived status. `archive-project` is the storage
@@ -141,6 +144,7 @@ python tools/learning.py switch-project <project-id>
 python tools/learning.py pause-project <project-id>
 python tools/learning.py resume-project <project-id>
 python tools/learning.py archive-project <project-id>
+python tools/learning.py abandon-project <project-id>
 python tools/learning.py maintenance-due <project-id>
 python tools/learning.py maintenance-start <project-id>
 python tools/learning.py maintenance-finish <project-id> retention_confirmed
