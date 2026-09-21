@@ -305,7 +305,14 @@ function runtimeEvidence(runtimeRoot: string): EvidenceItem[] {
 }
 
 function runtimeDecision(runtimeRoot: string): DecisionTrace | undefined {
-  const item = readReceiptDirectory(runtimeRoot, "decisions").at(-1);
+  const closed = new Set(
+    readReceiptDirectory(runtimeRoot, "turns")
+      .filter((turn) => turn.outcome === "completed" || turn.outcome === "abandoned")
+      .map((turn) => String(turn.decision_id)),
+  );
+  const item = readReceiptDirectory(runtimeRoot, "decisions")
+    .filter((decision) => !closed.has(decision.id))
+    .at(-1);
   if (!item) return undefined;
   const representation = (item.representation || {}) as Record<string, unknown>;
   const hasLearnerResponse = readReceiptDirectory(runtimeRoot, "observations")
@@ -424,8 +431,15 @@ function runtimeArtifact(artifactRoot: string, artifactRef: string | undefined):
 }
 
 function runtimeLearnerExchange(runtimeRoot: string): LearnerExchange | undefined {
+  const abandonedDecisionIds = new Set(
+    readReceiptDirectory(runtimeRoot, "turns")
+      .filter((turn) => turn.outcome === "abandoned")
+      .map((turn) => String(turn.decision_id)),
+  );
   const observations = readReceiptDirectory(runtimeRoot, "observations");
-  const observation = observations.filter((item) => item.source === "learner").at(-1);
+  const observation = observations
+    .filter((item) => item.source === "learner" && !abandonedDecisionIds.has(String(item.decision_id)))
+    .at(-1);
   if (!observation) return undefined;
 
   const evidence = readReceiptDirectory(runtimeRoot, "evidence")
