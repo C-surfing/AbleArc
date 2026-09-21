@@ -160,7 +160,7 @@ export interface LearnerExchange {
   nextDecisionId?: string;
 }
 
-export type ProjectStatus = "active" | "paused" | "archived";
+export type ProjectStatus = "active" | "paused" | "archived" | "abandoned";
 
 export type MaintenanceStatus = "none" | "scheduled" | "due" | "study_active";
 
