@@ -6,7 +6,7 @@ import {
   advanceLearningKernelTurn,
 } from "@/lib/learning-kernel";
 import { TeachingAdvanceValidationError } from "@/lib/learning-orchestrator";
-import { RuntimeBridgeError } from "@/lib/runtime-bridge";
+import { RuntimeBridgeError, deriveLearningMapProposal } from "@/lib/runtime-bridge";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
@@ -41,7 +41,25 @@ export async function POST(request: NextRequest) {
       adapter,
       request.signal,
     );
-    return NextResponse.json({ ok: true, ...result });
+    // Post-turn topology: the Web adapter is the Teach agent for this turn, so if the
+    // Evidence-grounded Decisions now outgrow the reviewed LearningMap it records one
+    // immutable proposal for the learner to accept or reject (ADR 0007). Proposal-first
+    // only — this never writes the canonical map and never accepts its own proposal.
+    // Best effort by construction: the learning turn above already succeeded.
+    const topology = await deriveLearningMapProposal(repoRoot);
+    if (topology.status === "unavailable") {
+      console.error("Post-turn LearningMap proposal derivation was unavailable.", topology.reason);
+    }
+    return NextResponse.json({
+      ok: true,
+      ...result,
+      topology: topology.status === "proposed"
+        ? {
+            status: topology.status,
+            proposalId: typeof topology.proposal.id === "string" ? topology.proposal.id : undefined,
+          }
+        : { status: topology.status },
+    });
   } catch (error) {
     if (error instanceof LearningKernelConflictError) {
       return NextResponse.json({ error: error.message, errorType: "runtime_conflict" }, { status: 409 });

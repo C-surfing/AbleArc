@@ -106,3 +106,118 @@ export async function advancePendingLearningTurn(
   );
   return record(value, "Runtime advance result");
 }
+
+const MAX_MAP_PROPOSAL_STDOUT_BYTES = 512 * 1024;
+
+export type MapProposalDeriveOutcome =
+  | { status: "proposed"; proposal: Record<string, unknown> }
+  | { status: "no_change" }
+  | { status: "unavailable"; reason: string };
+
+/**
+ * The topology proposal CLI exits 2 with one of these on stderr when there is simply
+ * nothing to derive. Asking after every turn makes them routine, so they must not be
+ * reported as failures — but they are matched by message, not by exit code, so a real
+ * rejection is never silently swallowed.
+ */
+const MAP_DERIVE_NO_OP_MESSAGES = [
+  "no evidence-grounded Runtime decision is available to derive a topology proposal",
+  "LearningMap already represents the evidence-grounded Runtime concepts and frontier",
+] as const;
+
+export function classifyMapProposalDerive(
+  code: number | null,
+  stdout: string,
+  stderr: string,
+): MapProposalDeriveOutcome {
+  if (code === 0) {
+    try {
+      const value = JSON.parse(stdout);
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        return { status: "proposed", proposal: value as Record<string, unknown> };
+      }
+      return {
+        status: "unavailable",
+        reason: "The topology proposal runtime returned an unexpected value.",
+      };
+    } catch {
+      return { status: "unavailable", reason: "The topology proposal runtime returned invalid JSON." };
+    }
+  }
+  if (MAP_DERIVE_NO_OP_MESSAGES.some((message) => stderr.includes(message))) {
+    return { status: "no_change" };
+  }
+  const detail = stderr.trim().split("\n").pop()?.trim().slice(0, 300) ?? "";
+  return {
+    status: "unavailable",
+    reason: detail || `The topology proposal runtime exited with code ${code ?? "unknown"}.`,
+  };
+}
+
+function runMapProposalDerive(repoRoot: string): Promise<MapProposalDeriveOutcome> {
+  const python = process.env.AI4LEARNING_PYTHON
+    || (process.platform === "win32" ? "python" : "python3");
+  const script = path.join(repoRoot, "tools", "learning_map_proposals.py");
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      /* turbopackIgnore: true */ python,
+      [script, "--repo", repoRoot, "derive"],
+      { cwd: repoRoot, stdio: ["ignore", "pipe", "pipe"] },
+    );
+    let stdout = "";
+    let stderr = "";
+    let oversized = false;
+    child.stdout.on("data", (chunk: Buffer) => {
+      if (oversized) return;
+      stdout += chunk.toString("utf8");
+      if (Buffer.byteLength(stdout, "utf8") > MAX_MAP_PROPOSAL_STDOUT_BYTES) {
+        oversized = true;
+        child.kill();
+      }
+    });
+    child.stderr.on("data", (chunk: Buffer) => {
+      if (Buffer.byteLength(stderr, "utf8") < MAX_STDERR_BYTES) {
+        stderr += chunk.toString("utf8");
+      }
+    });
+    child.on("error", () => {
+      resolve({ status: "unavailable", reason: "The topology proposal runtime could not start." });
+    });
+    child.on("close", (code) => {
+      if (oversized) {
+        resolve({
+          status: "unavailable",
+          reason: "The topology proposal runtime returned too much data.",
+        });
+        return;
+      }
+      resolve(classifyMapProposalDerive(code, stdout, stderr));
+    });
+    // stdin is deliberately "ignore": `derive` takes no input, so there is no stream to end.
+  });
+}
+
+/**
+ * Ask the Runtime whether Evidence-grounded Decisions have outgrown the reviewed
+ * LearningMap, and record one immutable proposal if they have (ADR 0007).
+ *
+ * This is the Web half of the documented "common Agent path": the BYOM adapter is a
+ * Teach agent, so it proposes and leaves accept/reject authority to the learner review
+ * surface. It never writes `map/current.json`, never accepts its own proposal, and is
+ * idempotent at the same frontier.
+ *
+ * Deliberately never throws and never rejects: it runs after a completed learning turn,
+ * so a broken proposal runtime must not turn a successful turn into a failure. Callers
+ * should surface `unavailable` as a diagnostic, not as a learner-facing error.
+ *
+ * `--proposed-by` is left at the CLI default on purpose: a Web-derived and a CLI-derived
+ * proposal at the same frontier then stay byte-identical (hence idempotent) instead of
+ * colliding on proposal-id reuse with different content.
+ */
+export async function deriveLearningMapProposal(repoRoot: string): Promise<MapProposalDeriveOutcome> {
+  try {
+    return await runMapProposalDerive(repoRoot);
+  } catch {
+    return { status: "unavailable", reason: "The topology proposal runtime could not start." };
+  }
+}
