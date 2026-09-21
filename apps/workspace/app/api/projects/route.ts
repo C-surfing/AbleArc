@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { runLocalLearningTool } from "@/lib/local-learning-tool";
+import { initialMissionCompletionCriteria } from "@/lib/mission-bootstrap";
 import { sameOrigin } from "@/lib/server-request";
 import { findRepoRoot } from "@/lib/workspace-data";
 
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
           title,
           goal,
           why,
+          criteria: initialMissionCompletionCriteria(goal),
           ...(projectId ? { project_id: projectId } : {}),
         },
       );

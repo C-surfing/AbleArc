@@ -677,6 +677,38 @@
             "summary": {
               "type": "string",
               "minLength": 1
+            },
+            "transport": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "model",
+                "attempt_count",
+                "duration_ms"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "model": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "attempt_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                },
+                "duration_ms": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 600000
+                }
+              }
             }
           }
         }

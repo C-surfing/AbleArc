@@ -72,6 +72,55 @@ class ProjectLifecycleTests(unittest.TestCase):
         self.assertEqual(decisions[0]["project_id"], result["project_id"])
         self.assertEqual(runtime.verify_runtime(self.root), [])
 
+    def test_project_creation_can_atomically_seed_completion_criteria(self):
+        criteria = [
+            {
+                "id": "mission-reconstruction",
+                "capability": "Reconstruct the Mission mechanism independently",
+                "kind": "feynman",
+                "required": True,
+                "minimum_level": "explanation",
+                "max_scaffolding": "light",
+                "minimum_context": "same",
+                "minimum_delay": "immediate",
+                "minimum_independence": "independent",
+                "minimum_evidence": 1,
+                "artifact_forms": [],
+                "evidence_ids": [],
+            },
+            {
+                "id": "mission-performance",
+                "capability": "Apply the Mission capability in a representative case",
+                "kind": "application",
+                "required": True,
+                "minimum_level": "application",
+                "max_scaffolding": "light",
+                "minimum_context": "varied",
+                "minimum_delay": "immediate",
+                "minimum_independence": "independent",
+                "minimum_evidence": 1,
+                "artifact_forms": [],
+                "evidence_ids": [],
+            },
+        ]
+
+        result = project_lifecycle.create_project(
+            self.root,
+            title="Ethereum state",
+            goal="Explain and apply Ethereum world-state transitions",
+            project_id="ethereum-state",
+            criteria=criteria,
+        )
+
+        context = project_store.resolve_project_context(self.root)
+        manifest = json.loads(context.mission_manifest_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["project_id"], "ethereum-state")
+        self.assertEqual(manifest["criteria"], criteria)
+        mission_markdown = context.mission_markdown_path.read_text(encoding="utf-8")
+        self.assertIn("Reconstruct the Mission mechanism independently", mission_markdown)
+        self.assertIn("Apply the Mission capability in a representative case", mission_markdown)
+        self.assertEqual(runtime.verify_runtime(self.root), [])
+
     def test_non_ascii_title_can_use_readable_explicit_project_id(self):
         result = self.create(title="双向链表", project_id="shuang-xiang-lian-biao")
 

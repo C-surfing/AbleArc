@@ -497,11 +497,19 @@ class LearningRuntimeTests(unittest.TestCase):
         decision = self.decision()
         response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")
 
-        result = runtime.advance_learning_turn(self.root, decision["id"], self.advance_payload())
+        payload = self.advance_payload()
+        payload["transport"] = {
+            "provider": "openai-compatible",
+            "model": "fixture-model",
+            "attempt_count": 2,
+            "duration_ms": 20600,
+        }
+        result = runtime.advance_learning_turn(self.root, decision["id"], payload)
 
         self.assertEqual(result["evidence"]["observation_id"], response["id"])
         self.assertEqual(result["turn"]["decision_id"], decision["id"])
         self.assertEqual(result["turn"]["outcome"], "completed")
+        self.assertEqual(result["turn"]["transport"], payload["transport"])
         self.assertIn(result["evidence"]["id"], result["next_decision"]["evidence_used"])
         self.assertEqual(result["next_decision"]["mode"], decision["mode"])
         self.assertEqual(result["next_decision"]["concept_ids"], decision["concept_ids"])
@@ -509,6 +517,25 @@ class LearningRuntimeTests(unittest.TestCase):
 
         with self.assertRaises(runtime.RuntimeContractError):
             runtime.advance_learning_turn(self.root, decision["id"], self.advance_payload())
+
+    def test_invalid_turn_transport_is_rejected_before_feedback_is_persisted(self):
+        decision = self.decision()
+        response = runtime.record_learner_response(self.root, decision["id"], "The prior changes the pool size.")
+        payload = self.advance_payload()
+        payload["transport"] = {
+            "provider": "openai-compatible",
+            "model": "fixture-model",
+            "attempt_count": 0,
+            "duration_ms": 45000,
+        }
+
+        with self.assertRaisesRegex(runtime.RuntimeContractError, "attempt_count"):
+            runtime.advance_learning_turn(self.root, decision["id"], payload)
+
+        self.assertFalse([
+            item for item in runtime.list_receipts(self.root, "evidence")
+            if item["observation_id"] == response["id"]
+        ])
 
     def test_invalid_next_move_is_rejected_before_feedback_is_persisted(self):
         decision = self.decision()

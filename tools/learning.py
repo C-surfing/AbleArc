@@ -507,7 +507,7 @@ def read_project_payload(value: str) -> dict:
         raise LearningToolError("Project input must be valid JSON") from exc
     if not isinstance(payload, dict):
         raise LearningToolError("Project input must be a JSON object")
-    allowed = {"title", "goal", "why", "project_id", "mission_id", "source"}
+    allowed = {"title", "goal", "why", "project_id", "mission_id", "source", "criteria"}
     unknown = set(payload) - allowed
     if unknown:
         raise LearningToolError(
@@ -519,6 +519,8 @@ def read_project_payload(value: str) -> dict:
     for optional in ("why", "project_id", "mission_id", "source"):
         if optional in payload and not isinstance(payload[optional], str):
             raise LearningToolError(f"Project {optional} must be a string")
+    if "criteria" in payload and not isinstance(payload["criteria"], list):
+        raise LearningToolError("Project criteria must be a list")
     return payload
 
 

@@ -1315,6 +1315,7 @@ def advance_learning_turn(
         raise RuntimeContractError(
             "state_candidate_policy must be evidence-conservative-v0.1 when provided"
         )
+    transport = _turn_transport(data["transport"]) if "transport" in data else None
 
     evidence = _save(repo_root, "evidence", prepared_evidence)
     state_proposals = (
@@ -1347,6 +1348,7 @@ def advance_learning_turn(
             "artifact_refs": artifact_refs,
             "outcome": "completed",
             "summary": evidence["result_summary"],
+            **({"transport": transport} if transport is not None else {}),
         },
     )
     return {
@@ -1542,6 +1544,34 @@ def decide_state_proposal(
     return _save(repo_root, "state-decision", receipt)
 
 
+TURN_TRANSPORT_FIELDS = {"provider", "model", "attempt_count", "duration_ms"}
+
+
+def _turn_transport(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict) or set(value) != TURN_TRANSPORT_FIELDS:
+        raise RuntimeContractError(
+            "turn transport must contain provider, model, attempt_count, and duration_ms"
+        )
+    provider = value.get("provider")
+    model = value.get("model")
+    attempt_count = value.get("attempt_count")
+    duration_ms = value.get("duration_ms")
+    if not isinstance(provider, str) or not provider.strip() or len(provider) > 300:
+        raise RuntimeContractError("turn transport provider must be a non-empty string <= 300 characters")
+    if not isinstance(model, str) or not model.strip() or len(model) > 300:
+        raise RuntimeContractError("turn transport model must be a non-empty string <= 300 characters")
+    if isinstance(attempt_count, bool) or not isinstance(attempt_count, int) or not 1 <= attempt_count <= 20:
+        raise RuntimeContractError("turn transport attempt_count must be an integer from 1 to 20")
+    if isinstance(duration_ms, bool) or not isinstance(duration_ms, int) or not 0 <= duration_ms <= 600_000:
+        raise RuntimeContractError("turn transport duration_ms must be an integer from 0 to 600000")
+    return {
+        "provider": provider.strip(),
+        "model": model.strip(),
+        "attempt_count": attempt_count,
+        "duration_ms": duration_ms,
+    }
+
+
 def record_turn(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
     receipt = _base(repo_root, "turn", data)
     decision_id = _required_string(data, "decision_id")
@@ -1578,6 +1608,7 @@ def record_turn(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
             "artifact_refs": _string_list(data, "artifact_refs"),
             "outcome": _enum(data, "outcome", ("completed", "awaiting_evidence", "abandoned")),
             "summary": _required_string(data, "summary"),
+            **({"transport": _turn_transport(data["transport"])} if "transport" in data else {}),
         }
     )
     return _save(repo_root, "turn", receipt)
