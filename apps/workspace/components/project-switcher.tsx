@@ -9,6 +9,7 @@ type ProjectAction =
   | "pause"
   | "resume"
   | "archive"
+  | "abandon"
   | "maintenance-start";
 
 export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
@@ -51,6 +52,12 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
       action === "archive"
       && !window.confirm(
         "Archive without verified completion? State is retained and becomes read-only, but the Completion Gate will not be marked passed.",
+      )
+    ) return;
+    if (
+      action === "abandon"
+      && !window.confirm(
+        "Abandon this learning line? All learning history is retained, but it will no longer be selected or scheduled for maintenance.",
       )
     ) return;
     return send({ action, projectId });
@@ -123,9 +130,11 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
           ) : projects.map((project) => {
             const reviewActive = project.status === "archived"
               && project.maintenanceStatus === "study_active";
-            const action = project.status === "archived" && !reviewActive
-              ? "maintenance-start"
-              : "switch";
+            const action = project.status === "abandoned"
+              ? undefined
+              : project.status === "archived" && !reviewActive
+                ? "maintenance-start"
+                : "switch";
             return (
               <div className={`project-row ${project.selected ? "is-current" : ""}`} key={project.id}>
                 <div>
@@ -137,7 +146,7 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
                 </div>
                 {project.selected ? (
                   <span className="project-row__current">Current</span>
-                ) : (
+                ) : action ? (
                   <button
                     type="button"
                     disabled={busy}
@@ -145,6 +154,8 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
                   >
                     {action === "maintenance-start" ? "Start review" : reviewActive ? "Open review" : "Open"}
                   </button>
+                ) : (
+                  <span className="project-row__current">Retained</span>
                 )}
               </div>
             );
@@ -157,12 +168,14 @@ export function ProjectSwitcher({ projects }: { projects: ProjectSummary[] }) {
               <>
                 <button type="button" disabled={busy} onClick={() => act("pause", current.id)}>Pause</button>
                 <button type="button" disabled={busy} onClick={() => act("archive", current.id)}>Archive</button>
+                <button type="button" disabled={busy} onClick={() => act("abandon", current.id)}>Abandon</button>
               </>
             ) : null}
             {current.status === "paused" ? (
               <>
                 <button type="button" disabled={busy} onClick={() => act("resume", current.id)}>Resume</button>
                 <button type="button" disabled={busy} onClick={() => act("archive", current.id)}>Archive</button>
+                <button type="button" disabled={busy} onClick={() => act("abandon", current.id)}>Abandon</button>
               </>
             ) : null}
             {current.status === "archived" && current.maintenanceStatus !== "study_active" ? (
