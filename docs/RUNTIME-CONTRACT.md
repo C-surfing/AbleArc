@@ -129,6 +129,20 @@ reason as `prerequisite_discovered`, `hypothesis_refuted`, or `scope_refined`.
 Its Evidence must already be used by the revising Decision. This makes “the
 Teacher's earlier model was wrong” auditable while leaving mastery unchanged.
 
+## Decision supersession without history deletion
+
+A learner may pivot after a Decision has been issued, making that move obsolete without making the earlier Decision or Observation invalid history. Do not delete either object and do not manufacture Evidence just to close the branch.
+
+Create the replacement Decision normally, then close the obsolete Decision with an immutable `TurnReceipt` whose `outcome` is `abandoned` and whose `superseded_by_decision_id` points at the replacement. The high-level CLI is:
+
+```bash
+python tools/runtime.py --repo . supersede-decision \
+  <obsolete-decision-id> <replacement-decision-id> \
+  "Learner pivoted to a more relevant move."
+```
+
+The supersession path preserves any learner Observation attached to the obsolete move, records no Evidence or learner-state change, and removes that Observation from the pending-assessment queue. An assessed/completed Decision cannot be retroactively superseded; its completed turn remains the audit record. Learner-facing readers route only through Decisions that have not already been closed by a completed or abandoned turn, so raw Decision IDs never become a navigation burden.
+
 ## State authority
 
 Agents may create `StateProposal` receipts. They may not accept their own proposal merely because they produced it. Acceptance requires one of:
