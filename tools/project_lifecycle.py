@@ -146,8 +146,19 @@ def _project_data(
     return context, _read_object(context.project_manifest_path, "project manifest")
 
 
-def _mission_markdown(goal: str, why: str, source: str, created_at: str) -> str:
+def _mission_markdown(
+    goal: str,
+    why: str,
+    source: str,
+    created_at: str,
+    criteria: list[dict] | None = None,
+) -> str:
     why_text = why or "<!-- Not provided. Clarify only if it changes the learning route. -->"
+    success_lines = "\\n".join(
+        f"- [ ] {item.get('capability', 'Observable Mission capability')}"
+        for item in (criteria or [])
+        if isinstance(item, dict)
+    ) or "- [ ] To be established from the first diagnostic evidence."
     return (
         "# Learning Mission\n\n"
         f"- Goal: {goal}\n"
@@ -156,8 +167,8 @@ def _mission_markdown(goal: str, why: str, source: str, created_at: str) -> str:
         "## Why this matters\n\n"
         f"{why_text}\n\n"
         "## Success looks like\n\n"
-        "<!-- Establish observable completion criteria from the Mission and evidence. -->\n\n"
-        "- [ ] To be established from the first diagnostic evidence.\n\n"
+        "<!-- Criteria define the completion contract; checkmarks require qualifying Evidence. -->\n\n"
+        f"{success_lines}\n\n"
         "## Current direction\n\n"
         "Start from real learner evidence; revise the route without redefining the goal.\n"
     )
@@ -196,6 +207,7 @@ def create_project(
     project_id: str | None = None,
     mission_id: str | None = None,
     source: str = "learner-explicit",
+    criteria: list[dict] | None = None,
 ) -> dict:
     """Create one Project with an initial Mission and atomically select it."""
     repo_root = repo_root.resolve()
@@ -211,6 +223,8 @@ def create_project(
         raise ProjectLifecycleError("mission why must be at most 2400 characters")
     if source not in ("learner-explicit", "agent-assisted", "imported"):
         raise ProjectLifecycleError("mission source is invalid")
+    if criteria is not None and not isinstance(criteria, list):
+        raise ProjectLifecycleError("mission criteria must be a list")
     try:
         selected_project_id = (
             project_store.validate_local_id(project_id, "project_id")
@@ -279,7 +293,7 @@ def create_project(
                     raise ProjectLifecycleError(f"missing template: {source_path}")
                 shutil.copyfile(source_path, destination)
             (mission_root / "MISSION.md").write_text(
-                _mission_markdown(goal, why, source, timestamp),
+                _mission_markdown(goal, why, source, timestamp, criteria),
                 encoding="utf-8",
             )
             _write_json_atomic(
@@ -292,7 +306,7 @@ def create_project(
                     "goal": goal,
                     "why": why,
                     "source": source,
-                    "criteria": [],
+                    "criteria": criteria if criteria is not None else [],
                     "created_at": timestamp,
                     "updated_at": timestamp,
                 },
