@@ -194,6 +194,8 @@ def _write_scope(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeContractError("scoped learning receipts require an active Mission")
     if context.project_status == "paused":
         raise RuntimeContractError("paused Project is read-only; resume it before recording receipts")
+    if context.project_status == "abandoned":
+        raise RuntimeContractError("abandoned Project is read-only and cannot accept new receipts")
     if (
         context.project_status == "archived"
         and context.maintenance_status != "study_active"
@@ -949,9 +951,14 @@ def unanswered_decisions(repo_root: Path) -> list[dict[str, Any]]:
         for item in list_receipts(repo_root, "observation")
         if item.get("source") == "learner"
     }
+    closed = {
+        item.get("decision_id")
+        for item in list_receipts(repo_root, "turn")
+        if item.get("outcome") in ("completed", "abandoned")
+    }
     result: list[dict[str, Any]] = []
     for decision in reversed(list_receipts(repo_root, "decision")):
-        if decision.get("id") in answered:
+        if decision.get("id") in answered or decision.get("id") in closed:
             continue
         if (
             context.layout == project_store.LAYOUT_WORKSPACE
@@ -1050,10 +1057,18 @@ def pending_learner_turn(repo_root: Path) -> dict[str, Any] | None:
     assessed_observations = {
         item.get("observation_id") for item in list_receipts(repo_root, "evidence")
     }
+    abandoned_observations = {
+        observation_id
+        for turn in list_receipts(repo_root, "turn")
+        if turn.get("outcome") == "abandoned"
+        for observation_id in turn.get("observation_ids", [])
+    }
     pending = [
         item
         for item in list_receipts(repo_root, "observation")
-        if item.get("source") == "learner" and item.get("id") not in assessed_observations
+        if item.get("source") == "learner"
+        and item.get("id") not in assessed_observations
+        and item.get("id") not in abandoned_observations
     ]
     if not pending:
         return None
@@ -1601,17 +1616,92 @@ def record_turn(repo_root: Path, data: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeContractError("turn state proposals must use evidence in the same turn")
     if any(item["proposal_id"] not in proposal_ids for item in state_decisions):
         raise RuntimeContractError("turn state decisions must reference a proposal in the same turn")
+    outcome = _enum(data, "outcome", ("completed", "awaiting_evidence", "abandoned"))
+    superseded_by = data.get("superseded_by_decision_id")
+    if superseded_by is not None:
+        if outcome != "abandoned":
+            raise RuntimeContractError("superseded_by_decision_id requires outcome=abandoned")
+        if not isinstance(superseded_by, str) or not superseded_by.strip():
+            raise RuntimeContractError("superseded_by_decision_id must be a Decision id")
+        if superseded_by == decision_id:
+            raise RuntimeContractError("a Decision cannot supersede itself")
+        replacement = load_receipt(repo_root, "decision", superseded_by)
+        _require_compatible_scope(repo_root, receipt, replacement, same_mission=True)
     receipt.update(
         {
             "decision_id": decision_id,
             **{field: values for field, (_, values) in refs.items()},
             "artifact_refs": _string_list(data, "artifact_refs"),
-            "outcome": _enum(data, "outcome", ("completed", "awaiting_evidence", "abandoned")),
+            "outcome": outcome,
             "summary": _required_string(data, "summary"),
+            **({"superseded_by_decision_id": superseded_by} if superseded_by is not None else {}),
             **({"transport": _turn_transport(data["transport"])} if "transport" in data else {}),
         }
     )
     return _save(repo_root, "turn", receipt)
+
+
+def supersede_decision(
+    repo_root: Path,
+    decision_id: str,
+    replacement_decision_id: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Close one obsolete Decision while preserving its full audit history."""
+    reason = reason.strip()
+    if not reason:
+        raise RuntimeContractError("supersede reason must not be empty")
+    decision = load_receipt(repo_root, "decision", decision_id)
+    replacement = load_receipt(repo_root, "decision", replacement_decision_id)
+    if decision_id == replacement_decision_id:
+        raise RuntimeContractError("a Decision cannot supersede itself")
+    _require_compatible_scope(repo_root, decision, replacement, same_mission=True)
+    existing_turns = [
+        item for item in list_receipts(repo_root, "turn")
+        if item.get("decision_id") == decision_id
+    ]
+    if existing_turns:
+        raise RuntimeContractError(
+            f"decision already has a terminal turn: {existing_turns[-1]['id']}"
+        )
+    replacement_turns = [
+        item for item in list_receipts(repo_root, "turn")
+        if item.get("decision_id") == replacement_decision_id
+        and item.get("outcome") in ("completed", "abandoned")
+    ]
+    if replacement_turns:
+        raise RuntimeContractError("replacement Decision is already closed")
+    observations = [
+        item for item in list_receipts(repo_root, "observation")
+        if item.get("decision_id") == decision_id
+    ]
+    observation_ids = [item["id"] for item in observations]
+    evidence_for_observation = [
+        item for item in list_receipts(repo_root, "evidence")
+        if item.get("observation_id") in set(observation_ids)
+    ]
+    if evidence_for_observation:
+        raise RuntimeContractError(
+            "assessed Decision cannot be superseded; preserve its completed learning turn"
+        )
+    representation = decision.get("representation", {})
+    artifact_refs = []
+    if isinstance(representation, dict) and isinstance(representation.get("artifact_ref"), str):
+        artifact_refs.append(representation["artifact_ref"])
+    return record_turn(
+        repo_root,
+        {
+            "decision_id": decision_id,
+            "observation_ids": observation_ids,
+            "evidence_ids": [],
+            "state_proposal_ids": [],
+            "state_decision_ids": [],
+            "artifact_refs": artifact_refs,
+            "outcome": "abandoned",
+            "summary": reason,
+            "superseded_by_decision_id": replacement_decision_id,
+        },
+    )
 
 
 def rebuild_state(repo_root: Path) -> dict[str, Any]:
@@ -1840,6 +1930,18 @@ def verify_runtime(repo_root: Path) -> list[str]:
         "state_decision_ids": {item["id"]: item for item in state_decisions},
     }
     for turn in turns:
+        superseded_by = turn.get("superseded_by_decision_id")
+        if superseded_by is not None:
+            replacement = decisions.get(superseded_by)
+            if turn.get("outcome") != "abandoned":
+                problems.append(f"{turn['id']}: superseded_by_decision_id requires abandoned outcome")
+            if replacement is None:
+                problems.append(f"{turn['id']}: missing superseding decision {superseded_by}")
+            else:
+                try:
+                    _require_compatible_scope(repo_root, turn, replacement, same_mission=True)
+                except RuntimeContractError as exc:
+                    problems.append(f"{turn['id']}: {exc}")
         for field, collection in collections.items():
             values = [turn.get(field)] if field == "decision_id" else turn.get(field, [])
             if not isinstance(values, list):
@@ -1924,6 +2026,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="create the first baseline probe for an explicit mission",
     )
     sub.add_parser("pending", help="print the newest learner response awaiting assessment")
+    supersede = sub.add_parser(
+        "supersede-decision",
+        help="close an obsolete Decision in favor of a newer Decision without deleting history",
+    )
+    supersede.add_argument("decision_id")
+    supersede.add_argument("replacement_decision_id")
+    supersede.add_argument("reason")
     advance = sub.add_parser("advance", help="assess a response and issue the next learning move")
     advance.add_argument("decision_id")
     advance.add_argument("payload", help="compact assessment/next-decision JSON file or - for stdin")
@@ -1987,6 +2096,14 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "pending":
             print(json.dumps(pending_learner_turn(repo_root), ensure_ascii=False, indent=2))
+        elif args.command == "supersede-decision":
+            receipt = supersede_decision(
+                repo_root,
+                args.decision_id,
+                args.replacement_decision_id,
+                args.reason,
+            )
+            print(json.dumps(receipt, ensure_ascii=False, indent=2))
         elif args.command == "advance":
             result = advance_learning_turn(repo_root, args.decision_id, _load_payload(args.payload))
             print(json.dumps(result, ensure_ascii=False, indent=2))
