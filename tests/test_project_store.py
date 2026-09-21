@@ -136,7 +136,7 @@ class ProjectStoreTests(unittest.TestCase):
         loaded = store.load_workspace_manifest(self.root)
 
         self.assertIsNone(loaded["active_project_id"])
-        with self.assertRaisesRegex(store.ProjectStoreError, "project_id"):
+        with self.assertRaisesRegex(store.ProjectStoreError, "no active Project"):
             store.resolve_project_context(self.root)
 
     def test_explicit_project_and_mission_override_active_selection(self):
