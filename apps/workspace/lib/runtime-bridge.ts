@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { runtimeAdvancePayload, type PendingLearningTurn, type TeachingAdvance } from "./learning-orchestrator.ts";
+import type { ProviderTurnTelemetry } from "./provider-turn-telemetry.ts";
 
 const MAX_STDOUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 32 * 1024;
@@ -95,6 +96,7 @@ export async function advancePendingLearningTurn(
   repoRoot: string,
   decisionId: string,
   advance: TeachingAdvance,
+  transport?: ProviderTurnTelemetry,
 ): Promise<Record<string, unknown>> {
   const value = await runRuntime(
     repoRoot,
@@ -102,6 +104,7 @@ export async function advancePendingLearningTurn(
     {
       ...runtimeAdvancePayload(advance),
       state_candidate_policy: "evidence-conservative-v0.1",
+      ...(transport ? { transport } : {}),
     },
   );
   return record(value, "Runtime advance result");
