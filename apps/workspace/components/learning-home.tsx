@@ -36,12 +36,12 @@ export function LearningHome({
   tomorrowSeed?: TomorrowSeed;
 }) {
   if (!snapshot.hasMission || !snapshot.projectId) {
-    return <Entry />;
+    return <Entry projects={snapshot.projects} />;
   }
   return <Today snapshot={snapshot} initialContext={dailyContext} tomorrowSeed={tomorrowSeed} />;
 }
 
-function Entry() {
+function Entry({ projects }: { projects: WorkspaceSnapshot["projects"] }) {
   const router = useRouter();
   const [goal, setGoal] = useState("");
   const [title, setTitle] = useState("");
@@ -79,7 +79,7 @@ function Entry() {
     <div className={styles.entryPage}>
       <header className={styles.entryHeader}>
         <Brand />
-        <span className={styles.entryHeaderLinks}><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></span>
+        <span className={styles.entryHeaderLinks}><ProjectSwitcher projects={projects} /><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></span>
       </header>
 
       <main className={styles.entryMain}>
