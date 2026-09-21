@@ -1,4 +1,5 @@
 import type { AgentAdapter } from "./agent-adapter.ts";
+import { instrumentAgentAdapter } from "./provider-turn-telemetry.ts";
 import {
   generateTeachingAdvance,
   type PendingLearningTurn,
@@ -83,11 +84,17 @@ export async function advanceLearningKernelTurn(
   }
 
   const teachingContext = readTeachingRoutingContext(repoRoot);
+  const providerTurn = instrumentAgentAdapter(adapter);
   const advance = await generateTeachingAdvance(
-    adapter,
+    providerTurn.adapter,
     enrichPendingTurn(pending, teachingContext),
     signal,
   );
-  const runtimeResult = await advancePendingLearningTurn(repoRoot, decisionId, advance);
+  const runtimeResult = await advancePendingLearningTurn(
+    repoRoot,
+    decisionId,
+    advance,
+    providerTurn.finish(),
+  );
   return projectLearningKernelAdvance(advance, runtimeResult);
 }
