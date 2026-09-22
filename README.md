@@ -63,6 +63,8 @@ Instead it may compose with specialized skills when available:
 | --- | --- |
 | [Archify](https://github.com/tt-a1i/archify) | mechanisms, workflows, state/lifecycle diagrams, architecture and learning maps |
 | [University Skill](https://github.com/walkinglabs/university-skill) | structured textbook/coursebook generation when a substantial reusable learning artifact is justified |
+| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `youtube-render-pdf` | turn a YouTube lecture/tutorial into structured, figure-rich course notes and PDF |
+| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `bilibili-render-pdf` | turn a Bilibili lecture/tutorial into structured Chinese course notes and PDF, with subtitle/Whisper fallback |
 | research/search tools | source verification, recent facts, paper/resource comparison |
 | code execution | only when running code resolves uncertainty or creates useful learning evidence |
 | document/PDF tools | packaging an artifact after the content itself is worth keeping |
