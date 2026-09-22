@@ -280,7 +280,7 @@ function Today({
           </section>
         </section>
 
-        <details className={contextStyles.dailyContextDisclosure}>
+        <details className={`${contextStyles.dailyContextDisclosure} ${styles.contextDisclosure}`}>
             <summary>
               <span>
                 <small>Session context</small>
