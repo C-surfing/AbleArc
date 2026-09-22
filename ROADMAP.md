@@ -68,7 +68,8 @@ Test the Skill across real topics and sessions:
 - review after delay;
 - learner-provided materials;
 - visual explanation;
-- deep generated material.
+- deep generated material;
+- YouTube/Bilibili source-first lecture rendering and follow-up learning.
 
 Evaluate behavior, not UI engagement:
 
@@ -89,7 +90,8 @@ Only after the Skill itself is good:
 - make installation straightforward across common Agent Skill hosts;
 - document optional companion installations;
 - add minimal compatibility metadata where useful;
-- keep third-party skills optional rather than vendored into AbleArc.
+- keep third-party skills optional rather than vendored into AbleArc;
+- document source-first video companions separately from topic-first University Skill generation.
 
 ## Explicitly deferred / removed
 
