@@ -100,15 +100,14 @@ export function FocusSession({
       <header className={styles.focusHeader}>
         <div className={styles.headerIdentity}>
           <Link href="/" aria-label={t("Back to Today", "返回今日")}>←</Link>
-          <span className={styles.brandMark}>A·</span>
           <div>
-            <strong>{t("Focus", "专注")}</strong>
-            <small>{snapshot.projectTitle || t("Current Project", "当前项目")}</small>
+            <strong>{snapshot.projectTitle || t("Current Project", "当前项目")}</strong>
+            <small>{snapshot.frontier}</small>
           </div>
         </div>
 
         <div className={styles.headerCenter}>
-          <span>{snapshot.frontier}</span>
+          <span>{t("one move at a time", "一次只处理一个学习动作")}</span>
         </div>
 
         <div className={styles.headerActions}>
@@ -137,7 +136,7 @@ export function FocusSession({
           {snapshot.latestExchange?.status === "assessed" ? (
             <Link className={styles.workspaceLink} href="/close">{t("Close session", "结束本次学习")}</Link>
           ) : null}
-          <Link className={styles.workspaceLink} href="/workspace">{t("Workspace", "学习空间")}</Link>
+          <Link className={styles.workspaceLink} href="/workspace">{t("Inspect", "检查")}</Link>
         </div>
       </header>
 
@@ -164,6 +163,12 @@ export function FocusSession({
       <div className={`${styles.focusBody} ${supportVisible ? styles.hasSupport : ""}`}>
         <div className={styles.canvasColumn}>
           <LearningCanvas snapshot={snapshot} mode={mode} locale={locale} variant="focus" />
+          {snapshot.decision?.expectedEvidence ? (
+            <aside className={styles.nextHint} aria-label={t("What this move unlocks", "这一步将解锁什么")}>
+              <span>{t("After this move", "完成这一步后")}</span>
+              <p>{snapshot.decision.expectedEvidence}</p>
+            </aside>
+          ) : null}
         </div>
 
         <aside className={`${styles.supportRail} ${supportVisible ? styles.isOpen : ""}`} aria-label={t("Focus Session support", "专注学习辅助区")}>
