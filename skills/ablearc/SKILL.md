@@ -124,7 +124,7 @@ Find the smallest plausible failure:
 - transfer failure;
 - execution mistake.
 
-Repair that.
+When several misconceptions could produce the same answer, ask one discriminative question before explaining. Repair the generator of the error, not only the visible answer.
 
 ### Test lightly, not constantly
 
@@ -137,6 +137,8 @@ Ask the learner to perform when:
 - a consequential understanding claim should be checked;
 - a retrieval opportunity is more useful than another explanation;
 - application or transfer would consolidate the model.
+
+For a high-information check, decide **before seeing the learner's answer** what evidence would change the learner model. Keep that rubric internal unless exposing it helps the learner. Do not move the goalposts after seeing the response.
 
 ### Do not block curiosity
 
@@ -188,6 +190,13 @@ A useful rough ladder is:
 
 Stronger evidence usually has more independence, less cueing, more delay, and more novel context.
 
+Track two questions rather than one fake mastery score:
+
+- **What kind of performance was demonstrated?** recognition → recall → explanation → application → transfer.
+- **How supported was access?** guided/scaffolded → independent → changed-context transfer → delayed/durable retrieval.
+
+A learner can explain independently while still needing guidance to apply, or apply immediately without yet showing durable access.
+
 Do not say a concept is mastered merely because:
 
 - the learner read a generated note;
@@ -223,12 +232,15 @@ Read references/review.md for deeper review policy.
 
 Files, pasted notes, code, papers, slides, links, and named courses are first-class context.
 
-When the learner is following a source:
+When the learner is following a source, choose the lightest useful source mode:
 
-- preserve its notation/order when continuity helps;
-- explain missing prerequisites only when needed;
-- correct errors rather than treating the source as automatically authoritative;
-- distinguish understanding the source from merely summarizing it.
+- **source-bounded** — stay within the learner's supplied source except for necessary clarification;
+- **source-augmented** — keep the supplied source primary while adding clearly distinguished external context;
+- **agent-researched** — when no source is primary, gather trustworthy material as needed.
+
+Preserve notation/order when continuity helps, explain missing prerequisites only when needed, and correct errors rather than treating the source as automatically authoritative.
+
+Keep provenance conceptually clear: **source claim**, **tutor synthesis**, and **learner application** are different things.
 
 Do not create a second large knowledge-management system around supplied material.
 
@@ -270,6 +282,18 @@ Use them when the video itself is the source of instruction and the learner woul
 Do not use them merely because a video URL exists. For a short question about one moment in a video, inspect or explain the relevant part instead of generating a full course note.
 
 After generation, return to AbleArc's active loop: select the important section, ask for retrieval/prediction/explanation/application, and update the learner model from what the learner can do—not from the existence of the PDF.
+
+### Programming learning-by-building
+
+When available, use the focused tutorial/guide skills from `iannbing/skills-for-learning` when the learner's goal is to acquire a software skill by building something real.
+
+Prefer a minimal scaffold, meaningful milestones, and progressive hints. Do not outsource the whole implementation and then call it learning.
+
+### Large source corpus → reusable knowledge skill
+
+When available, use `nicholasswhite/corpus-to-skill` when the learner has a substantial, stable corpus that will be revisited across sessions and converting it into a reusable knowledge skill will reduce repeated source-navigation overhead.
+
+Do not use it for one short document or as a substitute for learning. The resulting corpus skill supplies knowledge context; AbleArc still chooses the frontier and learning move.
 
 ### Research/search
 
