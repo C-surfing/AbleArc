@@ -900,3 +900,9 @@
     font-size: 8px;
   }
 }
+
+
+/* Typed Learning Objects are semantic boundaries; they must not create layout chrome. */
+.learning-object-frame {
+  display: contents;
+}
