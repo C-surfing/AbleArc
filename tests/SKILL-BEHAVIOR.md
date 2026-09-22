@@ -221,3 +221,106 @@ Failure:
 - declaring the concept mastered from immediate imitation;
 - forcing an immediate second quiz only to manufacture evidence;
 - writing a session log instead of a teaching-relevant learner note.
+
+
+## 16. High-information assessment is precommitted
+
+Context: AbleArc asks the learner to explain why CUDA tiling helps after a substantial explanation.
+
+Expected:
+
+- before evaluating the response, the intended evidence target is stable: e.g. reuse, reduced global-memory traffic, and block cooperation where relevant;
+- the learner is not rewarded merely for repeating surface vocabulary;
+- the success criterion is not silently loosened or tightened after seeing the answer;
+- no formal rubric artifact is required for a small conversational check.
+
+Failure:
+
+- moving the goalposts after seeing the answer;
+- treating eloquence as proof of the target mechanism;
+- creating assessment paperwork for every probe.
+
+## 17. Hint ladder preserves the key inference
+
+Context: the learner is stuck on a programming or derivation step.
+
+Expected:
+
+- begin with the least intrusive useful intervention;
+- escalate from reframe → constrain → point → partial structure → local demonstration → full explanation only as needed;
+- leave the key inference to the learner whenever they can still make it;
+- use required hint strength as local evidence for the next move.
+
+Failure:
+
+- immediately giving the decisive line of code or derivation;
+- withholding explanation indefinitely when stronger help is clearly needed;
+- converting hint level into a permanent numeric mastery score.
+
+## 18. Wrong answer triggers discriminative diagnosis
+
+Learner gives an answer that could come from either confusing cache with shared memory or misunderstanding block-level cooperation.
+
+Expected:
+
+- form a small set of plausible generators;
+- ask one question or contrast that distinguishes them;
+- repair the identified generator;
+- return to the original task.
+
+Failure:
+
+- explaining every possible misconception at once;
+- correcting only the surface sentence without updating the causal model.
+
+## 19. Source-bounded and source-augmented stay distinct
+
+Context: the learner provides a course slide deck and asks to learn from it.
+
+Expected:
+
+- if the learner wants fidelity, use source-bounded mode and avoid silently importing outside claims;
+- if outside context is useful and allowed, use source-augmented mode;
+- distinguish source claim, tutor synthesis, and learner application;
+- preserve the source as primary when that is the learner's intent.
+
+Failure:
+
+- presenting external explanation as if it came from the supplied source;
+- refusing all clarification merely because the session is source-bounded.
+
+## 20. Programming project companion leaves work to the learner
+
+Learner:
+
+    I want to actually learn Rust async by building something, not just read explanations.
+
+Expected when iannbing/skills-for-learning is available:
+
+- use a minimal tutorial/project scaffold with meaningful milestones;
+- use progressive guide-style hints when blocked;
+- keep implementation decisions with the learner;
+- let AbleArc use the learner's work as evidence and choose the next frontier.
+
+Failure:
+
+- generating the completed project;
+- replacing the learning arc with a giant tutorial document;
+- invoking the companion for a tiny conceptual question.
+
+## 21. Large corpus does not become learner state
+
+Context: the learner has a technical book, documentation set, and several papers that will be used across many sessions.
+
+Expected when corpus-to-skill is available:
+
+- use it only if reusable corpus extraction materially reduces repeated source-navigation overhead;
+- preserve frameworks, decision rules, examples, trade-offs, and failure modes as appropriate;
+- keep corpus knowledge separate from the learner model;
+- continue to judge learning from learner action.
+
+Failure:
+
+- copying the corpus into persistent learner state;
+- using corpus conversion for a single short document;
+- treating corpus ingestion as evidence of learning.
