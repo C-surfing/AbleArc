@@ -610,3 +610,256 @@
     flex-direction: column;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* v0.2 structural pass — sourced product patterns, not a three-rail default.  */
+/* -------------------------------------------------------------------------- */
+
+.workspace-shell {
+  grid-template-rows: 64px minmax(0, 1fr);
+}
+
+.workspace-shell.has-history {
+  grid-template-rows: 64px minmax(0, 1fr) auto;
+}
+
+.topbar {
+  grid-template-columns: minmax(200px, 1fr) auto minmax(360px, 1fr);
+}
+
+.topbar-tools {
+  gap: 8px;
+}
+
+.workspace-view-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 10px;
+  background: #f5f5f1;
+}
+
+.workspace-view-tools button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--lesson-muted);
+  font-size: 9px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.workspace-view-tools button:hover {
+  color: var(--lesson-ink);
+  background: white;
+}
+
+.workspace-view-tools button.is-active {
+  color: var(--lesson-ink);
+  background: white;
+  box-shadow: 0 1px 3px rgba(35, 35, 35, 0.08);
+}
+
+.topbar-status__label {
+  display: none;
+}
+
+.workspace-grid,
+.workspace-grid.has-path,
+.workspace-grid.has-inspector,
+.workspace-grid.has-path.has-inspector {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace-grid.has-path {
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+
+.workspace-grid.has-inspector {
+  grid-template-columns: minmax(0, 1fr) 304px;
+}
+
+.workspace-grid.has-path.has-inspector {
+  grid-template-columns: 248px minmax(0, 1fr) 304px;
+}
+
+.learning-canvas-panel {
+  padding-top: 34px;
+}
+
+.canvas-header {
+  padding: 4px 2px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.canvas-header h1 {
+  margin: 9px 0 8px;
+  font-size: clamp(18px, 1.5vw, 22px);
+  font-weight: 760;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.canvas-frontier {
+  display: grid;
+  gap: 5px;
+  max-width: 720px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dfe4f2;
+  border-radius: 12px;
+  background: #f7f9ff;
+}
+
+.canvas-frontier > span {
+  color: var(--lesson-blue);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.canvas-frontier > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--lesson-ink);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.canvas-mode-copy {
+  margin-top: 8px !important;
+  color: var(--lesson-faint) !important;
+  font-size: 10px !important;
+}
+
+.teacher-move {
+  margin-top: 12px;
+  padding: 24px;
+}
+
+.teacher-move h2 {
+  font-size: clamp(23px, 2.15vw, 30px);
+  line-height: 1.22;
+}
+
+.learner-action {
+  margin-top: 4px;
+}
+
+.state-panel,
+.map-panel {
+  box-shadow: none;
+}
+
+.map-panel {
+  min-width: 0;
+}
+
+.state-panel {
+  min-width: 0;
+}
+
+.timeline {
+  min-height: auto;
+  max-height: 170px;
+  overflow: auto;
+}
+
+@media (max-width: 1200px) {
+  .topbar {
+    grid-template-columns: minmax(170px, 1fr) auto minmax(310px, 1fr);
+  }
+
+  .workspace-view-tools button {
+    padding: 0 7px;
+  }
+
+  .workspace-grid.has-path.has-inspector {
+    grid-template-columns: 220px minmax(0, 1fr) 270px;
+  }
+
+  .workspace-grid.has-path {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .workspace-grid.has-inspector {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+}
+
+@media (max-width: 980px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    min-height: auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .mode-nav {
+    order: 3;
+    grid-column: 1 / -1;
+  }
+
+  .workspace-view-tools {
+    display: none;
+  }
+
+  .workspace-grid,
+  .workspace-grid.has-path,
+  .workspace-grid.has-inspector,
+  .workspace-grid.has-path.has-inspector {
+    display: block;
+  }
+
+  .map-panel,
+  .state-panel {
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--lesson-line);
+  }
+}
+
+@media (max-width: 700px) {
+  .learning-canvas-panel {
+    padding: 22px 14px 34px;
+  }
+
+  .canvas-header {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .canvas-header h1 {
+    font-size: 19px;
+  }
+
+  .canvas-frontier {
+    padding: 11px 12px;
+  }
+
+  .canvas-frontier > p {
+    -webkit-line-clamp: 4;
+  }
+
+  .teacher-move {
+    padding: 18px;
+  }
+
+  .teacher-move h2 {
+    font-size: clamp(22px, 7vw, 28px);
+  }
+}
