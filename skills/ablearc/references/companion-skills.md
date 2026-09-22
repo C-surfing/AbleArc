@@ -65,6 +65,45 @@ Do not generate 20–40 pages when a short explanation will solve the frontier.
 
 After generation, AbleArc remains responsible for learning. Use the artifact to select a section, retrieve, predict, derive, or apply.
 
+## Video lecture → learning material
+
+Source: https://github.com/wdkns/wdkns-skills
+
+Relevant skills:
+
+- `youtube-render-pdf` — converts a YouTube lecture, tutorial, or technical talk into structured, figure-rich LaTeX course notes and a rendered PDF;
+- `bilibili-render-pdf` — the Bilibili-oriented equivalent, including Bilibili metadata/parts handling and subtitle → Whisper → visual fallback when needed.
+
+Use these when the learner provides a **specific video as a learning source** and converting it into a reusable artifact will reduce friction across later study.
+
+Good cases:
+
+- a 60-minute CUDA lecture the learner wants to study over several sessions;
+- a Bilibili course episode containing diagrams, formulas, and code worth preserving;
+- a tutorial where important frames and verbal explanation should be combined into one reference;
+- a video series the learner is using as its primary course material.
+
+Avoid a full render when:
+
+- the learner only asks about one timestamp or one concept;
+- the video is short enough to discuss directly;
+- the artifact would be generated but not used;
+- a topic-first textbook is more appropriate than a source-faithful video note.
+
+Choose by source:
+
+- YouTube URL → `youtube-render-pdf`;
+- Bilibili/BV/b23 URL → `bilibili-render-pdf`.
+
+Relationship to University Skill:
+
+- **video render skills are source-first**: preserve and restructure what a particular lecture teaches;
+- **University Skill is topic-first**: synthesize a coherent textbook/coursebook around a learning objective, potentially beyond any one source.
+
+After rendering, AbleArc should treat the PDF as reference context. It can pick a section, connect it to the current frontier, ask the learner to reconstruct a mechanism, solve a related problem, or compare the video's explanation with another source.
+
+The generated note is not mastery evidence.
+
 ## Research/search
 
 Use when:
