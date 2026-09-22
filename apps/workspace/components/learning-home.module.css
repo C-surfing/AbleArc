@@ -935,3 +935,86 @@ button.primaryButton:disabled {
     transition: none;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Project visual worlds — aesthetic identity only, never learner-state truth. */
+/* -------------------------------------------------------------------------- */
+
+.projectField[data-visual-variant="verdant"] {
+  background:
+    radial-gradient(circle at 72% 26%, rgba(89, 165, 117, .30), transparent 11rem),
+    linear-gradient(145deg, #111813, #1b2b21);
+}
+
+.projectField[data-visual-variant="cobalt"] {
+  background:
+    radial-gradient(circle at 78% 22%, rgba(76, 124, 219, .36), transparent 11rem),
+    radial-gradient(circle at 20% 88%, rgba(111, 173, 233, .12), transparent 10rem),
+    linear-gradient(145deg, #10141d, #172238);
+}
+
+.projectField[data-visual-variant="ember"] {
+  background:
+    radial-gradient(circle at 75% 18%, rgba(214, 113, 72, .34), transparent 11rem),
+    radial-gradient(circle at 18% 86%, rgba(235, 182, 87, .13), transparent 10rem),
+    linear-gradient(145deg, #19120f, #302019);
+}
+
+.projectField[data-visual-variant="plum"] {
+  background:
+    radial-gradient(circle at 74% 22%, rgba(144, 91, 155, .34), transparent 11rem),
+    radial-gradient(circle at 18% 86%, rgba(102, 100, 181, .12), transparent 10rem),
+    linear-gradient(145deg, #151117, #2a1c2d);
+}
+
+.projectField[data-visual-variant="graphite"] {
+  background:
+    radial-gradient(circle at 76% 24%, rgba(164, 177, 170, .17), transparent 11rem),
+    linear-gradient(145deg, #111312, #242826);
+}
+
+.projectField[data-visual-variant="cobalt"] .projectOrbit {
+  transform: translate(8px, -4px) rotate(18deg) scale(1.08);
+}
+
+.projectField[data-visual-variant="ember"] .projectOrbit {
+  transform: translate(-12px, 10px) rotate(-14deg) scale(.92);
+}
+
+.projectField[data-visual-variant="plum"] .projectOrbit {
+  transform: translate(2px, 2px) rotate(34deg) scale(1.12);
+}
+
+.projectField[data-visual-variant="graphite"] .projectOrbit {
+  transform: translate(-8px, 8px) rotate(8deg) scale(.86);
+}
+
+.projectField[data-visual-variant="cobalt"] .projectOrbit span,
+.projectField[data-visual-variant="ember"] .projectOrbit span,
+.projectField[data-visual-variant="plum"] .projectOrbit span,
+.projectField[data-visual-variant="graphite"] .projectOrbit span {
+  border-color: rgba(242, 247, 244, .19);
+}
+
+.projectField[data-visual-variant="cobalt"]::after,
+.projectField[data-visual-variant="ember"]::after,
+.projectField[data-visual-variant="plum"]::after,
+.projectField[data-visual-variant="graphite"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .18;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(135deg, black, transparent 68%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .projectOrbit {
+    transition: transform 420ms cubic-bezier(.16,1,.3,1);
+  }
+}
