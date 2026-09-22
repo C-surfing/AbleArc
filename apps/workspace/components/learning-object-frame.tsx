@@ -19,9 +19,11 @@ export function LearningObjectFrame({
   object,
   children,
 }: {
-  object: LearningObjectDescriptor;
+  object?: LearningObjectDescriptor;
   children: ReactNode;
 }) {
+  if (!object) return <>{children}</>;
+
   return (
     <div
       className="learning-object-frame"
