@@ -844,7 +844,13 @@ button.primaryButton:disabled {
   }
 
   .entryPrompt h1 {
-    font-size: clamp(54px, 17vw, 76px);
+    max-width: 100%;
+    font-size: clamp(44px, 12vw, 54px);
+    line-height: .94;
+  }
+
+  .entryPrompt h1 em {
+    letter-spacing: -.065em;
   }
 
   .entryPrompt > p {
