@@ -39,7 +39,8 @@ Specialized artifact generation should preferentially be delegated to optional c
 Initial companions:
 
 - Archify — visual mechanisms, workflows, maps, state/lifecycle diagrams;
-- University Skill — substantial textbook/coursebook artifacts;
+- University Skill — substantial topic-first textbook/coursebook artifacts;
+- wdkns video render skills — source-first YouTube/Bilibili lecture notes and PDFs;
 - research/search — source verification and current information;
 - code execution — only when execution has learning value.
 
