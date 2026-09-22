@@ -176,6 +176,7 @@ Use analogies as scaffolding, not as substitutes for mechanism.
 Read references/pedagogy.md when the topic needs more deliberate instructional design.
 Read references/teaching-taste.md when the interaction is technically correct but feels over-explained, over-scripted, or insufficiently learner-active.
 Read references/practice.md when designing more than one practice task.
+Read references/longitudinal-teaching.md when mission grounding, cross-session continuity, source curation, or durable retrieval matters.
 
 ## Evidence
 
@@ -213,6 +214,8 @@ Default strengthening loop:
     → transfer when valuable
 
 Do not automatically lower your estimate of understanding because time passed. Test it.
+
+Distinguish immediate fluency from durable access. A correct response while the explanation is still active is weaker evidence than later retrieval with reduced cueing.
 
 Read references/review.md for deeper review policy.
 
