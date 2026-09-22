@@ -583,3 +583,98 @@
     transition: none;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Contextual tutor annotations — scaffold points at the object it refers to.  */
+/* -------------------------------------------------------------------------- */
+
+.focusPage[data-scaffold-target="prompt"] :global(.learning-object-frame[data-learning-object="prompt"]) {
+  position: relative;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(39, 106, 80, .055), transparent 72%);
+  box-shadow: inset 3px 0 0 rgba(39, 106, 80, .72);
+  transition:
+    background 260ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 260ms cubic-bezier(.2,.8,.2,1);
+}
+
+.focusPage[data-scaffold-target="prompt"] :global(.learning-object-frame[data-learning-object="prompt"])::after {
+  content: "TUTOR · EVIDENCE TARGET";
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: var(--accent);
+  font-size: 7px;
+  font-weight: 820;
+  letter-spacing: .11em;
+  pointer-events: none;
+}
+
+.focusPage[data-scaffold-target="attempt"] :global(.learning-object-frame[data-learning-object="attempt"] .composer-shell) {
+  box-shadow:
+    0 0 0 3px rgba(200, 102, 85, .13),
+    0 20px 58px rgba(23, 43, 32, .10);
+  transition: box-shadow 260ms cubic-bezier(.2,.8,.2,1);
+}
+
+.focusPage[data-scaffold-target="attempt"] :global(.learning-object-frame[data-learning-object="attempt"]) {
+  position: relative;
+}
+
+.focusPage[data-scaffold-target="attempt"] :global(.learning-object-frame[data-learning-object="attempt"])::after {
+  content: "TUTOR · SELF-CHECK HERE";
+  position: absolute;
+  top: -18px;
+  right: 4px;
+  color: var(--attempt);
+  font-size: 7px;
+  font-weight: 820;
+  letter-spacing: .11em;
+  pointer-events: none;
+}
+
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="diagram"] .representation-card),
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="interactive"] .representation-card) {
+  box-shadow:
+    0 0 0 3px rgba(68, 119, 184, .13),
+    0 30px 82px rgba(23, 43, 32, .12);
+  transition: box-shadow 260ms cubic-bezier(.2,.8,.2,1);
+}
+
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="diagram"]),
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="interactive"]) {
+  position: relative;
+}
+
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="diagram"])::after,
+.focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="interactive"])::after {
+  content: "TUTOR · USE THIS REPRESENTATION";
+  position: absolute;
+  top: -18px;
+  right: 4px;
+  color: var(--evidence);
+  font-size: 7px;
+  font-weight: 820;
+  letter-spacing: .11em;
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  .focusPage[data-scaffold-target="prompt"] :global(.learning-object-frame[data-learning-object="prompt"])::after,
+  .focusPage[data-scaffold-target="attempt"] :global(.learning-object-frame[data-learning-object="attempt"])::after,
+  .focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="diagram"])::after,
+  .focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="interactive"])::after {
+    content: "TUTOR";
+    right: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focusPage[data-scaffold-target="prompt"] :global(.learning-object-frame[data-learning-object="prompt"]),
+  .focusPage[data-scaffold-target="attempt"] :global(.learning-object-frame[data-learning-object="attempt"] .composer-shell),
+  .focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="diagram"] .representation-card),
+  .focusPage[data-scaffold-target="representation"] :global(.learning-object-frame[data-learning-object="interactive"] .representation-card) {
+    transition: none;
+  }
+}
