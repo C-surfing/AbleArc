@@ -1,0 +1,5 @@
+interface:
+  display_name: "AbleArc"
+  short_description: "Adaptive learning at your current frontier"
+policy:
+  allow_implicit_invocation: true

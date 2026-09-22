@@ -1,82 +1,120 @@
-# Project roadmap
+# AbleArc roadmap
 
-## Canonical current direction
+Status: **Skill-first reset active**  
+Decision date: **2026-09-22**
 
-AbleArc has completed **Kernel v1 implementation phases K1–K7** and is now in the **K8 longitudinal validation phase**.
+## Canonical direction
 
-**2026-09-22 host shift:** first-party Web expansion is paused. The next primary K8 host is the headless ChatGPT plugin defined by [ADR 0011](docs/adr/0011-headless-chatgpt-plugin-host.md) and [`docs/CHATGPT-PLUGIN.md`](docs/CHATGPT-PLUGIN.md): ChatGPT supplies the Teacher, the packaged Skill supplies the teaching workflow, MCP exposes a small Kernel control surface, and Runtime remains learner-truth authority. This is not a new Kernel phase; it is a lower-friction way to gather the real longitudinal evidence K8 already requires.
+AbleArc is now a **lightweight adaptive learning Skill**, not a first-party Learning OS, Web product, or MCP-centered application.
 
-**2026-09-20 Web stabilization interrupt:** real Web dogfooding exposed blocking Host/provider/authority-path failures. K8 remains active, but the first-party Web path must pass the bounded stabilization gate in [`docs/WEB-STABILIZATION-2026-09-20.md`](docs/WEB-STABILIZATION-2026-09-20.md) / Issue #132 before Web failures are treated as clean evidence about Kernel pedagogy. Agent-mode K8 evidence may continue.
+The canonical entry point is skills/ablearc/SKILL.md.
 
-Current sources of truth:
+The objective remains capability_after - capability_before, but the implementation strategy changes from protocol-heavy runtime orchestration to **LLM-first teaching judgment with optional lightweight persistence and companion-skill composition**.
 
-- [`docs/KERNEL-V1.md`](docs/KERNEL-V1.md) — canonical Learning Kernel v1 architecture and anti-bloat boundary;
-- [`docs/KERNEL-FIRST-ROADMAP.md`](docs/KERNEL-FIRST-ROADMAP.md) — current K1–K9 development order;
-- [`docs/adr/0010-learning-kernel-boundary.md`](docs/adr/0010-learning-kernel-boundary.md) — accepted boundary between LLM teaching judgment and deterministic learner-truth invariants;
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture;
-- [`docs/VNEXT-ROADMAP.md`](docs/VNEXT-ROADMAP.md) — implemented/product roadmap history and future product reference, subordinate when its delivery ordering conflicts with the Kernel-first roadmap.
+## Current architecture
 
-The paper-first implementation chain is complete and remains the deepest proving scenario. Product/UI expansion stays subordinate while real multi-session use tests whether the current Kernel is expressively complete and stable enough to freeze.
+    Learner
+      │
+      ▼
+    AbleArc Skill
+      │
+      ├─ Goal
+      ├─ Learner Model
+      ├─ Frontier
+      └─ Next Move
+           │
+           ├─ explain / ask / practice / review
+           ├─ Archify when a visual model helps
+           ├─ University Skill when substantial material helps
+           ├─ research when facts/sources need verification
+           └─ execution when running something has learning value
 
-## Current system shape
+Generated artifacts support the learning move. They do not prove learning happened.
 
-```text
-Host / Product
-Web · Agent/Skill · assistant integrations
-                │
-                ▼
-         Learning Kernel
-Mission · Map · Model · Context · Policy
-Move · Observation · Evidence · Pacing
-                │
-                ▼
-      Learning Runtime authority
-receipts · state proposals · accepted projection
-                │
-                ▼
-       local learner workspace
-```
+## Phase S1 — canonical Skill reset
 
-Supporting capabilities such as Research and LearningMaterial sit beside the Kernel and may provide context. They do not own learner truth.
+Active in the Skill-first reset PR.
 
-## Current delivery checkpoint
+- establish skills/ablearc as the canonical entry;
+- collapse the visible architecture to Goal / Model / Frontier / Move;
+- preserve the strongest teaching policy from the previous Teach/Study skills;
+- remove runtime receipts, MCP calls, provider setup, Web assumptions, and artifact protocols from the default learning path;
+- add companion-skill routing for Archify and University Skill;
+- add behavior-level acceptance scenarios.
 
-Implemented baseline includes Mission/Project lifecycle, typed LearningMap, learner-state overlay, Runtime Evidence/authority, evidence-gated completion, Teach/Study policies, conversation-first Host context, DailyContext, Focus, Session Close/Tomorrow Seed, Reflection, Research, Paper Learning, learner-facing Map/Review, Learner Profile, assistant host, and graphical Web Provider setup.
+Exit criterion: AbleArc can be installed as a single Skill directory and used naturally without first-party infrastructure.
 
-Implementation status:
+## Phase S2 — repository de-bloat
 
-```text
-K1–K7  complete
-   ↓
-K8  real longitudinal kernel dogfooding   ← active gate
-   ↓
-K9  Kernel v1 freeze
-```
+After S1 is merged and dogfooded:
 
-During K8, do not add a new Kernel abstraction merely because it is conceivable or because a checklist has an empty box. Change Kernel semantics only when real use reveals a repeated failure or a clearly structural high-consequence gap.
+- retire apps/workspace;
+- retire first-party Web/provider setup;
+- retire the headless ChatGPT MCP/plugin as a canonical path;
+- move or remove runtime-only schemas/tools that no longer serve the lightweight Skill;
+- close product/UI issues and PRs superseded by the reset;
+- keep only utilities that still create clear learner-visible value.
 
-## Existing evidence gates remain open
+Do not preserve code solely because it took effort to build. Git history is the archive.
 
-- Issue #95 remains the real multi-session Paper Learning acceptance gate, including delayed retrieval and transfer.
-- Issue #2 remains the broader longitudinal multi-domain evidence goal.
-- Product Session Pacing presets / Pomodoro UX are deferred in Issue #110 and must remain Host/UI state.
+## Phase S3 — learning effectiveness dogfood
 
-Real learner evidence must not be fabricated to satisfy either longitudinal gate.
+Test the Skill across real topics and sessions:
 
-## Anti-bloat development rule
+- programming / software engineering;
+- mathematics;
+- ML/AI;
+- paper learning;
+- review after delay;
+- learner-provided materials;
+- visual explanation;
+- deep generated material.
 
-Before adding a subsystem or first-class abstraction:
+Evaluate behavior, not UI engagement:
 
-1. identify the concrete learner-visible failure;
-2. show why existing Kernel concepts cannot express the solution;
-3. classify it as learner truth, LLM teaching judgment, supporting capability, or Host/UI state;
-4. prefer LLM judgment when a hard rule is not required for integrity;
-5. abstract only after repeated real use exposes the same structure.
+- Did it locate the actual confusion?
+- Did it choose one high-value next move?
+- Did it over-assess?
+- Did it over-explain?
+- Did it use a companion skill only when useful?
+- Could the learner later explain, apply, or transfer the idea?
+- Did the interaction remain natural?
 
-A phase is not a feature checklist. The smallest coherent solution wins.
+Do not fabricate mastery evidence for evaluation.
 
-## Product work after Kernel freeze
+## Phase S4 — portable packaging
 
-After K9, product shape may again advance: Web UX, packaging, mobile/desktop, notifications, richer assistant/plugin integrations, and timer/break UX can consume the frozen Kernel without reopening learner-truth semantics by default.
+Only after the Skill itself is good:
 
-Branding remains **AbleArc**; [`docs/BRANDING.md`](docs/BRANDING.md) is authoritative for naming.
+- make installation straightforward across common Agent Skill hosts;
+- document optional companion installations;
+- add minimal compatibility metadata where useful;
+- keep third-party skills optional rather than vendored into AbleArc.
+
+## Explicitly deferred / removed
+
+The following are no longer goals unless future real use demonstrates a concrete learning need:
+
+- first-party Web UI;
+- custom learning dashboard;
+- graphical provider setup;
+- timer/Pomodoro product UX;
+- notifications;
+- cloud learner database;
+- generic transcript memory;
+- broad RAG/vector infrastructure;
+- gamification;
+- a dedicated material-generation provider subsystem;
+- deterministic transaction receipts for ordinary learning turns.
+
+## Anti-bloat rule
+
+Before adding a subsystem:
+
+1. identify a repeated learner-visible failure;
+2. show why the current Skill policy and available tools cannot handle it;
+3. prefer clearer instructions or a companion skill over new infrastructure;
+4. add code only when execution or deterministic validation is actually necessary;
+5. keep the default learning path usable without that subsystem.
+
+The smallest coherent learning system wins.
