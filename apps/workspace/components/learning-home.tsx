@@ -310,16 +310,18 @@ function Today({
           <span className={styles.moveEyebrow}>{recommendation.primary.eyebrow}</span>
           <h2>{recommendation.primary.action}</h2>
           <p>{recommendation.primary.rationale}</p>
-          <div className={contextStyles.sessionShape}>
-            <span>Session shape · {recommendation.moveType.replaceAll("-", " ")}</span>
-            <p>{recommendation.sessionShape}</p>
-            {recommendation.contextRationale ? (
-              <details>
-                <summary>Why did context change this shape?</summary>
-                <p>{recommendation.contextRationale}</p>
-              </details>
-            ) : null}
-          </div>
+          <details className={contextStyles.sessionShapeDisclosure}>
+            <summary>Session plan · {recommendation.moveType.replaceAll("-", " ")}</summary>
+            <div className={contextStyles.sessionShape}>
+              <p>{recommendation.sessionShape}</p>
+              {recommendation.contextRationale ? (
+                <details>
+                  <summary>Why did context change this plan?</summary>
+                  <p>{recommendation.contextRationale}</p>
+                </details>
+              ) : null}
+            </div>
+          </details>
           <div className={styles.moveActions}>
             <Link className={styles.primaryButton} href={primaryHref}>{recommendation.primary.cta}</Link>
             <Link className={styles.secondaryButton} href="/workspace">Inspect map and evidence</Link>
