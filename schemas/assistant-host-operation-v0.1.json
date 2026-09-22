@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assistant-host-operation-v0.1",
+  "title": "AbleArc Assistant Host Operation v0.1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "const": "get_learning_state" }
+      },
+      "required": ["operation"]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "const": "provide_learning_context" },
+        "turn": { "$ref": "host-turn-input-v0.1.json" }
+      },
+      "required": ["operation", "turn"]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "const": "start_or_continue_learning" },
+        "projectId": {
+          "type": "string",
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+        },
+        "newProjectId": {
+          "type": "string",
+          "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "goal": { "type": "string", "minLength": 1, "maxLength": 1200 },
+        "why": { "type": "string", "minLength": 1, "maxLength": 2400 },
+        "turn": { "$ref": "host-turn-input-v0.1.json" }
+      },
+      "required": ["operation"]
+    }
+  ]
+}

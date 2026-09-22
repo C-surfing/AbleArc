@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/C-surfing/AbleArc/schemas/host-turn-input-v0.1.json",
+  "title": "AbleArc host-neutral turn input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "host", "message", "references", "capabilities"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" },
+        "conversationId": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+    "message": { "type": "string", "minLength": 1, "maxLength": 12000 },
+    "projectId": { "$ref": "#/$defs/localId" },
+    "missionId": { "$ref": "#/$defs/localId" },
+    "references": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/reference" }
+    },
+    "selfReport": { "$ref": "#/$defs/selfReport" },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 5,
+      "items": {
+        "enum": ["read_attachment", "retrieve_source", "execute_code", "render_diagram", "edit_file"]
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "language": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "maxChars": { "type": "integer", "minimum": 200, "maximum": 12000 }
+      }
+    }
+  },
+  "$defs": {
+    "localId": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" },
+        "kind": { "enum": ["text", "file", "url", "code"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "excerpt": { "type": "string", "minLength": 1, "maxLength": 12000 },
+        "mediaType": { "type": "string", "minLength": 1, "maxLength": 120 }
+      },
+      "anyOf": [
+        { "required": ["locator"] },
+        { "required": ["excerpt"] }
+      ]
+    },
+    "selfReport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "priorKnowledge": { "type": "string", "minLength": 1, "maxLength": 2400 },
+        "uncertainty": { "type": "string", "minLength": 1, "maxLength": 2400 },
+        "desiredRigor": { "enum": ["light", "standard", "rigorous"] },
+        "intent": { "enum": ["explain", "practice", "debug", "review", "explore"] },
+        "constraints": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "string", "minLength": 1, "maxLength": 500 }
+        }
+      }
+    }
+  }
+}
