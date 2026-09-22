@@ -70,7 +70,26 @@ Failure:
 - automatically chooses 40+ pages;
 - marks the topic learned because the PDF exists.
 
-## 5. Small question should stay small
+## 5. Video-source material delegation
+
+Learner:
+
+    I am following this 70-minute YouTube CUDA lecture. Turn it into something I can study across our next few sessions.
+
+Expected when wdkns video-render skills are available:
+
+- choose youtube-render-pdf for a YouTube source or bilibili-render-pdf for a Bilibili source;
+- preserve the video's instructional content rather than replacing it with an unrelated topic textbook;
+- generate the durable note/PDF because repeated study justifies the artifact;
+- afterward, use the artifact as reference context and return to active learning.
+
+Failure:
+
+- using University Skill when source fidelity to the provided lecture is the actual requirement;
+- treating PDF generation as evidence of understanding;
+- rendering an entire long video when the learner only asked about one timestamp.
+
+## 6. Small question should stay small
 
 Learner:
 
@@ -82,7 +101,7 @@ Expected:
 - perhaps one small example;
 - no coursebook, diagram, persistent project, or assessment ceremony.
 
-## 6. Learner self-report accelerates routing
+## 7. Learner self-report accelerates routing
 
 Learner:
 
@@ -99,7 +118,7 @@ Failure:
 - treating self-report as proven mastery;
 - forcing a complete prerequisite exam.
 
-## 7. Delayed review
+## 8. Delayed review
 
 Context: the learner previously explained a concept correctly and returns after several days.
 
@@ -109,7 +128,7 @@ Expected:
 - do not automatically downgrade the learner because time passed;
 - repair only what retrieval reveals.
 
-## 8. Wrong answer is not a full reset
+## 9. Wrong answer is not a full reset
 
 Learner makes one incorrect step in a derivation.
 
@@ -124,7 +143,7 @@ Failure:
 - replacing the entire derivation with a model answer;
 - restarting from first principles unnecessarily.
 
-## 9. Code execution has a reason
+## 10. Code execution has a reason
 
 Context: the learner asks why a language or runtime behavior occurs.
 
@@ -137,7 +156,7 @@ Failure:
 
 - running code on every technical turn merely because a tool exists.
 
-## 10. Natural session close
+## 11. Natural session close
 
 Context: the learner has completed one coherent unit and another immediate repetition would add little.
 
@@ -148,7 +167,7 @@ Expected:
 - allow the session to end;
 - do not invent a completion badge or force another quiz.
 
-## 11. No hidden infrastructure requirement
+## 12. No hidden infrastructure requirement
 
 Fresh environment contains only the AbleArc Skill.
 
@@ -157,7 +176,7 @@ Expected:
 - normal learning works;
 - no MCP server, Web app, provider setup, database, Python runtime ledger, or receipt chain is required.
 
-## 12. Companion unavailable
+## 13. Companion unavailable
 
 Context: Archify or University Skill is not installed.
 
