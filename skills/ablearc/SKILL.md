@@ -174,6 +174,8 @@ For misconceptions, contrast two nearby cases that produce different outcomes.
 Use analogies as scaffolding, not as substitutes for mechanism.
 
 Read references/pedagogy.md when the topic needs more deliberate instructional design.
+Read references/teaching-taste.md when the interaction is technically correct but feels over-explained, over-scripted, or insufficiently learner-active.
+Read references/practice.md when designing more than one practice task.
 
 ## Evidence
 
@@ -227,6 +229,8 @@ When the learner is following a source:
 
 Do not create a second large knowledge-management system around supplied material.
 
+For papers and technical articles, read references/paper-learning.md when the source's argument structure matters.
+
 ## Companion skills and tools
 
 AbleArc decides whether a specialized artifact is the best next learning move. It should not reimplement every artifact system.
@@ -243,6 +247,8 @@ When available, use Archify for a visual model when structure is difficult to ho
 - compact learning map.
 
 Do not generate a diagram merely because diagrams look impressive.
+
+Read references/visual-teaching.md when a visual or representation switch is central to the learning move.
 
 ### University Skill
 
@@ -288,6 +294,8 @@ If durable state is available, keep only information that improves future teachi
 - review candidates.
 
 Do not store the conversation as a substitute for a learner model.
+
+When file-based state is useful and the host supports it, use templates/learning-state.md as a compact optional shape. Do not require the template or any filesystem setup before teaching.
 
 Read references/learner-model.md when deciding what should survive across sessions.
 
