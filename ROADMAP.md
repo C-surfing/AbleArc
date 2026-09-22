@@ -46,11 +46,11 @@ Exit criterion: AbleArc can be installed as a single Skill directory and used na
 
 ## Phase S2 — repository de-bloat
 
-After S1 is merged and dogfooded:
+**Active.** The first cleanup slice removes the retired Web Workspace, MCP/plugin host, legacy Teach/Study entry points, and product-only CI/docs. The deeper Runtime/schema/tool audit remains separate.
 
-- retire apps/workspace;
-- retire first-party Web/provider setup;
-- retire the headless ChatGPT MCP/plugin as a canonical path;
+Next:
+
+- keep the retired apps/workspace, first-party Web/provider setup, and headless ChatGPT MCP/plugin out of the current tree;
 - move or remove runtime-only schemas/tools that no longer serve the lightweight Skill;
 - close product/UI issues and PRs superseded by the reset;
 - keep only utilities that still create clear learner-visible value.
