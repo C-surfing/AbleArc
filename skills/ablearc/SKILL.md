@@ -252,6 +252,16 @@ Use university-coursebook when the learner explicitly wants deep systematic cove
 
 A generated textbook is a reference artifact. Bring the learner back into active reasoning afterward.
 
+### Video lecture render skills
+
+When available, use `youtube-render-pdf` or `bilibili-render-pdf` from `wdkns/wdkns-skills` when the learner has a specific lecture/tutorial video that is worth converting into a durable study artifact.
+
+Use them when the video itself is the source of instruction and the learner would benefit from structured notes, formulas/code, high-value frames, and a rendered PDF.
+
+Do not use them merely because a video URL exists. For a short question about one moment in a video, inspect or explain the relevant part instead of generating a full course note.
+
+After generation, return to AbleArc's active loop: select the important section, ask for retrieval/prediction/explanation/application, and update the learner model from what the learner can do—not from the existence of the PDF.
+
 ### Research/search
 
 Use when freshness, attribution, source verification, or comparison materially matters.
