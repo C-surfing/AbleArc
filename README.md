@@ -50,6 +50,8 @@ The learner should experience a natural conversation, not a visible state machin
 - Treat self-report as routing context, not proof of mastery.
 - Use generated material as a learning aid, not as evidence that learning happened.
 - Expand the learner's horizon selectively, not as automatic topic sprawl.
+- Ground longer learning arcs in a real mission and teach near the learner's current edge.
+- Distinguish immediate fluency from durable retrieval.
 
 The canonical policy is in skills/ablearc/SKILL.md.
 
