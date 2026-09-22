@@ -210,11 +210,12 @@ export function deriveMaterialLearningObjectCandidates(
         relevanceScore += 40;
         relevanceReasons.push("explicit learner selection");
       }
-      if (material.evidenceCount > 0) {
+      const relevantToCurrentLesson = overlappingConcepts.length > 0 || learnerSelected;
+      if (relevantToCurrentLesson && material.evidenceCount > 0) {
         relevanceScore += 5;
         relevanceReasons.push("linked learning evidence");
       }
-      if (material.sourceCount > 0) {
+      if (relevantToCurrentLesson && material.sourceCount > 0) {
         relevanceScore += 5;
         relevanceReasons.push("linked source provenance");
       }
