@@ -25,12 +25,22 @@ export type PromptLearningObject = LearningObjectBase & {
   rationale?: string;
 };
 
-export type RepresentationLearningObject = LearningObjectBase & {
-  kind: "diagram" | "interactive";
+export type DiagramLearningObject = LearningObjectBase & {
+  kind: "diagram";
   representation: string;
   purpose?: string;
-  artifactId?: string;
 };
+
+export type InteractiveLearningObject = LearningObjectBase & {
+  kind: "interactive";
+  representation: string;
+  purpose?: string;
+  artifactId: string;
+};
+
+export type RepresentationLearningObject =
+  | DiagramLearningObject
+  | InteractiveLearningObject;
 
 export type AttemptLearningObject = LearningObjectBase & {
   kind: "attempt";
@@ -56,7 +66,8 @@ export type EvidenceUpdateLearningObject = LearningObjectBase & {
 
 export type LearningObjectDescriptor =
   | PromptLearningObject
-  | RepresentationLearningObject
+  | DiagramLearningObject
+  | InteractiveLearningObject
   | AttemptLearningObject
   | FeedbackLearningObject
   | EvidenceUpdateLearningObject;
