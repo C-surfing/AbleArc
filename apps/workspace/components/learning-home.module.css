@@ -993,3 +993,146 @@ button.primaryButton:disabled {
     display: none;
   }
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Learner-home v0.2 — compact resume surface, not a marketing hero.           */
+/* -------------------------------------------------------------------------- */
+
+.todayMain {
+  width: min(1040px, calc(100% - 48px));
+  padding-top: 42px;
+}
+
+.todayIntro {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 34px;
+  align-items: start;
+}
+
+.todayIntro h1 {
+  max-width: 720px;
+  margin: 8px 0 10px;
+  font-family: var(--font-ui);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 760;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  text-wrap: pretty;
+}
+
+.todayIntro p {
+  max-width: 680px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.primaryMove {
+  margin-top: 22px;
+  padding: 26px 28px;
+  border-color: var(--line);
+  border-radius: 18px;
+  background: var(--surface-strong);
+  box-shadow: 0 8px 24px rgba(35, 35, 35, 0.045);
+}
+
+.primaryMove::before {
+  width: 64px;
+  height: 3px;
+}
+
+.primaryMove h2 {
+  max-width: 760px;
+  margin: 9px 0 10px;
+  font-family: var(--font-ui);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 730;
+  line-height: 1.12;
+  letter-spacing: -0.032em;
+}
+
+.primaryMove p {
+  max-width: 720px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.moveActions {
+  margin-top: 18px;
+}
+
+.mapSummary {
+  padding: 20px;
+}
+
+.mapSummary h2 {
+  font-size: 19px;
+}
+
+.mapSummaryGrid {
+  grid-template-columns: 1.25fr 1fr 1fr;
+}
+
+.mapSummaryGrid article {
+  min-height: 104px;
+}
+
+.mapSummaryGrid strong {
+  font-size: 14px;
+}
+
+.todayFooter {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
+@media (max-width: 900px) {
+  .todayMain {
+    width: min(100% - 32px, 760px);
+    padding-top: 30px;
+  }
+
+  .todayIntro {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .todayIntro h1 {
+    font-size: clamp(28px, 7vw, 36px);
+  }
+
+  .mapSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .todayMain {
+    width: min(100% - 24px, 680px);
+    padding-top: 24px;
+  }
+
+  .todayIntro h1 {
+    font-size: 30px;
+  }
+
+  .todayIntro p {
+    font-size: 12px;
+  }
+
+  .primaryMove {
+    margin-top: 14px;
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .primaryMove h2 {
+    font-size: clamp(24px, 7.5vw, 30px);
+    line-height: 1.12;
+  }
+
+  .mapSummary {
+    padding: 16px;
+  }
+}
