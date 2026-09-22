@@ -1,0 +1,902 @@
+/* AbleArc learner-facing visual pass.
+ *
+ * Reference lens: Brilliant's learner-first hierarchy — one action at a time,
+ * quiet chrome, visual/interactive content, and obvious progression.
+ * This file intentionally does not copy Brilliant brand assets or proprietary UI.
+ *
+ * Runtime authority, evidence, map topology, completion, and Project lifecycle
+ * remain unchanged. This is presentation-only.
+ */
+
+:root {
+  --lesson-bg: #f7f7f4;
+  --lesson-surface: #ffffff;
+  --lesson-surface-soft: #fbfbf8;
+  --lesson-ink: #232323;
+  --lesson-muted: #6d6d68;
+  --lesson-faint: #999992;
+  --lesson-line: #dfdfd8;
+  --lesson-line-strong: #cecec6;
+  --lesson-accent: #6657c8;
+  --lesson-accent-soft: #efedff;
+  --lesson-blue: #4f84c4;
+  --lesson-blue-soft: #edf5ff;
+  --lesson-yellow: #d6a72c;
+  --lesson-yellow-soft: #fff7dc;
+  --lesson-green: #4f946f;
+  --lesson-green-soft: #eef8f1;
+  --lesson-coral: #c76d5e;
+  --lesson-coral-soft: #fff0ed;
+  --lesson-shadow: 0 8px 24px rgba(35, 35, 35, 0.055);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Workspace shell: turn the power workspace into a learning surface first.   */
+/* -------------------------------------------------------------------------- */
+
+.workspace-shell {
+  grid-template-rows: 64px minmax(0, 1fr) 72px;
+  background: var(--lesson-bg);
+  color: var(--lesson-ink);
+}
+
+.topbar {
+  grid-template-columns: 240px minmax(360px, 1fr) 240px;
+  min-height: 64px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--lesson-line);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+}
+
+.brand-mark {
+  border: 1px solid rgba(102, 87, 200, 0.2);
+  border-radius: 10px 10px 10px 5px;
+  background: var(--lesson-accent-soft);
+  color: var(--lesson-accent);
+  box-shadow: none;
+}
+
+.brand-lockup strong {
+  color: var(--lesson-ink);
+  font-size: 14px;
+}
+
+.brand-lockup span {
+  color: var(--lesson-muted);
+  font-size: 10px;
+}
+
+.mode-nav {
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 999px;
+  background: #f2f2ee;
+}
+
+.mode-nav button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: var(--lesson-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mode-nav button.is-active {
+  background: var(--lesson-ink);
+  color: white;
+  box-shadow: none;
+}
+
+.project-switcher > summary {
+  border-color: var(--lesson-line);
+  background: white;
+  box-shadow: none;
+}
+
+.topbar-status {
+  color: var(--lesson-muted);
+}
+
+.workspace-grid {
+  grid-template-columns: 232px minmax(560px, 1fr) 286px;
+  background: var(--lesson-bg);
+}
+
+.map-panel,
+.state-panel {
+  background: var(--lesson-surface);
+}
+
+.map-panel {
+  border-right: 1px solid var(--lesson-line);
+}
+
+.state-panel {
+  padding: 14px;
+  border-left: 1px solid var(--lesson-line);
+  background: #fafaf7;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Learning path / left rail                                                  */
+/* -------------------------------------------------------------------------- */
+
+.panel-header {
+  padding: 16px 14px 10px;
+}
+
+.panel-header strong {
+  font-size: 12px;
+}
+
+.section-kicker {
+  color: var(--lesson-muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.mission-card,
+.completion-card {
+  margin-left: 12px;
+  margin-right: 12px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 12px;
+  background: var(--lesson-surface-soft);
+  box-shadow: none;
+}
+
+.mission-card {
+  border-left: 4px solid var(--lesson-accent);
+}
+
+.mission-card span {
+  color: var(--lesson-accent);
+}
+
+.learning-map {
+  margin: 0;
+  border-color: var(--lesson-line);
+  background: #fcfcfa;
+}
+
+.learning-map__meta {
+  border-color: var(--lesson-line);
+  background: white;
+}
+
+.map-node {
+  width: 168px;
+  min-height: 50px;
+  border-color: var(--lesson-line-strong);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 3px 10px rgba(35, 35, 35, 0.045);
+}
+
+.map-node--frontier {
+  border: 2px solid var(--lesson-accent);
+  box-shadow: 0 0 0 4px rgba(102, 87, 200, 0.09);
+}
+
+.map-node__content span {
+  font-weight: 720;
+}
+
+.map-node__content small {
+  color: var(--lesson-accent);
+}
+
+.map-legend {
+  color: var(--lesson-muted);
+  font-size: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Main lesson canvas                                                         */
+/* -------------------------------------------------------------------------- */
+
+.learning-canvas-panel {
+  padding: 30px clamp(28px, 4vw, 56px) 56px;
+  background: var(--lesson-bg);
+}
+
+.learning-canvas-panel > * {
+  max-width: 780px;
+}
+
+.canvas-header,
+.session-brief,
+.teacher-move,
+.feedback-card,
+.representation-card,
+.composer-shell,
+.mission-start,
+.demo-preview-note {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.canvas-header {
+  display: block;
+  padding: 22px 24px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 18px;
+  background: var(--lesson-surface);
+  box-shadow: var(--lesson-shadow);
+}
+
+.canvas-header h1 {
+  max-width: 720px;
+  margin: 10px 0 8px;
+  color: var(--lesson-ink);
+  font-family: var(--font-ui);
+  font-size: clamp(25px, 2.35vw, 34px);
+  font-weight: 760;
+  line-height: 1.13;
+  letter-spacing: -0.035em;
+  text-wrap: pretty;
+}
+
+.canvas-header p {
+  max-width: 680px;
+  color: var(--lesson-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.eyebrow-row {
+  gap: 6px;
+}
+
+.mode-chip,
+.source-chip,
+.provider-chip,
+.state-pill,
+.strength {
+  border-radius: 999px;
+  font-size: 8px;
+}
+
+.mode-chip {
+  background: var(--lesson-accent-soft);
+  color: var(--lesson-accent);
+}
+
+.session-brief {
+  grid-template-columns: 104px minmax(0, 1fr);
+  margin-top: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid #cfe0ef;
+  border-radius: 13px;
+  background: var(--lesson-blue-soft);
+}
+
+.session-brief > span {
+  color: var(--lesson-blue);
+}
+
+.session-brief strong {
+  color: var(--lesson-ink);
+}
+
+.teacher-move {
+  margin-top: 18px;
+  margin-bottom: 16px;
+  padding: 22px 24px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 18px;
+  background: var(--lesson-surface);
+  box-shadow: var(--lesson-shadow);
+}
+
+.teacher-move__meta {
+  color: var(--lesson-muted);
+}
+
+.teacher-move h2 {
+  max-width: 720px;
+  margin: 12px 0 16px;
+  color: var(--lesson-ink);
+  font-family: var(--font-ui);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 720;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  text-wrap: pretty;
+}
+
+.learner-action {
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #eedaa3;
+  border-radius: 13px;
+  background: var(--lesson-yellow-soft);
+}
+
+.learner-action > span {
+  color: #8a6818;
+  font-size: 8px;
+  font-weight: 820;
+}
+
+.learner-action p {
+  color: var(--lesson-ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.feedback-card {
+  border: 1px solid #cfe0ef;
+  border-radius: 16px;
+  background: white;
+  box-shadow: none;
+}
+
+.representation-card {
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 18px;
+  background: white;
+  box-shadow: var(--lesson-shadow);
+}
+
+.representation-toolbar {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--lesson-line);
+}
+
+.representation-stage {
+  min-height: 180px;
+  padding: 22px;
+  background: white;
+}
+
+.segmented-control {
+  border: 1px solid var(--lesson-line);
+  border-radius: 999px;
+  background: #f2f2ee;
+}
+
+.segmented-control button {
+  border-radius: 999px;
+  font-size: 9px;
+}
+
+.segmented-control button.is-active {
+  background: var(--lesson-ink);
+  color: white;
+}
+
+.representation-footer {
+  border-top: 1px solid var(--lesson-line);
+  color: var(--lesson-faint);
+  background: #fbfbf8;
+}
+
+.composer-shell {
+  margin-top: 16px;
+  border: 1px solid var(--lesson-line-strong);
+  border-radius: 18px;
+  background: white;
+  box-shadow: var(--lesson-shadow);
+}
+
+.composer-prompt {
+  background: white;
+}
+
+.composer-prompt textarea {
+  min-height: 116px;
+  color: var(--lesson-ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.composer-status {
+  border-top: 1px solid var(--lesson-line);
+  background: #fbfbf8;
+}
+
+.composer-actions button,
+.composer-refresh {
+  border-radius: 10px;
+}
+
+.composer-actions button[type="submit"] {
+  min-width: 92px;
+  border-color: var(--lesson-ink);
+  background: var(--lesson-ink);
+  color: white;
+  font-weight: 760;
+}
+
+.composer-actions button[type="submit"]:hover:not(:disabled) {
+  background: #000;
+}
+
+/* Interactive learning objects should feel like manipulable lessons, not reports. */
+
+.artifact {
+  border: 0;
+  background: transparent;
+}
+
+.artifact-prediction {
+  border: 1px solid #dfd9f4;
+  border-radius: 15px;
+  background: var(--lesson-accent-soft);
+}
+
+.artifact-prediction__options button {
+  border: 1px solid var(--lesson-line-strong);
+  border-radius: 12px;
+  background: white;
+  font-weight: 700;
+}
+
+.artifact-prediction__options button.is-selected {
+  border-color: var(--lesson-accent);
+  background: white;
+  color: var(--lesson-accent);
+  box-shadow: 0 0 0 3px rgba(102, 87, 200, 0.1);
+}
+
+.artifact-control,
+.artifact-population,
+.artifact-result,
+.artifact-prompt,
+.artifact-locked {
+  border-radius: 14px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Learner state / right rail: inspectable, not visually dominant.            */
+/* -------------------------------------------------------------------------- */
+
+.state-section {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--lesson-line);
+}
+
+.state-section:first-child {
+  padding-top: 2px;
+}
+
+.state-section h2 {
+  margin: 7px 0 5px;
+  color: var(--lesson-ink);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.state-section p,
+.decision-trace p,
+.evidence-note p,
+.misconception-card p {
+  color: var(--lesson-muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.section-heading > span,
+.section-heading > small {
+  color: var(--lesson-muted);
+}
+
+.state-pill {
+  border: 1px solid rgba(102, 87, 200, 0.2);
+  background: var(--lesson-accent-soft);
+  color: var(--lesson-accent);
+}
+
+.decision-trace,
+.evidence-note,
+.state-decision,
+.misconception-card,
+.review-row {
+  border-color: var(--lesson-line);
+  border-radius: 11px;
+  background: white;
+  box-shadow: none;
+}
+
+.mini-ladder__dot {
+  border-color: var(--lesson-line-strong);
+}
+
+.mini-ladder__item.is-observed .mini-ladder__dot {
+  background: var(--lesson-accent);
+}
+
+.timeline {
+  min-height: 72px;
+  padding: 11px 20px;
+  border-top: 1px solid var(--lesson-line);
+  background: white;
+  color: var(--lesson-muted);
+}
+
+.timeline__title {
+  color: var(--lesson-ink);
+  font-weight: 760;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Responsive: preserve content access, remove dashboard feeling.              */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 1280px) {
+  .workspace-grid {
+    grid-template-columns: 214px minmax(520px, 1fr) 260px;
+  }
+
+  .learning-canvas-panel {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .workspace-grid {
+    grid-template-columns: 210px minmax(0, 1fr);
+    overflow: auto;
+  }
+
+  .state-panel {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--lesson-line);
+    border-left: 0;
+  }
+
+  .learning-canvas-panel {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .mode-nav {
+    order: 3;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    overflow-x: auto;
+  }
+
+  .workspace-grid {
+    display: block;
+    overflow: visible;
+  }
+
+  .map-panel,
+  .state-panel {
+    border: 0;
+    border-bottom: 1px solid var(--lesson-line);
+  }
+
+  .learning-canvas-panel {
+    padding: 18px 14px 36px;
+  }
+
+  .canvas-header,
+  .teacher-move {
+    padding: 18px;
+    border-radius: 15px;
+  }
+
+  .canvas-header h1 {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+
+  .teacher-move h2 {
+    font-size: clamp(21px, 6vw, 27px);
+  }
+
+  .learner-action {
+    grid-template-columns: 1fr;
+  }
+
+  .representation-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* v0.2 structural pass — sourced product patterns, not a three-rail default.  */
+/* -------------------------------------------------------------------------- */
+
+.workspace-shell {
+  grid-template-rows: 64px minmax(0, 1fr);
+}
+
+.workspace-shell.has-history {
+  grid-template-rows: 64px minmax(0, 1fr) auto;
+}
+
+.topbar {
+  grid-template-columns: minmax(200px, 1fr) auto minmax(360px, 1fr);
+}
+
+.topbar-tools {
+  gap: 8px;
+}
+
+.workspace-view-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--lesson-line);
+  border-radius: 10px;
+  background: #f5f5f1;
+}
+
+.workspace-view-tools button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--lesson-muted);
+  font-size: 9px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.workspace-view-tools button:hover {
+  color: var(--lesson-ink);
+  background: white;
+}
+
+.workspace-view-tools button.is-active {
+  color: var(--lesson-ink);
+  background: white;
+  box-shadow: 0 1px 3px rgba(35, 35, 35, 0.08);
+}
+
+.topbar-status__label {
+  display: none;
+}
+
+.workspace-grid,
+.workspace-grid.has-path,
+.workspace-grid.has-inspector,
+.workspace-grid.has-path.has-inspector {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace-grid.has-path {
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+
+.workspace-grid.has-inspector {
+  grid-template-columns: minmax(0, 1fr) 304px;
+}
+
+.workspace-grid.has-path.has-inspector {
+  grid-template-columns: 248px minmax(0, 1fr) 304px;
+}
+
+.learning-canvas-panel {
+  padding-top: 34px;
+}
+
+.canvas-header {
+  padding: 4px 2px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.canvas-header h1 {
+  margin: 9px 0 8px;
+  font-size: clamp(18px, 1.5vw, 22px);
+  font-weight: 760;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.canvas-frontier {
+  display: grid;
+  gap: 5px;
+  max-width: 720px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dfe4f2;
+  border-radius: 12px;
+  background: #f7f9ff;
+}
+
+.canvas-frontier > span {
+  color: var(--lesson-blue);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.canvas-frontier > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--lesson-ink);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.canvas-mode-copy {
+  margin-top: 8px !important;
+  color: var(--lesson-faint) !important;
+  font-size: 10px !important;
+}
+
+.teacher-move {
+  margin-top: 12px;
+  padding: 24px;
+}
+
+.teacher-move h2 {
+  font-size: clamp(23px, 2.15vw, 30px);
+  line-height: 1.22;
+}
+
+.learner-action {
+  margin-top: 4px;
+}
+
+.state-panel,
+.map-panel {
+  box-shadow: none;
+}
+
+.map-panel {
+  min-width: 0;
+}
+
+.state-panel {
+  min-width: 0;
+}
+
+.timeline {
+  min-height: auto;
+  max-height: 170px;
+  overflow: auto;
+}
+
+@media (max-width: 1200px) {
+  .topbar {
+    grid-template-columns: minmax(170px, 1fr) auto minmax(310px, 1fr);
+  }
+
+  .workspace-view-tools button {
+    padding: 0 7px;
+  }
+
+  .workspace-grid.has-path.has-inspector {
+    grid-template-columns: 220px minmax(0, 1fr) 270px;
+  }
+
+  .workspace-grid.has-path {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .workspace-grid.has-inspector {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+}
+
+@media (max-width: 980px) {
+  .topbar {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    min-height: auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .mode-nav {
+    order: 3;
+    grid-column: 1 / -1;
+  }
+
+  .workspace-view-tools {
+    display: none;
+  }
+
+  .workspace-grid,
+  .workspace-grid.has-path,
+  .workspace-grid.has-inspector,
+  .workspace-grid.has-path.has-inspector {
+    display: block;
+  }
+
+  .map-panel,
+  .state-panel {
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--lesson-line);
+  }
+}
+
+@media (max-width: 700px) {
+  .learning-canvas-panel {
+    padding: 22px 14px 34px;
+  }
+
+  .canvas-header {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .canvas-header h1 {
+    font-size: 19px;
+  }
+
+  .canvas-frontier {
+    padding: 11px 12px;
+  }
+
+  .canvas-frontier > p {
+    -webkit-line-clamp: 4;
+  }
+
+  .teacher-move {
+    padding: 18px;
+  }
+
+  .teacher-move h2 {
+    font-size: clamp(22px, 7vw, 28px);
+  }
+}
+
+
+/* Keep secondary workspace inspection reachable on compact/mobile screens. */
+@media (max-width: 980px) {
+  .topbar-tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .workspace-view-tools {
+    display: inline-flex;
+    order: 3;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .workspace-view-tools button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-view-tools {
+    grid-column: 1 / -1;
+  }
+
+  .workspace-view-tools button {
+    min-height: 28px;
+    font-size: 8px;
+  }
+}
