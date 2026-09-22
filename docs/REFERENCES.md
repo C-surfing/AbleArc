@@ -20,6 +20,26 @@ https://github.com/amosblomqvist/learn
 
 Useful ideas include one adaptive teaching interface over many sources, reducing logistical difficulty while preserving intellectual struggle, dependency-aware sequencing, and motivated discovery.
 
+### Nar101 / learn-anything
+
+https://github.com/Nar101/learn-anything
+
+Useful ideas include separating the kind of demonstrated performance from how independently and durably it was accessed, precommitting important assessment criteria before seeing the response, and keeping source-bounded, source-augmented, and researched learning modes distinct.
+
+AbleArc adapts these as lightweight decision policies rather than introducing a mastery database or assessment bureaucracy.
+
+### Study-Anything
+
+https://github.com/1khuang/Study-Anything
+
+Useful ideas include fine-grained triggers for worked examples, retrieval, mixed practice, error postmortems, confidence calibration, teach-back, and concept mapping. AbleArc mainly borrows the discipline of explicit **when to use / when not to use** boundaries and learner-active representations.
+
+### Education Agent Skills
+
+https://github.com/sehajsingh-glitch/Education-agent-skills
+
+The student-side micro-skills are useful references for retrieve-first practice, progressive hints, error diagnosis, teach-back, transfer, and fading support. AbleArc keeps these as move-selection patterns rather than installing a large skill suite by default.
+
 ### Feynman-style reconstruction
 
 AbleArc treats teach-back as model debugging: unexplained jumps, jargon hiding missing mechanism, contradiction, and inability to use the idea are more informative than polished paraphrase.
@@ -55,5 +75,17 @@ Source-first lecture material:
 - bilibili-render-pdf
 
 The same repository's tensor-formula-viz work is also a useful reference for semantic fidelity in technical representations.
+
+### skills-for-learning
+
+https://github.com/iannbing/skills-for-learning
+
+Useful as an optional programming learning-by-building companion: minimal project scaffolds, meaningful milestones, and progressively stronger guide hints while the learner keeps the consequential implementation work.
+
+### corpus-to-skill
+
+https://github.com/nicholasswhite/corpus-to-skill
+
+Useful when a large stable source corpus should become reusable knowledge context across sessions. AbleArc keeps that corpus-derived knowledge separate from learner state and still requires learner action for evidence.
 
 AbleArc does not vendor these companion projects. Their own licenses and repositories remain authoritative.
