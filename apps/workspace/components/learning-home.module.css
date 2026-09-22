@@ -165,10 +165,10 @@
   margin: 16px 0 24px;
   max-width: 760px;
   font-family: var(--font-display);
-  font-size: clamp(62px, 7.7vw, 108px);
+  font-size: clamp(62px, 6.4vw, 94px);
   font-weight: 720;
-  line-height: 0.88;
-  letter-spacing: -0.072em;
+  line-height: 0.9;
+  letter-spacing: -0.074em;
   text-wrap: balance;
 }
 
