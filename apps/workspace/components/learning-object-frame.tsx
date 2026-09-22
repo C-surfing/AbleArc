@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { LearningObjectDescriptor } from "@/lib/learning-objects";
+import type { LearningObjectDescriptor, LearningObjectKind } from "@/lib/learning-objects";
 
-const labels: Record<LearningObjectDescriptor["kind"], string> = {
+const labels: Record<LearningObjectKind, string> = {
   prompt: "Learning prompt",
   explanation: "Explanation",
   diagram: "Learning representation",
