@@ -116,7 +116,7 @@ The accepted reset is documented in:
 - docs/adr/0012-skill-first-reset.md
 - ROADMAP.md
 
-The old skills/teach and skills/study directories are temporarily retained as migration references. New behavior should target skills/ablearc.
+The retired Web/MCP/plugin product shell and legacy Teach/Study Skill entries have been removed from the current tree. Git history preserves them. New behavior targets skills/ablearc.
 
 ## What AbleArc is not
 
