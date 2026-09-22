@@ -32,7 +32,7 @@ Evidence remains a teaching principle, not a mandatory transaction chain for eve
 
 Persistence becomes optional and compact.
 
-Web, MCP, plugin, provider, runtime-ledger, and material-generation infrastructure are no longer canonical dependencies.
+Web, MCP, plugin, provider, runtime-ledger, schema/tool, and first-party material-generation infrastructure are no longer canonical dependencies.
 
 Specialized artifact generation should preferentially be delegated to optional companion skills rather than reimplemented inside AbleArc.
 
