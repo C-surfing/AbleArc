@@ -46,9 +46,24 @@ function EntryField() {
   );
 }
 
-function ProjectField({ title, frontier }: { title: string; frontier: string }) {
+type ProjectVisualVariant = "verdant" | "cobalt" | "ember" | "plum" | "graphite";
+
+function projectVisualVariant(seed: string): ProjectVisualVariant {
+  const variants: ProjectVisualVariant[] = ["verdant", "cobalt", "ember", "plum", "graphite"];
+  let hash = 0;
+  for (const char of seed) {
+    hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
+  }
+  return variants[hash % variants.length];
+}
+
+function ProjectField({ title, frontier, seed }: { title: string; frontier: string; seed: string }) {
   return (
-    <div className={styles.projectField} aria-hidden="true">
+    <div
+      className={styles.projectField}
+      data-visual-variant={projectVisualVariant(seed)}
+      aria-hidden="true"
+    >
       <span className={styles.fieldIndex}>ACTIVE ARC</span>
       <div className={styles.projectOrbit}>
         <span />
@@ -254,6 +269,7 @@ function Today({
             <ProjectField
               title={snapshot.projectTitle || "Current project"}
               frontier={snapshot.frontier}
+              seed={snapshot.projectId || snapshot.projectTitle || snapshot.mission}
             />
           </div>
 
