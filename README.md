@@ -52,6 +52,10 @@ The learner should experience a natural conversation, not a visible state machin
 - Expand the learner's horizon selectively, not as automatic topic sprawl.
 - Ground longer learning arcs in a real mission and teach near the learner's current edge.
 - Distinguish immediate fluency from durable retrieval.
+- Judge both what kind of performance was demonstrated and how much support/cueing it required.
+- Precommit consequential assessment criteria before seeing the response.
+- Escalate hints progressively instead of immediately taking over the key inference.
+- Keep source-bounded, source-augmented, and agent-researched learning contexts distinct.
 
 The canonical policy is in skills/ablearc/SKILL.md.
 
@@ -67,6 +71,8 @@ Instead it may compose with specialized skills when available:
 | [University Skill](https://github.com/walkinglabs/university-skill) | structured textbook/coursebook generation when a substantial reusable learning artifact is justified |
 | [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `youtube-render-pdf` | turn a YouTube lecture/tutorial into structured, figure-rich course notes and PDF |
 | [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `bilibili-render-pdf` | turn a Bilibili lecture/tutorial into structured Chinese course notes and PDF, with subtitle/Whisper fallback |
+| [skills-for-learning](https://github.com/iannbing/skills-for-learning) | programming learning-by-building with minimal scaffolds, milestones, and progressive guide hints |
+| [corpus-to-skill](https://github.com/nicholasswhite/corpus-to-skill) | turn a substantial stable source corpus into reusable knowledge context across learning sessions |
 | research/search tools | source verification, recent facts, paper/resource comparison |
 | code execution | only when running code resolves uncertainty or creates useful learning evidence |
 | document/PDF tools | packaging an artifact after the content itself is worth keeping |
