@@ -104,6 +104,48 @@ After rendering, AbleArc should treat the PDF as reference context. It can pick 
 
 The generated note is not mastery evidence.
 
+## Programming learning-by-building
+
+Source: https://github.com/iannbing/skills-for-learning
+
+Relevant pattern:
+
+- tutorial-style material gives theory, a minimal scaffold, and meaningful implementation milestones;
+- guide-style support uses progressively stronger hints instead of immediately providing the full solution.
+
+Use when the target capability is best learned by building, debugging, or extending a real software artifact.
+
+Good cases:
+
+- learn Rust ownership by completing a small program whose design forces ownership decisions;
+- learn Redis by building against a concrete persistence/caching requirement;
+- learn CUDA by implementing and iterating on a kernel rather than only reading explanations.
+
+AbleArc remains the learning orchestrator. The project/tutorial is the practice environment.
+
+Do not use a project merely because the topic is programming. A five-minute conceptual frontier may be better solved inline.
+
+## Large source corpus → reusable knowledge skill
+
+Source: https://github.com/nicholasswhite/corpus-to-skill
+
+Use when a substantial stable corpus—books, documentation, papers, course notes, or a curated combination—will be revisited enough that converting it into a reusable knowledge skill meaningfully reduces navigation and synthesis overhead.
+
+Useful outputs can preserve:
+
+- frameworks and mental models;
+- decision rules and trade-offs;
+- patterns and anti-patterns;
+- worked examples;
+- failure modes;
+- source disagreements.
+
+Prefer deeper study-oriented extraction when the learner needs mechanisms, examples, and failure modes rather than a compact lookup reference.
+
+Do not use this for one short document, ephemeral material, or as a replacement for learner action.
+
+The resulting skill is knowledge context. It does not become the learner model and its existence is not evidence of mastery.
+
 ## Research/search
 
 Use when:
