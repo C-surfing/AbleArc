@@ -495,10 +495,21 @@ export function LearningCanvas({
                    : t("EXTERNAL AGENT", "外部智能体")}
             </span>
           </div>
-          <h1>{snapshot.hasMission ? snapshot.frontier : t("What do you want to become able to do?", "你希望自己最终能够做到什么？")}</h1>
-          <p>{snapshot.hasMission
-            ? modeCopy
-            : t("Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive.", "从一个可以观察到的能力开始。学习地图和第一步应该从你的目标中长出来，而不是预先替你编好。")}</p>
+          {snapshot.hasMission ? (
+            <>
+              <h1>{snapshot.projectTitle || snapshot.activeArc || t("Current learning arc", "当前学习主线")}</h1>
+              <div className="canvas-frontier" title={snapshot.frontier}>
+                <span>{t("Current frontier", "当前学习边界")}</span>
+                <p>{snapshot.frontier}</p>
+              </div>
+              <p className="canvas-mode-copy">{modeCopy}</p>
+            </>
+          ) : (
+            <>
+              <h1>{t("What do you want to become able to do?", "你希望自己最终能够做到什么？")}</h1>
+              <p>{t("Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive.", "从一个可以观察到的能力开始。学习地图和第一步应该从你的目标中长出来，而不是预先替你编好。")}</p>
+            </>
+          )}
         </div>
       </header>
 
