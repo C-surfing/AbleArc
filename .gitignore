@@ -1,28 +1,12 @@
-# Learner-specific persistent state is local by default.
-# Remove this rule intentionally only if you understand the privacy implications.
+# Optional local learner state.
 .learning/
 
-# Raw longitudinal dogfooding evidence is also local by default.
-# Public contributions should use anonymized/minimized cases, not raw learner records.
+# Private real-session evaluation notes.
 .dogfooding/
 
-# Local server/provider secrets and operational settings. Keep separate from learner state.
-.ablearc-local/
-
-# Web workspace build/dependency output
-node_modules/
-.next/
-apps/workspace/.next/
-apps/workspace/node_modules/
-apps/workspace/next-env.d.ts
-apps/workspace/.env*.local
-# Local AI/dev assistants may generate these during workspace startup.
-apps/workspace/AGENTS.md
-apps/workspace/CLAUDE.md
-*.tsbuildinfo
+# Python/editor noise.
 __pycache__/
-
-# Common local/editor files
+*.pyc
 .DS_Store
 Thumbs.db
 .vscode/

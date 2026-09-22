@@ -1,5 +1,0 @@
-interface:
-  display_name: "Study"
-  short_description: "Retrieve, repair, apply, and transfer"
-policy:
-  allow_implicit_invocation: true
