@@ -155,11 +155,19 @@ Immediate fluency is not treated as long-term mastery. A concept can remain `dev
 
 The v0.2 evaluation phase makes this explicit: longitudinal arcs record capability before/after, selected cognitive moves, decisive learner evidence, learner-model and roadmap revisions, representation switches, later retrieval/transfer, and runtime failures. See [`evaluation/README.md`](evaluation/README.md) and [`evaluation/RUNBOOK.md`](evaluation/RUNBOOK.md).
 
-## Agent compatibility
+## Agent and ChatGPT plugin compatibility
 
-The primary skill lives at [`skills/teach/SKILL.md`](skills/teach/SKILL.md). A thin [`skills/study/SKILL.md`](skills/study/SKILL.md) entry activates the same protocol with a study-first posture.
+The canonical teaching policy remains in [`skills/teach/SKILL.md`](skills/teach/SKILL.md), with [`skills/study/SKILL.md`](skills/study/SKILL.md) for a study-first posture.
 
-For agents with native skill loading, copy or symlink the relevant skill directory into that agent's skill location. For agents without native skill loading, use [`prompts/bootstrap.md`](prompts/bootstrap.md) and point it at this repository.
+For ChatGPT, AbleArc now also has a **headless plugin MVP**:
+
+```text
+ChatGPT Teacher → plugin Skill → AbleArc MCP → Learning Kernel → Runtime
+```
+
+The plugin package lives at [`plugins/ablearc/`](plugins/ablearc/), the local Streamable HTTP MCP server at [`apps/mcp/`](apps/mcp/), and setup/dogfooding instructions at [`docs/CHATGPT-PLUGIN.md`](docs/CHATGPT-PLUGIN.md). The plugin has no custom UI and does not call a second Provider model; ChatGPT supplies the teaching judgment while Runtime remains authoritative for learner truth.
+
+For other agents with native skill loading, copy or symlink the relevant skill directory into that agent's skill location. For agents without native skill loading, use [`prompts/bootstrap.md`](prompts/bootstrap.md) and point it at this repository.
 
 See [`docs/USAGE.md`](docs/USAGE.md) for recommended workflows and commands.
 

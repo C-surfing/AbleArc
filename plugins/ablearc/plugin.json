@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ablearc",
+  "version": "0.1.0",
+  "description": "Persistent evidence-driven learning workflows backed by the AbleArc Learning Kernel.",
+  "repository": "https://github.com/C-surfing/AbleArc",
+  "license": "MIT",
+  "keywords": [
+    "learning",
+    "tutoring",
+    "education",
+    "study",
+    "retrieval",
+    "evidence"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "AbleArc",
+        "shortDescription": "Learn through persistent, evidence-grounded tutoring.",
+        "longDescription": "AbleArc helps ChatGPT teach from a persistent learner model, choose one useful cognitive move at a time, preserve evidence across sessions, and verify learning through retrieval, application, and transfer.",
+        "developerName": "AbleArc",
+        "category": "Education",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/C-surfing/AbleArc",
+        "defaultPrompt": [
+          "Continue what I was learning last time.",
+          "Teach me this topic, but make me do the important reasoning.",
+          "Test whether I still understand this without reviewing it first."
+        ],
+        "brandColor": "#276A50"
+      }
+    }
+  }
+}

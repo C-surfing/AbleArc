@@ -55,3 +55,21 @@ jobs:
           path: apps/workspace/test-results/visual-qa
           if-no-files-found: warn
           retention-days: 14
+
+  mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install MCP dependencies
+        run: npm install --no-audit --no-fund
+      - name: Test MCP contracts
+        run: npm test
+      - name: Typecheck MCP server
+        run: npm run typecheck
+
