@@ -163,7 +163,7 @@ export function FocusSession({
 
       <div className={`${styles.focusBody} ${supportVisible ? styles.hasSupport : ""}`}>
         <div className={styles.canvasColumn}>
-          <LearningCanvas snapshot={snapshot} mode={mode} locale={locale} />
+          <LearningCanvas snapshot={snapshot} mode={mode} locale={locale} variant="focus" />
         </div>
 
         <aside className={`${styles.supportRail} ${supportVisible ? styles.isOpen : ""}`} aria-label={t("Focus Session support", "专注学习辅助区")}>

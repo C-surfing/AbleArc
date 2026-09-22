@@ -259,12 +259,15 @@ export function LearningCanvas({
   snapshot,
   mode,
   locale = "en",
+  variant = "workspace",
 }: {
   snapshot: WorkspaceSnapshot;
   mode: Mode;
   locale?: LearnerUiLocale;
+  variant?: "workspace" | "focus";
 }) {
   const t = (english: string, chinese: string) => uiText(locale, english, chinese);
+  const showLessonContext = variant === "workspace" || !snapshot.hasMission;
   const router = useRouter();
   const [representation, setRepresentation] = useState<Representation>(snapshot.artifact ? "artifact" : "structure");
   const [response, setResponse] = useState("");
@@ -477,8 +480,8 @@ export function LearningCanvas({
   }
 
   return (
-    <main className="learning-canvas-panel">
-      {snapshot.sessionBrief ? (
+    <main className={`learning-canvas-panel learning-canvas-panel--${variant}`}>
+      {showLessonContext && snapshot.sessionBrief ? (
         <section className="session-brief" aria-label={t("Session brief", "本次学习摘要")}>
           <span>{locale === "zh" ? "本次学习" : snapshot.sessionBrief.label}</span>
           <div>
@@ -491,36 +494,38 @@ export function LearningCanvas({
           </div>
         </section>
       ) : null}
-      <header className="canvas-header">
-        <div>
-          <div className="eyebrow-row">
-            <span className="mode-chip">{modeLabel(locale, mode)}</span>
-            <span className="source-chip">{snapshot.source === "local" ? t("LOCAL STATE", "本地状态") : t("DEMO SNAPSHOT", "演示快照")}</span>
-            <span className={`provider-chip ${snapshot.agent.configured ? "is-ready" : ""}`}>
-              {snapshot.agent.configured
-                ? `${t("MODEL", "模型")} · ${snapshot.agent.model}`
-                : snapshot.agent.error
-                  ? t("MODEL CONFIG ERROR", "模型配置错误")
-                   : t("EXTERNAL AGENT", "外部智能体")}
-            </span>
+      {showLessonContext ? (
+        <header className="canvas-header">
+          <div>
+            <div className="eyebrow-row">
+              <span className="mode-chip">{modeLabel(locale, mode)}</span>
+              <span className="source-chip">{snapshot.source === "local" ? t("LOCAL STATE", "本地状态") : t("DEMO SNAPSHOT", "演示快照")}</span>
+              <span className={`provider-chip ${snapshot.agent.configured ? "is-ready" : ""}`}>
+                {snapshot.agent.configured
+                  ? `${t("MODEL", "模型")} · ${snapshot.agent.model}`
+                  : snapshot.agent.error
+                    ? t("MODEL CONFIG ERROR", "模型配置错误")
+                     : t("EXTERNAL AGENT", "外部智能体")}
+              </span>
+            </div>
+            {snapshot.hasMission ? (
+              <>
+                <h1>{snapshot.projectTitle || snapshot.activeArc || t("Current learning arc", "当前学习主线")}</h1>
+                <div className="canvas-frontier" title={snapshot.frontier}>
+                  <span>{t("Current frontier", "当前学习边界")}</span>
+                  <p>{snapshot.frontier}</p>
+                </div>
+                <p className="canvas-mode-copy">{modeCopy}</p>
+              </>
+            ) : (
+              <>
+                <h1>{t("What do you want to become able to do?", "你希望自己最终能够做到什么？")}</h1>
+                <p>{t("Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive.", "从一个可以观察到的能力开始。学习地图和第一步应该从你的目标中长出来，而不是预先替你编好。")}</p>
+              </>
+            )}
           </div>
-          {snapshot.hasMission ? (
-            <>
-              <h1>{snapshot.projectTitle || snapshot.activeArc || t("Current learning arc", "当前学习主线")}</h1>
-              <div className="canvas-frontier" title={snapshot.frontier}>
-                <span>{t("Current frontier", "当前学习边界")}</span>
-                <p>{snapshot.frontier}</p>
-              </div>
-              <p className="canvas-mode-copy">{modeCopy}</p>
-            </>
-          ) : (
-            <>
-              <h1>{t("What do you want to become able to do?", "你希望自己最终能够做到什么？")}</h1>
-              <p>{t("Start with an observable capability. The learning map and first move should be built from your goal, not invented before you arrive.", "从一个可以观察到的能力开始。学习地图和第一步应该从你的目标中长出来，而不是预先替你编好。")}</p>
-            </>
-          )}
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       {!snapshot.hasMission ? (
         <form className="mission-start" onSubmit={startMission}>

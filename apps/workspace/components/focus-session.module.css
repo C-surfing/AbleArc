@@ -619,3 +619,23 @@
     font-size: clamp(30px, 10vw, 46px);
   }
 }
+
+
+/* Focus variant begins with the current cognitive move; Workspace owns orientation chrome. */
+.canvasColumn :global(.learning-canvas-panel--focus) {
+  padding-top: clamp(22px, 3.5vh, 38px);
+}
+
+.canvasColumn :global(.learning-canvas-panel--focus .teacher-move) {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .canvasColumn :global(.learning-canvas-panel--focus) {
+    padding-top: 18px;
+  }
+
+  .canvasColumn :global(.learning-canvas-panel--focus .teacher-move h2) {
+    font-size: clamp(26px, 8.5vw, 36px);
+  }
+}
