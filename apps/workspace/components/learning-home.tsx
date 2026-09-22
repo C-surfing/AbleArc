@@ -158,9 +158,6 @@ function Today({
   const primaryHref = recommendation.primary.kind === "read-only" || !snapshot.decision
     ? "/workspace"
     : "/focus";
-  const evidenceLabel = snapshot.evidence.length === 1
-    ? "1 accepted evidence item"
-    : `${snapshot.evidence.length} accepted evidence items`;
   const learnerMap = useMemo(() => deriveLearnerMapSummary(snapshot.map), [snapshot.map]);
 
   async function saveContext() {
@@ -212,92 +209,101 @@ function Today({
       <main className={styles.todayMain}>
         <section className={styles.todayIntro}>
           <div>
-            <span className={styles.kicker}>Today · {snapshot.projectTitle || "Current Project"}</span>
-            <h1>Continue at the edge of what you understand.</h1>
+            <span className={styles.kicker}>Today</span>
+            <h1>{snapshot.projectTitle || "Continue learning"}</h1>
             <p>{snapshot.mission}</p>
           </div>
 
-          <aside className={contextStyles.dailyContext} aria-label="Daily learning context">
-            <div className={contextStyles.contextHeader}>
-              <div>
-                <span>Daily context</span>
-                <strong>Shape the session</strong>
+          <details className={contextStyles.dailyContextDisclosure}>
+            <summary>
+              <span>
+                <small>Session context</small>
+                <strong>Shape today’s session</strong>
+              </span>
+              <span>{context ? `Energy ${context.energy} · ${context.availableMinutes || "—"} min` : "Optional"}</span>
+            </summary>
+            <aside className={contextStyles.dailyContext} aria-label="Daily learning context">
+              <div className={contextStyles.contextHeader}>
+                <div>
+                  <span>Daily context</span>
+                  <strong>Only change how we approach this session</strong>
+                </div>
+                {context ? <small>rev {context.revision}</small> : <small>optional</small>}
               </div>
-              {context ? <small>rev {context.revision}</small> : <small>optional</small>}
-            </div>
 
-            <fieldset className={contextStyles.scaleField}>
-              <legend>Energy</legend>
-              <div className={contextStyles.scaleButtons}>
-                {([1, 2, 3, 4, 5] as ContextScale[]).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={energy === value}
-                    className={energy === value ? contextStyles.isSelected : ""}
-                    onClick={() => setEnergy(value)}
+              <fieldset className={contextStyles.scaleField}>
+                <legend>Energy</legend>
+                <div className={contextStyles.scaleButtons}>
+                  {([1, 2, 3, 4, 5] as ContextScale[]).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={energy === value}
+                      className={energy === value ? contextStyles.isSelected : ""}
+                      onClick={() => setEnergy(value)}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className={contextStyles.contextFields}>
+                <label>
+                  <span>Minutes <small>optional</small></span>
+                  <input
+                    inputMode="numeric"
+                    min={1}
+                    max={720}
+                    type="number"
+                    value={availableMinutes}
+                    onChange={(event) => setAvailableMinutes(event.target.value)}
+                    placeholder="30"
+                  />
+                </label>
+                <label>
+                  <span>Focus <small>optional</small></span>
+                  <select
+                    value={focus || ""}
+                    onChange={(event) => setFocus(
+                      event.target.value ? Number(event.target.value) as ContextScale : undefined,
+                    )}
                   >
-                    {value}
-                  </button>
-                ))}
+                    <option value="">—</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                </label>
               </div>
-            </fieldset>
 
-            <div className={contextStyles.contextFields}>
-              <label>
-                <span>Minutes <small>optional</small></span>
-                <input
-                  inputMode="numeric"
-                  min={1}
-                  max={720}
-                  type="number"
-                  value={availableMinutes}
-                  onChange={(event) => setAvailableMinutes(event.target.value)}
-                  placeholder="30"
+              <details className={contextStyles.contextNote}>
+                <summary>Optional note</summary>
+                <textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  maxLength={500}
+                  rows={2}
+                  placeholder="Anything that should shape this session, not your mastery."
                 />
-              </label>
-              <label>
-                <span>Focus <small>optional</small></span>
-                <select
-                  value={focus || ""}
-                  onChange={(event) => setFocus(
-                    event.target.value ? Number(event.target.value) as ContextScale : undefined,
-                  )}
-                >
-                  <option value="">—</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
-              </label>
-            </div>
+              </details>
 
-            <details className={contextStyles.contextNote}>
-              <summary>Optional note</summary>
-              <textarea
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                maxLength={500}
-                rows={2}
-                placeholder="Anything that should shape this session, not your mastery."
-              />
-            </details>
-
-            <button
-              className={contextStyles.contextSave}
-              type="button"
-              disabled={!energy || savingContext}
-              onClick={saveContext}
-            >
-              {savingContext ? "Saving…" : context ? "Update context" : "Use this context"}
-            </button>
-            <small className={contextStyles.contextBoundary}>
-              Context can alter recommendation strategy. It cannot change mastery.
-            </small>
-            {contextError ? <p className={styles.error} role="alert">{contextError}</p> : null}
-          </aside>
+              <button
+                className={contextStyles.contextSave}
+                type="button"
+                disabled={!energy || savingContext}
+                onClick={saveContext}
+              >
+                {savingContext ? "Saving…" : context ? "Update context" : "Use this context"}
+              </button>
+              <small className={contextStyles.contextBoundary}>
+                Context can alter recommendation strategy. It cannot change mastery.
+              </small>
+              {contextError ? <p className={styles.error} role="alert">{contextError}</p> : null}
+            </aside>
+          </details>
         </section>
 
         <section className={styles.primaryMove}>
@@ -332,54 +338,24 @@ function Today({
             <article>
               <span>Current frontier</span>
               <strong>{learnerMap.frontier.join(", ") || snapshot.frontier}</strong>
-              <p>{snapshot.frontierReason}</p>
             </article>
             <article>
-              <span>Already holding</span>
-              <strong>{learnerMap.stable.length || 0}</strong>
-              <p>{learnerMap.stable.slice(0, 4).join(" · ") || "No knowledge is marked stable yet."}</p>
+              <span>Learning state</span>
+              <strong>{learnerMap.stable.length || 0} stable · {learnerMap.developing.length || 0} forming</strong>
+              <p>{learnerMap.developing.slice(0, 3).join(" · ") || "The map will grow from accepted learning evidence."}</p>
             </article>
             <article>
-              <span>Still forming</span>
-              <strong>{learnerMap.developing.length || 0}</strong>
-              <p>{learnerMap.developing.slice(0, 4).join(" · ") || "No developing nodes are currently visible."}</p>
-            </article>
-            <article>
-              <span>{learnerMap.blockers.length ? "Prerequisite blocker" : "Plausible next direction"}</span>
+              <span>{learnerMap.blockers.length ? "Needs attention" : "Opens next"}</span>
               <strong>{learnerMap.blockers[0] || learnerMap.nextDirections[0] || "Keep working the frontier"}</strong>
-              <p>{learnerMap.blockers.length
-                ? "This prerequisite is not yet solid enough for the current frontier."
-                : learnerMap.nextDirections.length
-                  ? "This becomes more reachable as the current frontier strengthens."
-                  : "The map does not need to invent a next branch yet."}</p>
             </article>
           </div>
         </section>
 
         <ReviewSuggestions snapshot={snapshot} />
 
-        <section className={styles.contextGrid} aria-label="Current learning context">
-          <article>
-            <span className={styles.cardLabel}>Mission</span>
-            <strong>{snapshot.projectTitle || "Current Project"}</strong>
-            <p>{snapshot.mission}</p>
-          </article>
-          <article>
-            <span className={styles.cardLabel}>Frontier</span>
-            <strong>{snapshot.frontier}</strong>
-            <p>{snapshot.frontierReason}</p>
-            <footer>
-              <span className={styles.statePill}>{snapshot.frontierState}</span>
-              <span>{evidenceLabel}</span>
-            </footer>
-          </article>
-        </section>
-
         <footer className={styles.todayFooter}>
-          <span>
-            Recommendation authority: Evidence ✕ · mastery ✕ · Map ✕ · Completion ✕
-          </span>
-          <Link href="/workspace">Open full Workspace →</Link>
+          <span>Learning state and evidence stay available in the advanced workspace.</span>
+          <Link href="/workspace">Open Workspace →</Link>
         </footer>
       </main>
     </div>
