@@ -63,6 +63,14 @@ export function FocusSession({
     [locale, recommendation.moveType],
   );
   const scaffolds = useMemo(() => focusScaffolds(snapshot, locale), [snapshot, locale]);
+  const activeScaffold = scaffoldLevel > 0 ? scaffolds[Math.min(scaffoldLevel, scaffolds.length) - 1] : undefined;
+  const scaffoldTarget = activeScaffold?.level === 1
+    ? "prompt"
+    : activeScaffold?.level === 2
+      ? "attempt"
+      : activeScaffold?.level === 3
+        ? "representation"
+        : "none";
   const writable = isFocusSessionWritable(snapshot);
   const mode = focusSessionMode(snapshot);
 
@@ -92,11 +100,32 @@ export function FocusSession({
   }
 
   function revealScaffold() {
+    const nextIndex = Math.min(scaffoldLevel, Math.max(scaffolds.length - 1, 0));
+    const next = scaffolds[nextIndex];
+    if (!next) return;
+
     setScaffoldLevel((current) => Math.min(current + 1, scaffolds.length));
+
+    const selector = next.level === 1
+      ? '[data-learning-object="prompt"]'
+      : next.level === 2
+        ? '[data-learning-object="attempt"]'
+        : '[data-learning-object="interactive"], [data-learning-object="diagram"]';
+
+    window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(selector);
+      if (!target) return;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    });
   }
 
   return (
-    <div className={styles.focusPage}>
+    <div className={styles.focusPage} data-scaffold-target={scaffoldTarget}>
       <header className={styles.focusHeader}>
         <div className={styles.headerIdentity}>
           <Link href="/" aria-label={t("Back to Today", "返回今日")}>←</Link>
