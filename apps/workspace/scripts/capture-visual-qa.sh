@@ -45,6 +45,7 @@ surfaces=(
   today
   focus
   focus-support
+  focus-scaffold
   focus-zh
   focus-pending
   focus-error
@@ -55,6 +56,7 @@ surfaces=(
   settings
   close
   workspace
+  workspace-map
 )
 
 viewports=(

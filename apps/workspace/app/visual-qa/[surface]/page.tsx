@@ -28,6 +28,7 @@ const SURFACES = new Set([
   "today",
   "focus",
   "focus-support",
+  "focus-scaffold",
   "focus-zh",
   "focus-pending",
   "focus-error",
@@ -38,6 +39,7 @@ const SURFACES = new Set([
   "settings",
   "close",
   "workspace",
+  "workspace-map",
 ]);
 
 export default async function VisualQaSurface({
@@ -78,6 +80,17 @@ export default async function VisualQaSurface({
         snapshot={VISUAL_SNAPSHOT}
         dailyContext={VISUAL_DAILY_CONTEXT}
         initialSupportVisible
+      />
+    );
+  }
+
+  if (surface === "focus-scaffold") {
+    return (
+      <FocusSession
+        snapshot={VISUAL_SNAPSHOT}
+        dailyContext={VISUAL_DAILY_CONTEXT}
+        initialSupportVisible
+        initialScaffoldLevel={1}
       />
     );
   }
@@ -198,6 +211,10 @@ export default async function VisualQaSurface({
         currentRevision={2}
       />
     );
+  }
+
+  if (surface === "workspace-map") {
+    return <WorkspaceShell snapshot={VISUAL_SNAPSHOT} initialMode="Map" />;
   }
 
   return <WorkspaceShell snapshot={VISUAL_SNAPSHOT} />;

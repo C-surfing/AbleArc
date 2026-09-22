@@ -20,8 +20,14 @@ const modes: { mode: Mode; label: string; hint: string }[] = [
   { mode: "Review", label: "Review", hint: "Revisit high-value edges" },
 ];
 
-export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
-  const [mode, setMode] = useState<Mode>("Teach");
+export function WorkspaceShell({
+  snapshot,
+  initialMode = "Teach",
+}: {
+  snapshot: WorkspaceSnapshot;
+  initialMode?: Mode;
+}) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [pathOpen, setPathOpen] = useState(false);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);

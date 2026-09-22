@@ -25,16 +25,18 @@ export function FocusSession({
   snapshot,
   dailyContext,
   initialSupportVisible = false,
+  initialScaffoldLevel = 0,
 }: {
   snapshot: WorkspaceSnapshot;
   dailyContext?: DailyContext;
   initialSupportVisible?: boolean;
+  initialScaffoldLevel?: number;
 }) {
   const initialMinutes = useMemo(() => defaultTimerMinutes(dailyContext), [dailyContext]);
   const [remainingSeconds, setRemainingSeconds] = useState(initialMinutes * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerVisible, setTimerVisible] = useState(false);
-  const [scaffoldLevel, setScaffoldLevel] = useState(0);
+  const [scaffoldLevel, setScaffoldLevel] = useState(Math.max(0, initialScaffoldLevel));
   const [supportVisible, setSupportVisible] = useState(initialSupportVisible);
   const locale = useMemo(
     () => resolveLearnerUiLocale(snapshot.preferredLanguage, [
@@ -90,9 +92,9 @@ export function FocusSession({
   }, [timerRunning]);
 
   useEffect(() => {
-    setScaffoldLevel(0);
+    setScaffoldLevel(Math.max(0, initialScaffoldLevel));
     setSupportVisible(initialSupportVisible);
-  }, [snapshot.projectId, snapshot.decision?.id, initialSupportVisible]);
+  }, [snapshot.projectId, snapshot.decision?.id, initialSupportVisible, initialScaffoldLevel]);
 
   function resetTimer() {
     setTimerRunning(false);
