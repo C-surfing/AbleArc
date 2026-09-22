@@ -132,3 +132,16 @@ Avoid execution when the model can explain the concept directly and running code
 Package a durable artifact only after its content and learning purpose are clear.
 
 The existence of a polished document is never evidence that the learner can use the knowledge.
+
+
+## Overlapping teaching Skills
+
+Matt Pocock's `teach` Skill is a design influence, not a default runtime companion.
+
+Source: https://github.com/mattpocock/skills/tree/main/skills/productivity/teach
+
+Both `teach` and AbleArc make top-level teaching decisions. Running both as independent orchestrators can create conflicting mission/state/frontier policies.
+
+AbleArc therefore adapts the useful mechanisms—mission grounding, ZPD, durable retrieval, trusted resources, compact learning records—inside its own policy. See `longitudinal-teaching.md`.
+
+If a host explicitly chooses Matt's `teach` Skill instead of AbleArc, that is a valid alternate teaching workflow. Do not stack the two orchestrators by default.
