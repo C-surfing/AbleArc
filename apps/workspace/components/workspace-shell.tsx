@@ -13,25 +13,28 @@ import mapStyles from "./map-inspection.module.css";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 
-const modes: { mode: Mode; hint: string }[] = [
-  { mode: "Teach", hint: "grow the model" },
-  { mode: "Study", hint: "retrieve and repair" },
-  { mode: "Map", hint: "inspect dependencies" },
-  { mode: "Review", hint: "revisit high-value edges" },
+const modes: { mode: Mode; label: string; hint: string }[] = [
+  { mode: "Teach", label: "Learn", hint: "Grow understanding through one reachable move" },
+  { mode: "Study", label: "Practice", hint: "Retrieve, repair, and apply" },
+  { mode: "Map", label: "Map", hint: "Inspect the learning path" },
+  { mode: "Review", label: "Review", hint: "Revisit high-value edges" },
 ];
 
 export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
   const [mode, setMode] = useState<Mode>("Teach");
+  const [pathOpen, setPathOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const mapMode = mode === "Map";
 
   return (
-    <div className="workspace-shell">
+    <div className={`workspace-shell ${historyOpen ? "has-history" : ""}`}>
       <header className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">AA</div>
           <div>
             <strong>AbleArc</strong>
-            <span>Learning Workspace</span>
+            <span>{snapshot.projectTitle || "Learning workspace"}</span>
           </div>
         </div>
 
@@ -44,16 +47,44 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
               onClick={() => setMode(item.mode)}
               title={item.hint}
             >
-              {item.mode}
+              {item.label}
             </button>
           ))}
         </nav>
 
         <div className="topbar-tools">
+          {!mapMode ? (
+            <div className="workspace-view-tools" aria-label="Workspace panels">
+              <button
+                type="button"
+                className={pathOpen ? "is-active" : ""}
+                aria-pressed={pathOpen}
+                onClick={() => setPathOpen((current) => !current)}
+              >
+                Path
+              </button>
+              <button
+                type="button"
+                className={inspectorOpen ? "is-active" : ""}
+                aria-pressed={inspectorOpen}
+                onClick={() => setInspectorOpen((current) => !current)}
+              >
+                Inspect
+              </button>
+              <button
+                type="button"
+                className={historyOpen ? "is-active" : ""}
+                aria-pressed={historyOpen}
+                onClick={() => setHistoryOpen((current) => !current)}
+              >
+                History
+              </button>
+            </div>
+          ) : null}
           <ProjectSwitcher projects={snapshot.projects} />
-          <div className="topbar-status">
+          <div className="topbar-status" title={snapshot.source === "local" ? "Local learner state" : "Demo snapshot"}>
             <span className={`status-light ${snapshot.source === "local" ? "is-local" : "is-demo"}`} />
-            <span>{snapshot.source === "local" ? "local" : "demo"}</span>
+            <span className="topbar-status__label">{snapshot.source === "local" ? "local" : "demo"}</span>
           </div>
         </div>
       </header>
@@ -62,7 +93,7 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
         <main className={mapStyles.mapModePanel}>
           <header className={mapStyles.mapModeHeader}>
             <div>
-              <span className="section-kicker">Map mode</span>
+              <span className="section-kicker">Learning path</span>
               <h1>{snapshot.activeArc || "Current learning route"}</h1>
               <p>{snapshot.mission}</p>
             </div>
@@ -92,49 +123,52 @@ export function WorkspaceShell({ snapshot }: { snapshot: WorkspaceSnapshot }) {
           </div>
         </main>
       ) : (
-        <div className="workspace-grid">
-          <aside className="map-panel">
-            <div className="panel-header">
-              <div>
-                <span className="section-kicker">Learning map</span>
-                <strong>{snapshot.activeArc || "Current route"}</strong>
+        <div className={`workspace-grid ${pathOpen ? "has-path" : ""} ${inspectorOpen ? "has-inspector" : ""}`}>
+          {pathOpen ? (
+            <aside className="map-panel">
+              <div className="panel-header">
+                <div>
+                  <span className="section-kicker">Learning path</span>
+                  <strong>{snapshot.activeArc || "Current route"}</strong>
+                </div>
+                <button
+                  className="icon-button"
+                  type="button"
+                  title="Open full learning map"
+                  aria-label="Open full learning map"
+                  onClick={() => setMode("Map")}
+                >
+                  ↗
+                </button>
               </div>
-              <button
-                className="icon-button"
-                type="button"
-                title="Open full-screen map inspection"
-                aria-label="Open full-screen map inspection"
-                onClick={() => setMode("Map")}
-              >
-                ↗
-              </button>
-            </div>
-            <div className="mission-card">
-              <span>Mission</span>
-              <p>{snapshot.mission}</p>
-            </div>
-            {snapshot.projectId ? (
-              <CompletionGate
-                projectId={snapshot.projectId}
-                projectStatus={snapshot.projectStatus}
-              />
-            ) : null}
-            <LearningMap map={snapshot.map} />
-            <div className="map-legend" aria-label="Mastery legend">
-              <span>○ unknown</span>
-              <span>◔ exposed</span>
-              <span>◐ developing</span>
-              <span>● stable</span>
-              <span>◆ transferable</span>
-            </div>
-          </aside>
+              <div className="mission-card">
+                <span>Mission</span>
+                <p>{snapshot.mission}</p>
+              </div>
+              {snapshot.projectId ? (
+                <CompletionGate
+                  projectId={snapshot.projectId}
+                  projectStatus={snapshot.projectStatus}
+                />
+              ) : null}
+              <LearningMap map={snapshot.map} />
+              <div className="map-legend" aria-label="Mastery legend">
+                <span>○ unknown</span>
+                <span>◔ exposed</span>
+                <span>◐ developing</span>
+                <span>● stable</span>
+                <span>◆ transferable</span>
+              </div>
+            </aside>
+          ) : null}
 
           <LearningCanvas snapshot={snapshot} mode={mode} />
-          <StatePanel snapshot={snapshot} />
+
+          {inspectorOpen ? <StatePanel snapshot={snapshot} /> : null}
         </div>
       )}
 
-      <SessionTimeline sessions={snapshot.sessions} projectId={snapshot.projectId} />
+      {historyOpen ? <SessionTimeline sessions={snapshot.sessions} projectId={snapshot.projectId} /> : null}
     </div>
   );
 }
