@@ -185,3 +185,39 @@ Expected:
 - continue learning with a smaller inline alternative;
 - optionally mention the richer capability only if useful;
 - never block the learner on installation.
+
+
+## 14. Mission grounding should stay lightweight
+
+Learner:
+
+    Teach me Rust.
+
+Expected:
+
+- if the intended capability materially changes the route, ask at most one compact question about what the learner wants to become able to do;
+- once a concrete capability is known, teach toward it rather than following a generic chapter sequence;
+- do not require a mission file or workspace setup before teaching.
+
+Failure:
+
+- a long intake questionnaire;
+- treating "learn Rust" as sufficient forever when the learner's real goal would change sequencing;
+- blocking the first useful teaching move on mission formalization.
+
+## 15. Immediate fluency is not durable access
+
+Context: the learner answers correctly immediately after seeing the explanation.
+
+Expected:
+
+- treat the answer as useful local evidence;
+- do not equate it with durable mastery;
+- when durability matters, revisit later with reduced cueing or a changed representation/context;
+- persist only a concise decision-grade note if it will improve future teaching.
+
+Failure:
+
+- declaring the concept mastered from immediate imitation;
+- forcing an immediate second quiz only to manufacture evidence;
+- writing a session log instead of a teaching-relevant learner note.
