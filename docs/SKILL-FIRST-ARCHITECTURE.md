@@ -102,6 +102,8 @@ AbleArc may decide that a mechanism diagram is the best next move; Archify handl
 
 AbleArc may decide that the learner needs a substantial reusable course artifact; University Skill handles producing the textbook or coursebook.
 
+When the learner's source is a specific YouTube or Bilibili lecture, AbleArc may instead delegate source-first note generation to `youtube-render-pdf` or `bilibili-render-pdf` from `wdkns/wdkns-skills`. These preserve and restructure the lecture into durable notes/PDF rather than synthesizing a topic-first textbook from scratch.
+
 The artifact returns to AbleArc's learning loop. Reading or generating it does not itself count as understanding.
 
 Companions are optional. The Skill must degrade gracefully when they are absent.
