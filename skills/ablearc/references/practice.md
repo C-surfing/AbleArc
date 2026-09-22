@@ -64,12 +64,45 @@ Length is not evidence strength.
 
 A worked example should make the method intelligible, then hand the important decision back to the learner. Avoid near-copy exercises that only change numbers.
 
-## Hints
+A useful transition is:
 
-Hints should reduce search space without performing the central inference.
+    model one decision
+    → leave the next consequential decision to the learner
+    → inspect the learner's reasoning
+    → fade support
 
-For programming, run code only when it tests a specific claim or learner prediction.
+## Progressive hint ladder
+
+Hints should reduce search space without performing the central inference too early.
+
+Escalate only as needed:
+
+    0. retry / give space
+    1. reframe the problem
+    2. constrain the search space
+    3. point to the relevant principle or representation
+    4. provide partial structure
+    5. demonstrate a local fragment
+    6. give the full explanation when that is now the best move
+
+Do not force every learner through every rung.
+
+The lowest level of support that restores useful reasoning is evidence. Treat hint dependence as local routing information, not a permanent mastery score.
+
+## Misconception-aware practice
+
+When a wrong response could arise from several nearby models, do not immediately reveal the correct answer.
+
+Prefer a contrast or discriminative question whose outcomes separate the likely generators.
+
+For multiple-choice or contrastive tasks, wrong options should represent plausible misconceptions when practical—not random distractors.
+
+## Programming practice
+
+For programming, prefer milestones that leave the key implementation or debugging decision to the learner.
+
+Run code only when it tests a specific claim, learner prediction, or runtime behavior. Do not generate the finished project as a substitute for the learner building it.
 
 ## Failure signals
 
-A practice sequence is weak when every task repeats the same procedure, the prompt names the method to use, hints remove the key decision, or difficulty comes from wording or bookkeeping rather than reasoning.
+A practice sequence is weak when every task repeats the same procedure, the prompt names the method to use, hints remove the key decision, distractors are meaningless, or difficulty comes from wording or bookkeeping rather than reasoning.
