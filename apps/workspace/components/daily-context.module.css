@@ -282,3 +282,38 @@
     max-width: none;
   }
 }
+
+
+.sessionShapeDisclosure {
+  max-width: 780px;
+  margin-top: 16px;
+  border: 1px solid rgba(135, 153, 92, 0.22);
+  border-radius: 11px;
+  background: rgba(238, 241, 227, 0.38);
+  overflow: hidden;
+}
+
+.sessionShapeDisclosure > summary {
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #697944;
+  font-size: 9px;
+  font-weight: 780;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sessionShapeDisclosure .sessionShape {
+  margin-top: 0;
+  max-width: none;
+  padding: 12px 14px;
+  border: 0;
+  border-top: 1px solid rgba(135, 153, 92, 0.16);
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sessionShapeDisclosure .sessionShape > span {
+  display: none;
+}
