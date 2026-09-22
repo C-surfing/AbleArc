@@ -12,13 +12,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate canonical AbleArc Skill
+      - name: Validate lightweight Skill package
         run: |
           python - <<'PY'
           from pathlib import Path
+
+          root = Path(".")
           skill = Path("skills/ablearc/SKILL.md")
           text = skill.read_text(encoding="utf-8")
-          required = [
+
+          required_markers = [
               "name: ablearc",
               "Never steal the learner's moment of discovery",
               "Archify",
@@ -26,32 +29,37 @@ jobs:
               "youtube-render-pdf",
               "bilibili-render-pdf",
           ]
-          missing = [item for item in required if item not in text]
-          assert not missing, f"missing canonical Skill markers: {missing}"
-          forbidden = ["tools/runtime.py", "DecisionProposal", "EvidenceReceipt", "apps/workspace", "apps/mcp"]
-          present = [item for item in forbidden if item in text]
-          assert not present, f"canonical Skill depends on retired infrastructure: {present}"
-          for path in [
+          missing = [x for x in required_markers if x not in text]
+          assert not missing, f"missing Skill markers: {missing}"
+
+          required_files = [
               "skills/ablearc/references/pedagogy.md",
+              "skills/ablearc/references/teaching-taste.md",
+              "skills/ablearc/references/practice.md",
               "skills/ablearc/references/evidence.md",
               "skills/ablearc/references/review.md",
               "skills/ablearc/references/learner-model.md",
+              "skills/ablearc/references/visual-teaching.md",
+              "skills/ablearc/references/paper-learning.md",
               "skills/ablearc/references/companion-skills.md",
+              "skills/ablearc/templates/learning-state.md",
               "tests/SKILL-BEHAVIOR.md",
-          ]:
+          ]
+          for path in required_files:
               assert Path(path).is_file(), path
-          PY
 
-  legacy-core:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run surviving deterministic regression tests
-        run: python -m unittest discover -s tests -p 'test_*.py'
-      - name: Verify surviving learning/runtime utilities
-        run: |
-          python tools/learning.py doctor
-          python tools/runtime.py --repo . verify
+          retired = ["apps", "plugins", "tools", "schemas", "templates"]
+          present = [p for p in retired if (root / p).exists()]
+          assert not present, f"retired infrastructure returned: {present}"
+
+          forbidden = [
+              "tools/runtime.py",
+              "DecisionProposal",
+              "EvidenceReceipt",
+              "apps/workspace",
+              "apps/mcp",
+              "Provider setup",
+          ]
+          bad = [x for x in forbidden if x in text]
+          assert not bad, f"canonical Skill depends on retired infrastructure: {bad}"
+          PY
