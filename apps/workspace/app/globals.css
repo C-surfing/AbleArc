@@ -1,38 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f7f4ec;
-  --surface: #fbf8f1;
-  --surface-strong: #fffef9;
-  --ink: #282532;
-  --ink-soft: #45414f;
-  --muted: #746f7d;
-  --faint: #a49daa;
-  --line: #ded8ce;
-  --line-soft: #ebe6dc;
+  --paper: #f2f4f1;
+  --surface: #f8faf7;
+  --surface-strong: #ffffff;
+  --ink: #111512;
+  --ink-soft: #303a34;
+  --muted: #69736d;
+  --faint: #969f99;
+  --line: #d9ded9;
+  --line-soft: #e9ede9;
 
-  /* AbleArc semantic learning palette: deliberately muted, never neon. */
-  --accent: #7463a8;
-  --accent-strong: #5e4d92;
-  --accent-soft: #efecf7;
-  --think: #b88b3e;
-  --think-soft: #f7edd9;
-  --attempt: #c97868;
-  --attempt-soft: #f8e8e4;
-  --evidence: #6e98b6;
-  --evidence-soft: #e8f0f5;
-  --growth: #87995c;
-  --growth-soft: #eef1e3;
+  /* AbleArc v0.3: one brand accent, separate evidence/state semantics. */
+  --accent: #276a50;
+  --accent-strong: #164735;
+  --accent-soft: #ddeee5;
+  --think: #b68124;
+  --think-soft: #f5ead4;
+  --attempt: #c86655;
+  --attempt-soft: #f6e3df;
+  --evidence: #4477b8;
+  --evidence-soft: #e4edf8;
+  --growth: #6b7d36;
+  --growth-soft: #e9eedb;
 
-  --unknown: #a7a0aa;
-  --exposed: #b88b3e;
-  --developing: #7463a8;
-  --stable: #5f8e79;
-  --transferable: #9276a7;
-  --warning: #b16655;
+  --unknown: #98a19b;
+  --exposed: #b68124;
+  --developing: #3f67c6;
+  --stable: #276a50;
+  --transferable: #82558d;
+  --warning: #b84f3b;
 
-  --shadow: 0 18px 52px rgba(54, 46, 62, 0.08);
-  --shadow-soft: 0 8px 28px rgba(54, 46, 62, 0.055);
+  --shadow: 0 28px 80px rgba(23, 43, 32, 0.11);
+  --shadow-soft: 0 12px 38px rgba(23, 43, 32, 0.07);
   --font-display: "Bricolage Grotesque", "Aptos Display", "Segoe UI Variable Display", ui-sans-serif, system-ui, sans-serif;
   --font-ui: "Instrument Sans", "Aptos", "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-code: "IBM Plex Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
@@ -66,7 +66,8 @@ button {
   display: grid;
   grid-template-rows: 66px minmax(0, 1fr) 84px;
   background:
-    radial-gradient(circle at 54% -10%, rgba(87, 85, 217, 0.07), transparent 34%),
+    radial-gradient(circle at 76% -14%, rgba(39, 106, 80, 0.10), transparent 30%),
+    radial-gradient(circle at 14% 88%, rgba(68, 119, 184, 0.05), transparent 24%),
     var(--paper);
 }
 

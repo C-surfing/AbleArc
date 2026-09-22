@@ -1,3 +1,5 @@
+> Superseded for learner-facing visual direction by [Taste Direction v0.3](TASTE-DIRECTION-V0.3.md). The earlier Playful Focus document remains useful as historical rationale, but new UI work should follow v0.3.
+
 # AbleArc Playful Focus v0.1
 
 Status: **canonical Web visual direction**

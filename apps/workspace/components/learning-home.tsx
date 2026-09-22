@@ -17,11 +17,46 @@ import styles from "./learning-home.module.css";
 function Brand() {
   return (
     <div className={styles.brand}>
-      <span className={styles.brandMark}>A·</span>
+      <span className={styles.brandMark}>A</span>
       <span>
         <strong>AbleArc</strong>
-        <small>Learning OS</small>
+        <small>learn deliberately</small>
       </span>
+    </div>
+  );
+}
+
+function EntryField() {
+  return (
+    <aside className={styles.entryField} aria-hidden="true">
+      <div className={styles.entryFieldOrbit}>
+        <span />
+        <span />
+        <span />
+      </div>
+      <span className={styles.fieldIndex}>A / 01</span>
+      <strong>Build an arc<br />through what<br />you do not know.</strong>
+      <div className={styles.fieldLegend}>
+        <span>observe</span>
+        <span>explain</span>
+        <span>apply</span>
+        <span>transfer</span>
+      </div>
+    </aside>
+  );
+}
+
+function ProjectField({ title, frontier }: { title: string; frontier: string }) {
+  return (
+    <div className={styles.projectField} aria-hidden="true">
+      <span className={styles.fieldIndex}>ACTIVE ARC</span>
+      <div className={styles.projectOrbit}>
+        <span />
+        <span />
+        <span />
+      </div>
+      <strong>{title}</strong>
+      <p>{frontier}</p>
     </div>
   );
 }
@@ -79,16 +114,20 @@ function Entry({ projects }: { projects: WorkspaceSnapshot["projects"] }) {
     <div className={styles.entryPage}>
       <header className={styles.entryHeader}>
         <Brand />
-        <div className={styles.entryHeaderLinks}><ProjectSwitcher projects={projects} /><Link className={styles.quietLink} href="/settings">Model Settings</Link><Link className={styles.quietLink} href="/workspace">Open Workspace</Link></div>
+        <div className={styles.entryHeaderLinks}>
+          <ProjectSwitcher projects={projects} />
+          <Link className={styles.quietLink} href="/settings">Settings</Link>
+          <Link className={styles.quietLink} href="/workspace">Inspect</Link>
+        </div>
       </header>
 
       <main className={styles.entryMain}>
         <section className={styles.entryPrompt}>
           <span className={styles.kicker}>Begin with curiosity</span>
-          <h1>What’s worth understanding?</h1>
+          <h1>What’s worth<br /><em>understanding?</em></h1>
           <p>
-            Start from a question, a mechanism, or something you want to become able to do.
-            AbleArc will keep the path focused and adapt from what you actually show.
+            Start with one question, mechanism, or capability. AbleArc turns it into a learning arc
+            and adapts from what you actually demonstrate.
           </p>
 
           <form className={styles.entryForm} onSubmit={begin}>
@@ -128,6 +167,7 @@ function Entry({ projects }: { projects: WorkspaceSnapshot["projects"] }) {
           </form>
         </section>
 
+        <EntryField />
       </main>
     </div>
   );
@@ -196,25 +236,51 @@ function Today({
           <span className={styles.activeNav}>Today</span>
           <Link href="/paper">Paper</Link>
           <Link href="/reflection">Reflection</Link>
-          <Link href="/profile">Profile</Link>
-          <Link href="/settings">Settings</Link>
-          <Link href="/workspace">Workspace</Link>
+          <Link href="/workspace">Inspect</Link>
         </nav>
         <div className={styles.headerTools}>
           <ProjectSwitcher projects={snapshot.projects} />
-          <span className={styles.sourceBadge}>{snapshot.source === "local" ? "local" : "demo"}</span>
+          <Link className={styles.quietLink} href="/profile">Profile</Link>
+          <Link className={styles.quietLink} href="/settings">Settings</Link>
         </div>
       </header>
 
       <main className={styles.todayMain}>
-        <section className={styles.todayIntro}>
-          <div>
-            <span className={styles.kicker}>Today</span>
+        <section className={styles.todayHero}>
+          <div className={styles.todayIdentity}>
+            <span className={styles.kicker}>Current project</span>
             <h1>{snapshot.projectTitle || "Continue learning"}</h1>
             <p>{snapshot.mission}</p>
+            <ProjectField
+              title={snapshot.projectTitle || "Current project"}
+              frontier={snapshot.frontier}
+            />
           </div>
 
-          <details className={contextStyles.dailyContextDisclosure}>
+          <section className={styles.primaryMove}>
+            <span className={styles.moveEyebrow}>{recommendation.primary.eyebrow}</span>
+            <h2>{recommendation.primary.action}</h2>
+            <p>{recommendation.primary.rationale}</p>
+            <details className={contextStyles.sessionShapeDisclosure}>
+              <summary>Session plan · {recommendation.moveType.replaceAll("-", " ")}</summary>
+              <div className={contextStyles.sessionShape}>
+                <p>{recommendation.sessionShape}</p>
+                {recommendation.contextRationale ? (
+                  <details>
+                    <summary>Why did context change this plan?</summary>
+                    <p>{recommendation.contextRationale}</p>
+                  </details>
+                ) : null}
+              </div>
+            </details>
+            <div className={styles.moveActions}>
+              <Link className={styles.primaryButton} href={primaryHref}>{recommendation.primary.cta}</Link>
+              <Link className={styles.secondaryButton} href="/workspace">Inspect the arc</Link>
+            </div>
+          </section>
+        </section>
+
+        <details className={`${contextStyles.dailyContextDisclosure} ${styles.contextDisclosure}`}>
             <summary>
               <span>
                 <small>Session context</small>
@@ -303,38 +369,15 @@ function Today({
               </small>
               {contextError ? <p className={styles.error} role="alert">{contextError}</p> : null}
             </aside>
-          </details>
-        </section>
-
-        <section className={styles.primaryMove}>
-          <span className={styles.moveEyebrow}>{recommendation.primary.eyebrow}</span>
-          <h2>{recommendation.primary.action}</h2>
-          <p>{recommendation.primary.rationale}</p>
-          <details className={contextStyles.sessionShapeDisclosure}>
-            <summary>Session plan · {recommendation.moveType.replaceAll("-", " ")}</summary>
-            <div className={contextStyles.sessionShape}>
-              <p>{recommendation.sessionShape}</p>
-              {recommendation.contextRationale ? (
-                <details>
-                  <summary>Why did context change this plan?</summary>
-                  <p>{recommendation.contextRationale}</p>
-                </details>
-              ) : null}
-            </div>
-          </details>
-          <div className={styles.moveActions}>
-            <Link className={styles.primaryButton} href={primaryHref}>{recommendation.primary.cta}</Link>
-            <Link className={styles.secondaryButton} href="/workspace">Inspect map and evidence</Link>
-          </div>
-        </section>
+        </details>
 
         <section className={styles.mapSummary} aria-label="Learning map summary">
           <header>
             <div>
-              <span className={styles.cardLabel}>Your learning map</span>
-              <h2>Where you are and what it opens next.</h2>
+              <span className={styles.cardLabel}>Your arc</span>
+              <h2>What is stable, what is forming, what opens next.</h2>
             </div>
-            <Link href="/workspace">Open full map →</Link>
+            <Link href="/workspace">Open map →</Link>
           </header>
           <div className={styles.mapSummaryGrid}>
             <article>
