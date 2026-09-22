@@ -68,10 +68,10 @@ These trade-offs are accepted because the primary product goal is effective ever
 
 1. Add the canonical skills/ablearc Skill.
 2. Rewrite README and roadmap around Skill-first use.
-3. Retain old Teach/Study/Runtime/Web code temporarily for migration reference.
-4. Dogfood the new Skill directly.
-5. Remove superseded product infrastructure in a dedicated cleanup phase.
-6. Keep only deterministic utilities that continue to solve demonstrated learning problems.
+3. Migrate useful pedagogy into Skill-local references.
+4. Remove superseded Web, MCP/plugin, Runtime, schema/tool, and product infrastructure from the current tree.
+5. Dogfood the new Skill directly.
+6. Reintroduce deterministic machinery only when repeated real use demonstrates that Skill policy, host capabilities, or companion Skills are insufficient.
 
 ## Supersedes
 
