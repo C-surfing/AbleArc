@@ -9,8 +9,10 @@ import {
   normalizeAssessmentFailureType,
   type AssessmentFailure,
 } from "@/lib/focus-session";
+import { deriveLearningObjects, learningObjectByKind } from "@/lib/learning-objects";
 import type { ArtifactInteraction, FrequencyTreeArtifact, WorkspaceSnapshot } from "@/lib/types";
 import { uiAssessmentFailure, uiMasteryState, uiText, type LearnerUiLocale } from "@/lib/ui-locale";
+import { LearningObjectFrame } from "./learning-object-frame";
 
 type Mode = "Teach" | "Study" | "Map" | "Review";
 type Representation = "artifact" | "structure" | "evidence" | "contrast" | "flow";
@@ -339,6 +341,13 @@ export function LearningCanvas({
       ? ["artifact", "structure", "evidence", "contrast", "flow"]
       : ["structure", "evidence", "contrast", "flow"]
   ), [snapshot.artifact]);
+  const learningObjects = useMemo(() => deriveLearningObjects(snapshot), [snapshot]);
+  const promptObject = learningObjectByKind(learningObjects, "prompt");
+  const attemptObject = learningObjectByKind(learningObjects, "attempt");
+  const feedbackObject = learningObjectByKind(learningObjects, "feedback");
+  const representationObject = learningObjects.find((object) => (
+    object.kind === "interactive" || object.kind === "diagram"
+  ));
   const modeCopy = useMemo(() => {
     if (mode === "Study") return t(
       "Retrieve first. Repair only what fails, then apply or transfer.",
@@ -558,35 +567,38 @@ export function LearningCanvas({
           </div>
         </form>
       ) : (
-      <section className="teacher-move" aria-labelledby="move-title">
-        <div className="teacher-move__meta">
-          <span>{t("Next step", "下一步")}</span>
-          <span className="thin-rule" />
-          <span>{t("one useful thing at a time", "一次只做一件真正有用的事")}</span>
-        </div>
-        <h2 id="move-title">{snapshot.nextMove}</h2>
-        <div className="learner-action">
-          <span>{t("Your move", "轮到你")}</span>
-          <p>{snapshot.expectedLearnerAction}</p>
-        </div>
-        {null}
-      </section>
+      <LearningObjectFrame object={promptObject}>
+        <section className="teacher-move" aria-labelledby="move-title">
+          <div className="teacher-move__meta">
+            <span>{t("Next step", "下一步")}</span>
+            <span className="thin-rule" />
+            <span>{t("one useful thing at a time", "一次只做一件真正有用的事")}</span>
+          </div>
+          <h2 id="move-title">{promptObject?.title || snapshot.nextMove}</h2>
+          <div className="learner-action">
+            <span>{t("Your move", "轮到你")}</span>
+            <p>{promptObject?.learnerAction || snapshot.expectedLearnerAction}</p>
+          </div>
+        </section>
+      </LearningObjectFrame>
       )}
 
-      {snapshot.latestExchange?.status === "assessed" ? (
-        <section className="feedback-card" aria-labelledby="feedback-title">
-          <div className="feedback-card__header">
-            <div>
-              <span className="section-kicker">{t("From your last response", "来自你上一次回答")}</span>
-              <strong id="feedback-title">{t("Feedback", "反馈")}</strong>
+      {feedbackObject ? (
+        <LearningObjectFrame object={feedbackObject}>
+          <section className="feedback-card" aria-labelledby="feedback-title">
+            <div className="feedback-card__header">
+              <div>
+                <span className="section-kicker">{t("From your last response", "来自你上一次回答")}</span>
+                <strong id="feedback-title">{t("Feedback", "反馈")}</strong>
+              </div>
             </div>
-          </div>
-          <p className="feedback-card__response">“{snapshot.latestExchange.response}”</p>
-          <p className="feedback-card__message">{snapshot.latestExchange.feedback}</p>
-          {snapshot.latestExchange.nextDecisionId === snapshot.decision?.id ? (
-            <div className="feedback-card__meta"><span>{t("Next step ready", "下一步已准备好")}</span></div>
-          ) : null}
-        </section>
+            <p className="feedback-card__response">“{feedbackObject.response}”</p>
+            <p className="feedback-card__message">{feedbackObject.feedback}</p>
+            {snapshot.latestExchange?.nextDecisionId === snapshot.decision?.id ? (
+              <div className="feedback-card__meta"><span>{t("Next step ready", "下一步已准备好")}</span></div>
+            ) : null}
+          </section>
+        </LearningObjectFrame>
       ) : null}
 
       {snapshot.latestExchange?.status === "assessed"
@@ -628,6 +640,7 @@ export function LearningCanvas({
         </div>
       ) : null}
 
+      <LearningObjectFrame object={representationObject}>
       <section className="representation-card">
         <div className="representation-toolbar">
           <div>
@@ -667,8 +680,10 @@ export function LearningCanvas({
           <span>{t("READ", "阅读")}</span><span>·</span><span>{t("PREDICT", "预测")}</span><span>·</span><span>{t("RECONSTRUCT", "重构")}</span><span>·</span><span>{t("TRANSLATE", "转译")}</span>
         </footer>
       </section>
+      </LearningObjectFrame>
 
       {snapshot.hasMission ? (
+      <LearningObjectFrame object={attemptObject}>
       <form className={`composer-shell ${submitted ? "is-submitted" : ""}`} onSubmit={submitLearnerResponse}>
         <label className="composer-prompt" htmlFor="learner-response">
           <span className="composer-mark">↳</span>
@@ -735,6 +750,7 @@ export function LearningCanvas({
           </div>
         </div>
       </form>
+      </LearningObjectFrame>
       ) : null}
     </main>
   );
