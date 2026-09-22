@@ -348,6 +348,7 @@ export function LearningCanvas({
   const promptObject = learningObjectByKind(learningObjects, "prompt");
   const attemptObject = learningObjectByKind(learningObjects, "attempt");
   const feedbackObject = learningObjectByKind(learningObjects, "feedback");
+  const evidenceUpdateObject = learningObjectByKind(learningObjects, "evidence_update");
   const representationObject = learningObjects.find((object) => (
     object.kind === "interactive" || object.kind === "diagram"
   ));
@@ -610,32 +611,36 @@ export function LearningCanvas({
       && snapshot.latestExchange.evidenceId
       && snapshot.latestStateDecision?.decision === "accepted"
       && snapshot.latestStateDecision.evidenceIds.includes(snapshot.latestExchange.evidenceId) ? (
-        <section className="feedback-card" aria-label={t("Learning state updated", "学习状态已更新")}>
-          <div className="feedback-card__header">
-            <div>
-              <span className="section-kicker">{t("Learning state updated", "学习状态已更新")}</span>
-              <strong>{snapshot.latestStateDecision.concept}</strong>
+        <LearningObjectFrame object={evidenceUpdateObject}>
+          <section className="feedback-card" aria-label={t("Learning state updated", "学习状态已更新")}>
+            <div className="feedback-card__header">
+              <div>
+                <span className="section-kicker">{t("Learning state updated", "学习状态已更新")}</span>
+                <strong>{snapshot.latestStateDecision.concept}</strong>
+              </div>
             </div>
-          </div>
-          <p className="feedback-card__message">
-            {uiMasteryState(locale, snapshot.latestStateDecision.before)} → {uiMasteryState(locale, snapshot.latestStateDecision.after)}{t(". This accepted update is grounded in the assessed response; first exposure is not treated as stable mastery.", "。这次更新基于刚才评估过的真实表现；首次接触不会被当作稳定掌握。")}
-          </p>
-        </section>
+            <p className="feedback-card__message">
+              {uiMasteryState(locale, snapshot.latestStateDecision.before)} → {uiMasteryState(locale, snapshot.latestStateDecision.after)}{t(". This accepted update is grounded in the assessed response; first exposure is not treated as stable mastery.", "。这次更新基于刚才评估过的真实表现；首次接触不会被当作稳定掌握。")}
+            </p>
+          </section>
+        </LearningObjectFrame>
       ) : snapshot.latestExchange?.status === "assessed" && snapshot.pendingStateProposalCount > 0 ? (
-        <section className="feedback-card" aria-label={t("Learning state update ready for review", "学习状态更新待审核")}>
-          <div className="feedback-card__header">
-            <div>
-              <span className="section-kicker">{t("Learning state review", "学习状态审核")}</span>
-              <strong>{t("An evidence-backed update is waiting for your review", "有一项基于证据的状态更新等待你确认")}</strong>
+        <LearningObjectFrame object={evidenceUpdateObject}>
+          <section className="feedback-card" aria-label={t("Learning state update ready for review", "学习状态更新待审核")}>
+            <div className="feedback-card__header">
+              <div>
+                <span className="section-kicker">{t("Learning state review", "学习状态审核")}</span>
+                <strong>{t("An evidence-backed update is waiting for your review", "有一项基于证据的状态更新等待你确认")}</strong>
+              </div>
             </div>
-          </div>
-          <p className="feedback-card__message">
-            {t("Your accepted learning state has not changed yet. Review the evidence-backed update before deciding whether it is justified.", "当前已接受的学习状态还没有改变。请先查看证据，再决定这项更新是否合理。")}
-          </p>
-          <div className="feedback-card__meta">
-            <Link href="/workspace">{t("Review learning state", "审核学习状态")}</Link>
-          </div>
-        </section>
+            <p className="feedback-card__message">
+              {t("Your accepted learning state has not changed yet. Review the evidence-backed update before deciding whether it is justified.", "当前已接受的学习状态还没有改变。请先查看证据，再决定这项更新是否合理。")}
+            </p>
+            <div className="feedback-card__meta">
+              <Link href="/workspace">{t("Review learning state", "审核学习状态")}</Link>
+            </div>
+          </section>
+        </LearningObjectFrame>
       ) : null}
 
       {!snapshot.hasMission ? (
