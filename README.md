@@ -94,7 +94,7 @@ No Web app, MCP server, provider setup, or runtime ledger is required for the ca
 
 ## Persistence
 
-Persistence is optional and deliberately small. When the host can preserve useful state, AbleArc may retain:
+Persistence is optional and deliberately small. When the host can preserve useful state—or when a lightweight file is useful—AbleArc may retain:
 
 - current learning goal;
 - a compact learner model;
@@ -104,11 +104,11 @@ Persistence is optional and deliberately small. When the host can preserve usefu
 - a short evidence summary;
 - review candidates.
 
-Do not persist a transcript merely because storage is available.
+Do not persist a transcript merely because storage is available. A compact optional template lives at `skills/ablearc/templates/learning-state.md`.
 
 ## Repository transition
 
-The repository contains substantial earlier work on a Learning Runtime, Web workspace, MCP/plugin hosts, typed materials, and deterministic authority receipts. That work remains useful implementation history, but it is no longer the canonical product direction.
+Git history contains substantial earlier work on a Learning Runtime, Web workspace, MCP/plugin hosts, typed materials, and deterministic authority receipts. Those experiments informed the current teaching policy, but they are no longer carried in the default repository architecture.
 
 The accepted reset is documented in:
 
