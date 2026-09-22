@@ -28,6 +28,9 @@ jobs:
               "university-textbook",
               "youtube-render-pdf",
               "bilibili-render-pdf",
+              "source-bounded",
+              "skills-for-learning",
+              "corpus-to-skill",
           ]
           missing = [x for x in required_markers if x not in text]
           assert not missing, f"missing Skill markers: {missing}"
