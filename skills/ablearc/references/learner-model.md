@@ -68,3 +68,20 @@ When resuming:
 3. check whether old evidence is still useful;
 4. prefer a small retrieval/reconstruction before replay when appropriate;
 5. continue from the real edge rather than giving a generic introduction.
+
+
+## Decision-grade records
+
+When persistence exists, preserve only facts that should alter future teaching.
+
+Strong candidates:
+
+- demonstrated understanding that raises the starting floor;
+- meaningful prior knowledge disclosed by the learner;
+- a corrected misconception with future consequences;
+- a changed learning mission;
+- decisive evidence that changes the current frontier.
+
+Do not save "covered topic X" as if coverage were learning.
+
+If an earlier record becomes wrong, revise or supersede it conceptually rather than treating historical state as permanent truth.

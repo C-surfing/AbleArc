@@ -1,6 +1,6 @@
 # AbleArc roadmap
 
-Status: **Skill-first reset active**  
+Status: **Skill-first dogfood active**  
 Decision date: **2026-09-22**
 
 ## Canonical direction
@@ -33,7 +33,7 @@ Generated artifacts support the learning move. They do not prove learning happen
 
 ## Phase S1 — canonical Skill reset
 
-Active in the Skill-first reset PR.
+**Complete.**
 
 - establish skills/ablearc as the canonical entry;
 - collapse the visible architecture to Goal / Model / Frontier / Move;
@@ -46,18 +46,17 @@ Exit criterion: AbleArc can be installed as a single Skill directory and used na
 
 ## Phase S2 — repository de-bloat
 
-**Active.** The first cleanup slice removes the retired Web Workspace, MCP/plugin host, legacy Teach/Study entry points, and product-only CI/docs. The deeper Runtime/schema/tool audit remains separate.
+**Complete.**
 
-Next:
+The retired Web Workspace, MCP/plugin host, legacy Teach/Study entries, deterministic Runtime/schema/tool stack, root state templates, and product-only docs/tests are no longer part of the current tree.
 
-- keep the retired apps/workspace, first-party Web/provider setup, and headless ChatGPT MCP/plugin out of the current tree;
-- move or remove runtime-only schemas/tools that no longer serve the lightweight Skill;
-- close product/UI issues and PRs superseded by the reset;
-- keep only utilities that still create clear learner-visible value.
+Useful pedagogy was migrated into `skills/ablearc/references/`. Optional persistence is represented by one small Skill-local template instead of a custom runtime.
 
-Do not preserve code solely because it took effort to build. Git history is the archive.
+Git history is the archive for retired implementations.
 
 ## Phase S3 — learning effectiveness dogfood
+
+**Active.**
 
 Test the Skill across real topics and sessions:
 

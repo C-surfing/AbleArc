@@ -1,140 +1,45 @@
-# Teaching Failure Taxonomy
+# AbleArc teaching failure taxonomy
 
-Classify a failure before changing the protocol. The purpose is to prevent symptom-level rule accumulation.
+Classify the failure before adding rules.
 
-## F1 — Learner-model representation
+## F1 — Learner-model error
 
-The runtime lacks a useful representation for what is happening in the learner.
+AbleArc misinterprets what the learner understands or what uncertainty matters.
 
-Examples:
+## F2 — Frontier error
 
-- a temporary misconception is stored as a durable preference;
-- the system cannot represent uncertainty about a learner belief;
-- different capability dimensions collapse into one mastery label;
-- evidence provenance is lost, so later decisions over-trust stale state.
+The learner model is adequate but AbleArc works on the wrong boundary: unnecessary prerequisite review, wrong gap, premature advance, or topic drift.
 
-Fix the state model before adding interaction rules.
+## F3 — Move-selection error
 
-## F2 — Frontier inference
+The frontier is right but the chosen move is weaker than an available alternative: explanation vs contrast, recall vs transfer, derivation before motivation, and so on.
 
-The state representation is sufficient, but the runtime locates the wrong learning boundary.
+## F4 — Interaction error
 
-Examples:
+The intended move is good but execution damages learning: excessive probing, vague Socratic questions, over-explaining, stealing discovery, praise/ceremony, or too many moves in one turn.
 
-- assumes a prerequisite is stable when it is not;
-- reteaches material the learner can already use;
-- mistakes vocabulary uncertainty for conceptual uncertainty;
-- advances after recognition when transfer is required.
+## F5 — Evidence interpretation error
 
-Look for better evidence selection or inference, not more content.
+AbleArc over-claims or under-claims understanding from the learner's action.
 
-## F3 — Teaching-decision selection
+## F6 — Sequencing/dependency error
 
-The frontier is understood, but the chosen cognitive move has lower learning value than an available alternative.
+The learning route assumes the wrong prerequisite/dependency structure or behaves like arbitrary chapter order.
 
-Examples:
+## F7 — Continuity/persistence error
 
-- explains when a contrast would expose the misconception;
-- drills procedures when the missing piece is a causal model;
-- asks for derivation before motivating why the construct is needed;
-- chooses recall when a transfer check is needed.
+A later session loses useful context, repeats solved diagnosis, or fails to revisit uncertainty when it becomes relevant.
 
-The repair belongs in decision logic.
+## F8 — Domain-strategy error
 
-## F4 — Interaction policy
+The generic loop is fine but the domain needs a different learner action: proof/derivation, executable debugging, paper claim-evidence reconstruction, causal-model discrimination, etc.
 
-The intended move is sound, but its conversational execution damages learning.
+## F9 — Source/representation/tool error
 
-Examples:
+The teaching decision is right but the needed source, execution, visual, or specialized artifact is missing or badly chosen.
 
-- excessive probing;
-- stealing the discovery step;
-- vague Socratic questions;
-- unnecessary praise or ceremony;
-- too many cognitive moves in one turn;
-- withholding information that would remove logistical rather than productive struggle.
+## F10 — No AbleArc failure
 
-Keep this separate from learner modeling.
+The learner may simply be doing productive hard work, or the evidence may be too weak to decide.
 
-## F5 — Verification / mastery inference
-
-The system performs an intervention but draws an unjustified conclusion from learner performance.
-
-Examples:
-
-- one correct answer becomes `stable`;
-- immediate imitation is mistaken for recall;
-- a near-copy application is labeled transfer;
-- a misconception is marked resolved because the learner repeats the correction.
-
-Prefer stronger or more independent evidence.
-
-## F6 — Roadmap / dependency model
-
-The problem lies in the assumed knowledge structure.
-
-Examples:
-
-- roadmap behaves like chapter order;
-- hidden prerequisite is discovered but not integrated;
-- already-strong nodes are kept on the mandatory path;
-- learner-specific detours never rejoin the mission.
-
-Revise the roadmap as a hypothesis, not as a curriculum.
-
-## F7 — Persistence / longitudinal continuity
-
-The runtime behaves well inside one session but loses the learning trajectory across sessions.
-
-Examples:
-
-- repeats diagnosis already established;
-- stale misconceptions survive after repair;
-- recent fluency overwrites older stronger evidence;
-- review candidates are never revisited when they become relevant.
-
-Repair update semantics before adding a scheduler.
-
-## F8 — Domain strategy
-
-The generic teaching loop is sound, but a domain needs a different form of learner action or evidence.
-
-Examples:
-
-- mathematics needs derivation or proof-state evidence;
-- programming needs executable debugging evidence;
-- paper reading needs claim/evidence reconstruction;
-- conceptual learning needs causal-model discrimination.
-
-Add the smallest domain strategy; do not create a separate tutor personality.
-
-## F9 — Source / tooling layer
-
-The teaching decision is right but external information, execution, visualization, or tooling is insufficient.
-
-Examples:
-
-- primary source is needed to interpret a paper claim;
-- code needs execution rather than verbal speculation;
-- a diagram would remove representational friction;
-- current facts need verification.
-
-Keep source acquisition separate from teaching interaction.
-
-## F10 — No protocol failure
-
-Not every uncomfortable moment requires a change. The learner may simply be doing productive work, the task may be genuinely difficult, or the evidence may be too weak to decide.
-
-When in doubt, collect another independent observation before modifying the runtime.
-
-## Promotion checklist
-
-Before changing `SKILL.md`, answer:
-
-- What exact failure class is this?
-- What observable evidence supports the diagnosis?
-- Has it repeated across independent sessions or does it expose a structural flaw?
-- Can the state model already represent the problem?
-- What is the smallest layer that can fix it?
-- Could the proposed rule overfit one topic, wording pattern, or learner?
-- What behavior test would fail before the change and pass after it?
+Before changing the Skill, ask whether the failure repeated, whether it is structural, and whether a smaller reference/tooling fix is enough.
