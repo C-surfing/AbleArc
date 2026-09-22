@@ -8,7 +8,11 @@ AbleArc combines adaptive teaching principles with a deliberately small product 
 
 https://github.com/mattpocock/skills/tree/main/skills/productivity/teach
 
-Useful ideas include stateful teaching, teaching near the learner's edge, source grounding, retrieval practice, and compressed reference artifacts.
+Useful ideas adapted into AbleArc include mission-grounded teaching, zone-of-proximal-development routing, the distinction between immediate fluency and durable storage strength, high-trust source curation, compact decision-grade learning records, retrieval practice, and compressed reference artifacts.
+
+AbleArc deliberately does **not** copy the original workspace/HTML-lesson architecture. Those ideas are translated into a lighter conversational Skill in `skills/ablearc/references/longitudinal-teaching.md`.
+
+Matt Pocock's repository is MIT-licensed; the source remains attributed here.
 
 ### Eero / learn
 
