@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@xyflow/react/dist/style.css";
 import "./globals.css";
 import "./brilliant-learning.css";
+import "./object-arc-v03.css";
 
 export const metadata: Metadata = {
   title: "AbleArc · Learning OS",

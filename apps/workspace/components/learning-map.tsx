@@ -115,7 +115,7 @@ export function LearningMap({
       target: edge.target,
       type: "smoothstep",
       label: edge.relation === "prerequisite" ? undefined : edge.relation,
-      className: `map-edge map-edge--${edge.confidence}`,
+      className: `map-edge map-edge--${edge.confidence} map-edge--relation-${edge.relation.replaceAll("_", "-")}`,
       labelStyle: { fill: "#747775", fontSize: 8, fontWeight: 700 },
     }));
     return { nodes: flowNodes, edges: flowEdges };
