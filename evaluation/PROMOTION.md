@@ -1,92 +1,52 @@
-# Protocol Promotion Record
+# Skill rule promotion record
 
-Use this before changing a general Teach/Study rule because of dogfooding evidence.
+Use this before adding a general rule to skills/ablearc/SKILL.md because of dogfooding evidence.
 
 ## Proposed change
 
-- Layer to change:
-- Proposed behavior change:
-- Scope: `general | domain strategy | representation/tooling | persistence | evaluation only`
-- Why the current behavior is insufficient:
+- Proposed behavior:
+- Scope: general / domain / representation-tooling / persistence / evaluation-only
+- Current failure:
 
-## Evidence
+## Observed evidence
 
-List only observed evidence.
+| Session/arc | Domain | Failure category | Observable consequence |
+|---|---|---|---|
+|  |  |  |  |
 
-| Arc / session | Domain | Failure label | Observable behavior | Consequence |
-|---|---|---|---|---|
-|  |  |  |  |  |
+## Generality
 
-## Generality test
-
-- Independent sessions showing the failure:
-- Independent arcs showing the failure:
+- Independent observations:
 - Domains represented:
-- Does the failure survive wording/topic changes?
-- Could this be a learner-specific event rather than a runtime defect?
-- Could this be solved by better state evidence instead of a new rule?
+- Does it survive wording/topic changes?
+- Could this be learner-specific?
+- Could a clearer existing instruction solve it?
+- Could an existing companion Skill solve it?
 
-## Smallest-fix test
+## Smallest fix
 
 Check the smallest sufficient layer:
 
-- [ ] learner-state representation;
-- [ ] frontier inference;
-- [ ] teaching-decision selection;
-- [ ] interaction execution;
-- [ ] verification / mastery inference;
-- [ ] roadmap / persistence;
-- [ ] domain strategy;
-- [ ] representation / source / tooling;
-- [ ] core Teach/Study protocol.
+- learner-model interpretation
+- frontier selection
+- cognitive-move selection
+- conversational execution
+- evidence interpretation
+- domain strategy
+- representation/tool choice
+- persistence
+- core Skill rule
 
-Explain why a lower layer is insufficient:
+## Regression scenario
 
-## Overfitting audit
-
-Reject or narrow the change if it depends on:
-
-- one exact topic;
-- one learner wording pattern;
-- one benchmark-style phrase;
-- one preferred visualization grammar;
-- one successful anecdote;
-- a hard-coded question sequence that has no decision-value explanation.
-
-## Behavioral regression case
-
-Before promotion, add or update an acceptance scenario that demonstrates:
-
-```text
-old behavior → identifiable failure
-new behavior → repaired decision
-```
-
-- Scenario file / ID:
-- What must remain unchanged elsewhere:
-
-## State compatibility
-
-- Does existing `.learning/` state remain interpretable?
-- Does the proposed change require a schema/template migration?
-- Could old evidence be over-trusted under the new rule?
+Update tests/SKILL-BEHAVIOR.md so the old behavior has an identifiable failure and the new behavior repairs it.
 
 ## Decision
 
-Choose one:
-
-- `promote_general_rule`;
-- `promote_domain_strategy`;
-- `fix_state_or_evaluation_first`;
-- `collect_more_evidence`;
-- `no_change`.
+- promote_general_rule
+- promote_domain_strategy
+- update_reference_only
+- collect_more_evidence
+- no_change
 
 Rationale:
-
-## Post-promotion check
-
-After the change lands:
-
-- rerun the distinguishing acceptance scenario;
-- inspect at least one unaffected scenario for regression;
-- continue collecting real arcs rather than declaring the problem solved from the patch alone.
