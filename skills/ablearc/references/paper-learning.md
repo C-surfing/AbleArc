@@ -18,7 +18,39 @@ Prefer:
 
 Do not blindly follow section order when dependency order is more useful.
 
-## Two useful modes
+## Source scope
+
+Choose the source relationship explicitly enough to avoid silent drift.
+
+### Source-bounded
+
+Use when the learner wants to understand a provided paper, slide deck, book chapter, or course on its own terms.
+
+Stay within the supplied source except for necessary clarification. If external facts are introduced, label them as external context.
+
+### Source-augmented
+
+Use when the supplied source is primary but outside explanation, comparison, or prerequisite material will materially improve understanding.
+
+Keep the source's claims distinct from added context.
+
+### Agent-researched
+
+Use when no supplied source is authoritative and the learner wants the topic investigated from trustworthy sources.
+
+Research is input to teaching, not learner evidence.
+
+## Provenance discipline
+
+Keep three things distinct:
+
+- **source claim** — what the material actually says or shows;
+- **tutor synthesis** — explanation, interpretation, comparison, or external context added by the tutor;
+- **learner application** — the learner's reconstruction, prediction, critique, derivation, or transfer.
+
+Do not blur tutor synthesis into the paper's claim.
+
+## Two sequencing modes
 
 ### Follow source
 
