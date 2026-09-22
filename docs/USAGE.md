@@ -89,4 +89,11 @@ Behavior acceptance scenarios are:
 
 Real-session validation is tracked through the Skill-first dogfood process described in evaluation/.
 
-The repository still contains some older deterministic learning utilities while they are audited. They are not installation requirements for the canonical Skill.
+The retired deterministic Runtime, schemas, and project-state utilities now live only in Git history. The current repository is intentionally Skill-first.
+
+
+## Teaching lineage
+
+AbleArc also adapts several mechanisms from Matt Pocock's `teach` Skill: mission grounding, teaching near the learner's zone of proximal development, distinguishing immediate fluency from durable access, high-trust source curation, and compact decision-grade learning records.
+
+AbleArc keeps these mechanisms inside its lighter Goal → Model → Frontier → Move loop rather than reproducing the original HTML lesson/workspace architecture.
