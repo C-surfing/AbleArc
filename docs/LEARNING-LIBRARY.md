@@ -157,6 +157,16 @@ indexing service. The Project library is capped and already has typed metadata;
 operational use should demonstrate a real retrieval failure before adding that
 complexity.
 
+## Generation pipeline
+
+Generation of new reusable material is specified separately in
+[`MATERIAL-GENERATION.md`](MATERIAL-GENERATION.md). The generation brief is a
+teaching/presentation projection only: it may use Mission, frontier, current
+Decision context, learner self-report, sources, and accepted Evidence references
+to shape a material, but generated material remains non-authoritative. Active
+lesson material stays bounded and optional; longer coursebook-style output belongs
+in the Library/export layer rather than the default Focus surface.
+
 ## Final Learning Pack remains deferred
 
 Final Learning Pack generation is intentionally deferred. A future pack should
