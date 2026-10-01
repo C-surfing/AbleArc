@@ -280,7 +280,7 @@ It decides when a specialized learning capability is worth invoking.
 Important retained capabilities include:
 
 - **Archify** — architecture, mechanism, data-flow, lifecycle, sequence, and bounded learning maps;
-- **University Skill** — substantial topic-first textbook/coursebook artifacts;
+- **University Skill** — `university-textbook` for focused topic-first material and `university-coursebook` for deeper systematic coverage;
 - **youtube-render-pdf / bilibili-render-pdf** — source-first durable notes from lecture videos;
 - **skills-for-learning** — programming learning-by-building with minimal scaffolds and progressive hints;
 - **corpus-to-skill** — reusable knowledge context from a substantial stable corpus;
