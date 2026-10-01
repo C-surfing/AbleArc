@@ -1,10 +1,10 @@
-# Longitudinal teaching
+# Longitudinal learning
 
-This reference adapts several durable-learning ideas from Matt Pocock's `teach` Skill into AbleArc's lighter Goal → Model → Frontier → Move architecture.
+This reference adapts durable-learning ideas from Matt Pocock's `teach` Skill into AbleArc's longitudinal learner-model and capability-trajectory layer.
 
 Source: https://github.com/mattpocock/skills/tree/main/skills/productivity/teach
 
-AbleArc does not reproduce the workspace/HTML-lesson product model. It keeps the learning mechanisms that remain useful in a conversational Skill.
+AbleArc does not reproduce the workspace/HTML-lesson product model. It keeps the learning mechanisms that remain useful inside normal AI-assisted work.
 
 ## Mission grounding
 
@@ -23,13 +23,13 @@ A useful mission is an observable capability, not "understand X" by itself.
 
 ## Zone of proximal development
 
-Teach near the learner's current edge:
+When learning intervention is actually warranted, operate near the learner's current edge:
 
 - below the edge → remove scaffolding, vary context, apply, or transfer;
 - at the edge → preserve productive difficulty;
 - above the edge → narrow the task, repair one prerequisite, or provide one more scaffold.
 
-The frontier is AbleArc's operational version of this idea.
+Do not activate this machinery for Delegate work that should simply be completed.
 
 ## Fluency vs durable access
 
@@ -75,7 +75,7 @@ Annotate mentally or explicitly what each source is good for. Search again only 
 
 ## Decision-grade learning records
 
-If persistence exists, save only non-obvious facts that should change future teaching.
+If persistence exists, save only non-obvious facts that should change future behavior.
 
 Good record:
 
@@ -88,17 +88,19 @@ Bad record:
 
 Useful things to preserve:
 
-- demonstrated understanding that raises the teaching floor;
+- demonstrated capability that raises the teaching floor;
 - important prior knowledge disclosed by the learner;
 - a corrected misconception likely to matter again;
-- a meaningful mission shift;
-- decisive evidence that changes what to teach next.
+- a meaningful mission or ownership shift;
+- decisive evidence that changes future intervention;
+- understanding debt worth revisiting;
+- a delayed retrieval or transfer candidate.
 
 Do not save coverage logs.
 
 ## Reference artifacts
 
-A concise reference can be valuable after understanding exists:
+A concise reference can be valuable:
 
 - glossary;
 - code pattern;
@@ -108,9 +110,9 @@ A concise reference can be valuable after understanding exists:
 - diagram;
 - compact concept note.
 
-The artifact should compress learning, not replace it.
+The artifact should compress knowledge or reduce future navigation cost, not replace learner capability.
 
-Use companion Skills when they produce the reference more effectively.
+Use Learning Capabilities when they produce the reference more effectively.
 
 ## Wisdom and real-world contact
 

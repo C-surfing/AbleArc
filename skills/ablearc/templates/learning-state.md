@@ -1,10 +1,18 @@
 # AbleArc learning state
 
-This file is optional. Use it only when lightweight file-based persistence improves continuity.
+Optional. Use only when explicit compact state improves continuity beyond the host's normal project/chat history.
 
-## Goal
+## Mission
 
-- Capability:
+- Observable capability:
+
+## Ownership / Core
+
+Keep 1–3 current targets.
+
+- 
+- 
+- 
 
 ## Current frontier
 
@@ -12,26 +20,31 @@ This file is optional. Use it only when lightweight file-based persistence impro
 
 ## Learner model
 
-- Useful prior knowledge:
-- Important uncertainty / misconception:
-- Durable teaching preferences or constraints:
+- Useful prior capability:
+- Important misconception / uncertainty:
+- Current capability level where it matters (L1–L5):
+- Durable constraints or preferences:
 
 ## Decisive evidence
 
-Keep only evidence that should change future teaching.
+Record only evidence that should change future routing.
 
--
+- YYYY-MM-DD — [guided / independent / transfer / delayed retrieval] — observation
 
-## Review candidates
+## Understanding debt
 
--
+- 
+
+## Review / transfer candidates
+
+- 
 
 ## Active source context
 
--
+- 
 
-## Next useful move
+## Next useful opportunity
 
--
+- 
 
-Do not turn this into a transcript, knowledge database, or mastery scorecard.
+Do not turn this into a transcript, task tracker, knowledge database, or mastery scorecard.

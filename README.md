@@ -1,133 +1,157 @@
 # AbleArc
 
-**AbleArc is a lightweight adaptive learning skill.**
+**AbleArc is a lightweight learning control layer for AI-assisted work.**
 
-It helps an AI decide **what is worth learning next, how to teach it, and when the learner should think instead of being told the answer**.
+It helps you use powerful AI without silently outsourcing the reasoning you want to keep.
 
-The objective is simple: capability_after - capability_before.
+> **Delegate execution. Preserve judgment. Build mental models. Accumulate capability.**
 
-AbleArc is no longer developed as a first-party Web learning product or a Learning OS. The canonical product surface is the conversation the learner is already using. AbleArc supplies the learning policy; specialized companion skills may supply diagrams, textbooks, research, code execution, or other artifacts when those materially improve learning.
+AbleArc does **not** compete with ChatGPT, Claude, or other conversation products. Those hosts already provide the fastest interaction surface, files, tools, search, and often project/session continuity.
 
-> Keep the map in view. Teach at the frontier. Make the learner perform the important cognitive move.
+AbleArc adds three things that a good one-off prompt does not reliably provide across time:
 
-## Core model
+1. **Longitudinal learner model** — what you can actually explain, apply, debug, transfer, and retrieve later.
+2. **Learning opportunity detection** — when AI should simply do the work, and when one short cognitive intervention is worth the interruption.
+3. **Capability evidence & trajectory** — whether your capability is actually growing across sessions and projects.
 
-AbleArc intentionally keeps only four first-class learning concepts:
+## Why this exists
 
-- **GOAL** — What capability is the learner trying to build?
-- **MODEL** — What does current interaction suggest the learner can and cannot do?
-- **FRONTIER** — What is the highest-value uncertainty or dependency to work on now?
-- **MOVE** — What is the next bounded cognitive action?
+A stronger foundation model makes ordinary tutoring prompts less differentiated.
 
-Default loop:
+That is intentional.
 
-    goal
-      ↓
-    understand learner
-      ↓
-    locate frontier
-      ↓
-    choose one move
-      ↓
-    teach / ask / show / generate / practice
-      ↓
-    observe learner
-      ↓
-    update model
-      ↓
-    continue, review, or stop
+AbleArc should not try to beat the model at explaining concepts. Its value should survive stronger models by focusing on a different problem:
 
-The learner should experience a natural conversation, not a visible state machine.
+    AI capability ↑
+          ↓
+    execution becomes cheaper
+          ↓
+    risk of outsourcing human judgment ↑
+          ↓
+    AbleArc protects the few cognitive moves worth retaining
 
-## Teaching principles
+A good prompt can improve **this turn**.
 
-- Answer genuine questions before trying to assess.
-- Diagnose before reteaching.
-- Test lightly, not constantly.
-- Never steal the learner's moment of discovery.
-- Use direct explanation when direct explanation is the best move.
-- Prefer retrieval before replay after a meaningful delay.
-- Treat self-report as routing context, not proof of mastery.
-- Use generated material as a learning aid, not as evidence that learning happened.
-- Expand the learner's horizon selectively, not as automatic topic sprawl.
-- Ground longer learning arcs in a real mission and teach near the learner's current edge.
-- Distinguish immediate fluency from durable retrieval.
-- Judge both what kind of performance was demonstrated and how much support/cueing it required.
-- Precommit consequential assessment criteria before seeing the response.
-- Escalate hints progressively instead of immediately taking over the key inference.
-- Keep source-bounded, source-augmented, and agent-researched learning contexts distinct.
+AbleArc is for improving the **capability trajectory**.
 
-The canonical policy is in skills/ablearc/SKILL.md.
+## Product boundary
 
-## Companion skills
+    ChatGPT / Claude / other host
+       conversation · files · tools · search · memory
+                         │
+                         ▼
+                 AbleArc control layer
+                 observe · decide · remember
+                         │
+               learning opportunity?
+                 ├─ no  → continue normally
+                 └─ yes → one useful intervention
+                         │
+                         ▼
+                 Learning Capabilities
+          material · representation · practice · evidence
 
-AbleArc does not try to become a diagram engine, textbook generator, research framework, code runner, and document system at the same time.
+The most common AbleArc action is **continue normally**.
 
-Instead it may compose with specialized skills when available:
+There is no requirement to create a dedicated Web app, MCP server, runtime ledger, database, or visible learning state machine.
 
-| Companion | Best use |
+## Work × Learn
+
+AbleArc uses a simple ownership model:
+
+- **Core** — worth mastering deeply: explain, modify, debug, eventually redesign.
+- **Review** — worth understanding well enough to judge.
+- **Delegate** — low-value mechanical execution that AI should simply handle.
+
+Usually only 1–3 items in a project phase should be Core.
+
+Useful learning interventions include prediction, debugging hypotheses, Feynman reconstruction, perturbation, transfer, and delayed retrieval—but only when they create meaningful capability.
+
+See skills/ablearc/SKILL.md.
+
+## Learning Capabilities
+
+AbleArc retains the strong learning-material and representation ecosystem already selected in this repository.
+
+| Capability | Best use |
 | --- | --- |
-| [Archify](https://github.com/tt-a1i/archify) | mechanisms, workflows, state/lifecycle diagrams, architecture and learning maps |
-| [University Skill](https://github.com/walkinglabs/university-skill) | structured textbook/coursebook generation when a substantial reusable learning artifact is justified |
-| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `youtube-render-pdf` | turn a YouTube lecture/tutorial into structured, figure-rich course notes and PDF |
-| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · `bilibili-render-pdf` | turn a Bilibili lecture/tutorial into structured Chinese course notes and PDF, with subtitle/Whisper fallback |
-| [skills-for-learning](https://github.com/iannbing/skills-for-learning) | programming learning-by-building with minimal scaffolds, milestones, and progressive guide hints |
-| [corpus-to-skill](https://github.com/nicholasswhite/corpus-to-skill) | turn a substantial stable source corpus into reusable knowledge context across learning sessions |
-| research/search tools | source verification, recent facts, paper/resource comparison |
-| code execution | only when running code resolves uncertainty or creates useful learning evidence |
-| document/PDF tools | packaging an artifact after the content itself is worth keeping |
+| [Archify](https://github.com/tt-a1i/archify) | architecture, mechanism, data flow, lifecycle, sequence, bounded learning maps |
+| [University Skill](https://github.com/walkinglabs/university-skill) | substantial topic-first textbook/coursebook material |
+| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · youtube-render-pdf | turn a YouTube lecture into durable structured notes/PDF |
+| [wdkns-skills](https://github.com/wdkns/wdkns-skills) · bilibili-render-pdf | Bilibili-oriented source-first lecture notes/PDF |
+| [skills-for-learning](https://github.com/iannbing/skills-for-learning) | programming learning-by-building with meaningful milestones and progressive hints |
+| [corpus-to-skill](https://github.com/nicholasswhite/corpus-to-skill) | reusable knowledge context from a substantial stable corpus |
+| research/search | source verification, current facts, paper/resource comparison |
+| code execution | experiments, runtime behavior, debugging, prediction tests |
+| document/PDF tools | package material after the learning purpose is clear |
 
-These are optional capabilities, not hard dependencies. If a companion is unavailable, AbleArc falls back to the smallest useful inline representation.
+Artifacts are references. They are not mastery evidence.
 
-See skills/ablearc/references/companion-skills.md.
+Detailed routing remains in skills/ablearc/references/companion-skills.md.
 
-## Install
+## ChatGPT Projects
 
-For skill-compatible agents, install or copy the canonical directory:
+The preferred ChatGPT workflow is **one project per meaningful learning/work arc**, not one giant global AbleArc project.
+
+Examples:
+
+    AbleArc · Grad-CAM
+    AbleArc · CUDA
+    AbleArc · Research
+    AbleArc · Embedded
+
+Each project can contain its own papers, slides, code, generated material, chats, and a compact learner-state file when useful.
+
+Copy:
+
+    adapters/chatgpt-project/PROJECT_INSTRUCTIONS.md
+
+into the project's instructions.
+
+This gives you AbleArc behavior without installing a separate learning UI.
+
+## Generic hosts
+
+For hosts without Agent Skill support, use:
+
+    adapters/generic/SYSTEM_PROMPT.md
+
+For Skill-compatible hosts, install:
 
     skills/ablearc/
 
-For example:
-
-    cp -R skills/ablearc ~/.agents/skills/ablearc
-
-Then ask naturally:
-
-    Use AbleArc to help me learn CUDA shared memory.
-    I want to understand this paper, but teach the prerequisites only when needed.
-    Review the MLP material I studied last week.
-    I think I understand attention; test the weak part rather than restarting from zero.
-
-No Web app, MCP server, provider setup, or runtime ledger is required for the canonical experience.
+The Skill remains the canonical detailed behavior specification.
 
 ## Persistence
 
-Persistence is optional and deliberately small. When the host can preserve useful state—or when a lightweight file is useful—AbleArc may retain:
+Host history answers:
 
-- current learning goal;
-- a compact learner model;
-- the current frontier;
-- durable teaching preferences;
-- important misconceptions or uncertainties;
-- a short evidence summary;
-- review candidates.
+> What happened?
 
-Do not persist a transcript merely because storage is available. A compact optional template lives at `skills/ablearc/templates/learning-state.md`.
+AbleArc learner state answers:
 
-## Repository transition
+> What do those events imply about my capability?
 
-Git history contains substantial earlier work on a Learning Runtime, Web workspace, MCP/plugin hosts, typed materials, and deterministic authority receipts. Those experiments informed the current teaching policy, but they are no longer carried in the default repository architecture.
+When explicit state helps, use:
 
-The accepted reset is documented in:
+    skills/ablearc/templates/learning-state.md
 
-- docs/SKILL-FIRST-ARCHITECTURE.md
-- docs/adr/0012-skill-first-reset.md
-- ROADMAP.md
+Keep it compact: mission, Core targets, frontier, decisive evidence, misconceptions, understanding debt, and review/transfer candidates.
 
-The retired Web/MCP/plugin product shell and legacy Teach/Study Skill entries have been removed from the current tree. Git history preserves them. New behavior targets skills/ablearc.
+Do not duplicate the transcript.
 
-## What AbleArc is not
+## Repository direction
 
-AbleArc is not a learning dashboard, second-brain database, course platform, transcript-memory system, deterministic tutoring state machine, generic agent framework, or textbook generator by itself.
+The previous Web / Learning OS / deterministic Runtime work remains useful historical exploration, but it is not the canonical product path.
 
-It is the **learning orchestrator** that chooses the next useful cognitive action and composes specialized capabilities only when they improve learning.
+The current direction is:
+
+- conversation-host native;
+- prompt-friendly;
+- Skill-compatible;
+- longitudinal rather than ceremony-heavy;
+- capability-focused rather than artifact-focused;
+- strong-model compatible;
+- specialized learning tools retained as optional capabilities.
+
+See docs/adr/0013-learning-control-layer.md and ROADMAP.md.

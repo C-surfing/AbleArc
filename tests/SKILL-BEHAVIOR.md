@@ -324,3 +324,118 @@ Failure:
 - copying the corpus into persistent learner state;
 - using corpus conversion for a single short document;
 - treating corpus ingestion as evidence of learning.
+
+
+## 22. Normal delivery is the default
+
+Learner:
+
+    推进，把依赖、配置和 boilerplate 都直接处理掉。
+
+Expected:
+
+- perform the mechanical work directly;
+- do not insert a quiz or prediction for each step;
+- preserve at most one later-review note if a genuinely important design invariant appears.
+
+Failure:
+
+- turning setup into a lesson;
+- forcing the learner to execute commands that AI can reliably handle;
+- asking repeated “what do you think?” questions during Delegate work.
+
+## 23. One high-value checkpoint beats micro-tutoring
+
+Context: a coherent explanation can answer the learner's question, but one architecture choice later in the task is genuinely important.
+
+Expected:
+
+- give the explanation completely;
+- continue normal work;
+- interrupt only at the architecture choice with one discriminative prediction/comparison.
+
+Failure:
+
+- splitting the explanation into multiple tiny exchanges;
+- treating every paragraph as a checkpoint.
+
+## 24. Core / Review / Delegate preserves cognitive budget
+
+Context: a project phase contains build setup, API glue, a scheduler design, UI formatting, and a performance bottleneck.
+
+Expected:
+
+- scheduler design and/or bottleneck reasoning may be Core;
+- API glue can be Review if relevant;
+- setup and formatting are Delegate;
+- keep the active Core set small.
+
+Failure:
+
+- requiring deep learning for every technology touched by the task;
+- delegating the explicitly owned Core design judgment without learner involvement.
+
+## 25. Cross-session evidence changes the next intervention
+
+Context:
+
+- earlier session: learner needed a strong hint to explain CUDA bank conflicts;
+- later session: a kernel slowdown presents a natural opportunity to revisit the same model.
+
+Expected:
+
+- use the earlier evidence as a reason for one prediction/debug checkpoint;
+- compare the new independent reasoning with the older scaffolded performance;
+- update the learner model from the new evidence.
+
+Failure:
+
+- replaying the entire old lesson;
+- ignoring the previous weakness;
+- claiming durable mastery without later evidence.
+
+## 26. Host history is not duplicated into learner state
+
+Context: a ChatGPT Project already contains many chats and source files.
+
+Expected:
+
+- use host history as contextual evidence;
+- write only compressed decision-relevant learner state when explicit persistence helps;
+- keep transcript and learner model conceptually separate.
+
+Failure:
+
+- copying full chats into LEARNING_STATE.md;
+- creating a second generic project database.
+
+## 27. Stronger model does not remove AbleArc's purpose
+
+Context: the host model already gives excellent explanations and examples.
+
+Expected:
+
+- let the host model teach directly;
+- use AbleArc for ownership, intervention timing, delayed retrieval, transfer, understanding debt, and longitudinal evidence;
+- avoid adding ceremony solely to make AbleArc visible.
+
+Failure:
+
+- replacing a strong direct answer with a worse scripted tutoring sequence;
+- treating explanation style as AbleArc's primary moat.
+
+## 28. ChatGPT Project adapter remains thin
+
+Context: the learner uses adapters/chatgpt-project/PROJECT_INSTRUCTIONS.md.
+
+Expected:
+
+- the project feels like ordinary ChatGPT usage;
+- no server, MCP runtime, database, or separate dashboard is required;
+- specialized Learning Capabilities remain optional;
+- project chats/files are usable context, while explicit learning state stays compact.
+
+Failure:
+
+- requiring a separate AbleArc session lifecycle;
+- blocking normal work until a learner-state file exists.

@@ -1,130 +1,187 @@
-# AbleArc Skill-first architecture
+# AbleArc learning-control-layer architecture
 
 Status: **canonical**  
-Date: 2026-09-22
+Date: 2026-10-01
 
 ## 1. Product boundary
 
-AbleArc is a learning policy packaged as an Agent Skill.
+AbleArc is not the primary conversation surface.
 
-It does not require a dedicated user interface, server, provider abstraction, database, MCP transport, or transaction ledger to be useful.
+Use a capable host—ChatGPT, Claude, or another AI workspace—for:
 
-The host conversation is the presentation surface. The model's teaching judgment is the primary control mechanism.
+- low-latency conversation;
+- files and source context;
+- search and tools;
+- code execution where available;
+- project/chat continuity;
+- host-native memory.
 
-    Learner conversation
-            │
-            ▼
-       AbleArc Skill
-            │
-            ├── direct teaching
-            ├── learner action
-            ├── lightweight review
-            └── optional companion skills/tools
+AbleArc sits above normal assistance as a small control layer:
 
-## 2. Minimal learning state
+    host conversation / project
+              │
+              ▼
+           observe
+              │
+     learning opportunity?
+       ├─ no → continue normally
+       └─ yes
+              │
+       smallest useful friction
+              │
+       learner evidence / update
+              │
+              ▼
+        capability trajectory
 
-Only four concepts are first-class.
+The product surface should feel like the host, not like a visible tutoring state machine.
 
-### Goal
+## 2. Core responsibilities
 
-The observable capability the learner wants to build.
+Only three responsibilities deserve first-class status.
 
-Examples:
+### Longitudinal learner model
 
-- explain why shared memory can outperform relying on cache alone;
-- derive gradient descent from a simple loss;
-- implement and reason about a linked list;
-- read a specific paper independently.
+Track what the learner can actually explain, apply, debug, transfer, and retrieve later.
 
-### Model
+Keep this compact and revisable.
 
-A compact, revisable interpretation of the learner's current understanding.
+### Learning opportunity detection
 
-It may include useful prior knowledge, uncertain knowledge, misconceptions, the learner's current explanatory model, evidence from learner actions, and durable preferences relevant to teaching.
+Decide whether the current task contains thinking worth preserving.
 
-It is not a psychometric profile and does not need numeric mastery percentages.
+The correct answer is often **no**.
 
-### Frontier
+AbleArc should freely delegate mechanical work and preserve only a small number of high-leverage cognitive decisions.
 
-The most valuable unresolved point to work on now.
+### Capability evidence and trajectory
 
-The frontier may be a missing prerequisite, misconception, relation between known concepts, weak retrieval target, application step, or transfer opportunity.
+Use learner performance to update future decisions.
 
-### Move
+Relevant evidence includes independence, changed-context transfer, delayed retrieval, debugging hypotheses, and decreasing scaffold dependence.
 
-One bounded cognitive action selected to advance the frontier.
+Artifact generation and task completion are not automatically learning.
 
-Typical moves include explain, retrieve, predict, derive, contrast, apply, repair, teach-back, visualize, worked-example, generate-reference, transfer, and pause.
+## 3. Work ownership
 
-## 3. Default control loop
+Use three coarse categories.
 
-    GOAL
-      ↓
-    MODEL
-      ↓
-    FRONTIER
-      ↓
-    MOVE
-      ↓
-    LEARNER RESPONSE / INTERACTION
-      ↓
-    MODEL UPDATE
-      ↓
-    NEXT FRONTIER OR STOP
+### Core
 
-This loop is conceptual. Do not expose phase labels unless they are useful to the learner.
+The learner should ultimately explain, modify, debug, and redesign a simplified version.
 
-## 4. Evidence without ceremony
+### Review
 
-Evidence remains important, but ordinary learning does not require an append-only transaction protocol.
+The learner should understand enough to judge quality and notice obvious problems.
 
-Use learner performance to distinguish roughly:
+### Delegate
 
-    recognition < recall < explanation < application < transfer
+AI can own the execution because the work is mechanical, easy to recover, or not worth long-term cognitive budget.
 
-A correct immediate answer may justify a local teaching decision without being promoted into a permanent mastery claim.
+Usually only 1–3 targets should be Core during one project phase.
 
-Persist evidence only when future routing benefits from remembering it.
+## 4. Control loop
+
+The prior Goal → Model → Frontier → Move concepts remain useful internally, but Move is reinterpreted.
+
+The dominant move is:
+
+    continue normally
+
+Only when an opportunity is high-value should AbleArc insert a bounded intervention such as prediction, debugging hypothesis, explanation, retrieval, perturbation, or transfer.
+
+This avoids the failure mode:
+
+    explain a little
+    → ask a question
+    → wait
+    → explain a little
+    → ask another question
+
+A coherent answer may be complete and long when that is the most efficient teaching move.
 
 ## 5. Persistence boundary
 
-AbleArc should work with zero persistence.
+AbleArc must still work with zero explicit persistence.
 
-If the host supports useful durable state, retain only compact teaching state: goal, frontier, durable learner preferences, important misconceptions or uncertainty, decisive evidence summary, and review candidates.
+When the host already provides project history or memory, use it.
 
-Do not maintain a full transcript or a complex workspace schema by default.
+An optional LEARNING_STATE.md exists only to compress decision-relevant capability state:
 
-## 6. Companion-skill boundary
+- mission;
+- 1–3 Core targets;
+- frontier;
+- decisive evidence;
+- durable misconceptions;
+- understanding debt;
+- delayed retrieval / transfer candidates;
+- active source context.
 
-AbleArc owns **selection**, not every implementation.
+A transcript records events. Learner state records their implications.
 
-AbleArc may decide that a mechanism diagram is the best next move; Archify handles producing the high-quality visual.
+Do not create a parallel transcript store.
 
-AbleArc may decide that the learner needs a substantial reusable course artifact; University Skill handles producing the textbook or coursebook.
+## 6. Learning Capabilities
 
-When the learner's source is a specific YouTube or Bilibili lecture, AbleArc may instead delegate source-first note generation to `youtube-render-pdf` or `bilibili-render-pdf` from `wdkns/wdkns-skills`. These preserve and restructure the lecture into durable notes/PDF rather than synthesizing a topic-first textbook from scratch.
+AbleArc owns **routing**, not all implementations.
 
-The artifact returns to AbleArc's learning loop. Reading or generating it does not itself count as understanding.
+Retained capabilities include:
 
-Companions are optional. The Skill must degrade gracefully when they are absent.
+- Archify for structural visual representations;
+- University Skill for substantial topic-first materials;
+- youtube-render-pdf / bilibili-render-pdf for source-first lecture artifacts;
+- skills-for-learning for learning-by-building;
+- corpus-to-skill for reusable knowledge context from large stable corpora;
+- research/search for verification and current information;
+- code execution for experiments, runtime behavior, and debugging;
+- document/PDF tooling for packaging material.
 
-## 7. Why the reset
+A capability should be invoked only when it is better than an inline answer.
 
-The previous architecture correctly protected learner truth, but accumulated product and protocol surfaces: Web workspace, provider configuration, MCP host, ChatGPT plugin package, runtime receipts, typed transaction chains, and material-generation provider flows.
+The resulting artifact returns to normal learning/workflow use. It is not mastery evidence.
 
-For research into inspectable learning state, those mechanisms can be useful. For everyday use, they introduced deployment, tooling, and interaction cost before the learner received value.
+## 7. Host adapters
 
-The reset preserves the strongest ideas: capability delta, frontier teaching, evidence over vibes, retrieval and transfer, learner-provided context, natural interaction, and anti-bloat boundaries.
+The detailed canonical policy remains:
 
-It removes the assumption that those ideas require a product shell.
+    skills/ablearc/SKILL.md
 
-## 8. Architecture test
+Host-native adapters make AbleArc easy to use where a full Agent Skill is unavailable or unnecessary.
 
-A new feature belongs in AbleArc only when at least one is true:
+ChatGPT Project:
 
-1. it materially improves selection of the next cognitive move;
-2. it preserves compact teaching-relevant learner state;
-3. it helps choose or coordinate a companion capability;
-4. it prevents a repeated learning failure that instructions alone cannot reliably prevent.
+    adapters/chatgpt-project/PROJECT_INSTRUCTIONS.md
 
-Otherwise it should remain outside the core Skill.
+Generic system prompt:
+
+    adapters/generic/SYSTEM_PROMPT.md
+
+These adapters are product interfaces, not competing implementations.
+
+## 8. Why this survives stronger models
+
+As foundation models improve, explanation quality, scaffolding, and ordinary tutoring increasingly become baseline model capabilities.
+
+AbleArc should not depend on having a longer tutoring prompt than the model.
+
+Its durable problem is longitudinal:
+
+- what reasoning should remain human-owned;
+- when should AI interrupt its own execution advantage;
+- what evidence shows capability growth;
+- when should an old model be retrieved or transferred;
+- where is understanding debt accumulating?
+
+This makes AbleArc complementary to stronger models rather than threatened by them.
+
+## 9. Architecture test
+
+A new feature belongs in AbleArc core only when it materially improves at least one of:
+
+1. longitudinal learner modeling;
+2. learning-opportunity detection;
+3. capability evidence / retrieval / transfer;
+4. routing to a specialized Learning Capability;
+5. preventing a repeated high-consequence learning failure.
+
+Otherwise prefer the host, a prompt adapter, or an external capability.
