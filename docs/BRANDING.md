@@ -1,37 +1,91 @@
-# AbleArc branding and compatibility
+# AbleArc branding and product vocabulary
 
-Status: **accepted public product name**  
-Decision date: 2026-09-17
+Status: **canonical**  
+Updated: **2026-10-01**
 
-The public product name is **AbleArc**.
+## Public name
 
-The name expresses the product's primary outcome: a learner moves along a longitudinal learning arc from "I cannot do this independently" to "I am able to do this independently." That is the same capability-delta objective used by the Learning Runtime and evaluation layer.
+The public project and Skill name is **AbleArc**.
 
-## Product naming
+The name refers to a learner's capability arc: moving from dependence on assistance toward independent explanation, modification, debugging, transfer, and redesign.
 
-Use these names in new learner-facing and technical documentation:
+## Canonical positioning
 
-- **AbleArc** — the overall project and public product brand;
-- **AbleArc Learning OS** — the first-party learner-facing Web/API product;
-- **AbleArc Learning Runtime** — the evidence-driven authority layer;
-- **AbleArc Learning Engine** — the embeddable Agent / Skill / CLI / API capability;
-- **AbleArc Workspace** — the current first-party Web implementation while it migrates toward Entry / Today / Focus Session.
+Use this description in current product and technical material:
 
-## Compatibility policy
+> **AbleArc is a lightweight learning control layer for AI-assisted work.**
 
-Branding must not force destructive migration of learner data or stable technical contracts.
+A shorter description is:
 
-Therefore:
+> **Preserve human judgment while working with AI.**
 
-- `.learning/` remains the persisted learner-state directory;
-- existing runtime and schema version identifiers remain unchanged unless a functional migration requires a new version;
-- legacy `AI4LEARNING_PROVIDER_*` environment variables remain accepted as compatibility aliases;
-- new configuration and documentation should prefer `ABLEARC_PROVIDER_*`;
-- historical ADR text may retain the old project name when it is describing the state of the system at the time of that decision;
-- internal package identifiers may be migrated separately when the benefit exceeds the compatibility cost.
+AbleArc is not a separate chat product. It is designed to live inside capable hosts such as ChatGPT Projects or Agent-Skill-compatible environments.
 
-## Repository slug
+## Canonical vocabulary
 
-The repository rename is complete: the canonical GitHub repository is `C-surfing/AbleArc`.
+Use these terms consistently:
 
-The historical `C-surfing/ai4learning` URL may continue to resolve through GitHub redirects, but new clone examples, links, documentation, and integrations should use the canonical AbleArc repository name. The administrative rename does not require renaming persisted `.learning/` data, schema identifiers, compatibility environment variables, or internal package identifiers.
+- **AbleArc** — the project and canonical Agent Skill.
+- **Learning Control Layer** — AbleArc's architectural role.
+- **Learning Capability** — an optional specialized tool or external Skill that AbleArc may route to.
+- **Learner model** — compact, revisable evidence about what the learner can actually do.
+- **Learning opportunity** — a moment where preserving human reasoning is worth interrupting normal AI execution.
+- **Core / Review / Delegate** — ownership levels for allocating human cognitive effort.
+- **Capability evidence** — observed explanation, prediction, debugging, application, transfer, or delayed retrieval that should change future learning decisions.
+
+## Retired product vocabulary
+
+Do not use these names as current product components:
+
+- AbleArc Learning OS
+- AbleArc Learning Runtime
+- AbleArc Learning Engine
+- AbleArc Workspace
+- first-party Web dashboard
+- first-party MCP runtime
+- provider/runtime layer
+- deterministic receipt or transaction ledger
+
+Historical ADRs may retain those names when documenting earlier architecture.
+
+## Tagline
+
+Preferred:
+
+> **Delegate execution. Preserve judgment. Build mental models. Accumulate capability.**
+
+Alternative short form:
+
+> **Finish the work. Keep the judgment.**
+
+## Repository identity
+
+Canonical repository:
+
+    C-surfing/AbleArc
+
+Canonical Skill:
+
+    skills/ablearc/
+
+Canonical host adapters:
+
+    adapters/chatgpt-project/
+    adapters/generic/
+
+Current architectural decision:
+
+    docs/adr/0013-learning-control-layer.md
+
+## Compatibility language
+
+Do not claim that a host is "supported" merely because it appears compatible with the Agent Skills format.
+
+Use explicit evidence levels:
+
+- **CI-validated** — repository structure or Skill format is checked automatically.
+- **adapter available** — a host-specific instruction adapter exists.
+- **dogfooded** — the workflow has been used in a real session.
+- **verified** — repeated real use has not exposed a known blocking incompatibility.
+
+See docs/COMPATIBILITY.md.

@@ -1,51 +1,80 @@
-# AbleArc Skill evaluation
+# AbleArc evaluation
 
-This directory exists to answer one question:
+This directory exists to answer a harder question than "did the assistant give a good answer?":
 
-> Does AbleArc make the learner more capable over time?
+> **Does AbleArc preserve or increase human capability without sacrificing useful task throughput?**
 
-The outcome is capability delta, not response length, generated notes, user praise, UI engagement, or the number of quizzes completed.
+The target is not response length, generated notes, user praise, UI engagement, or quiz count.
 
 ## What counts as useful evidence
 
-A rough progression is:
+A rough capability progression is:
 
     recognition < recall < explanation < application < transfer
 
-Use it qualitatively. Do not turn it into a universal numeric mastery score.
+Independence matters too:
 
-A generated diagram, textbook, or video-derived PDF is learning context. It becomes relevant evidence only when the learner can do something with the knowledge.
+    guided → independent → changed-context transfer → delayed retrieval
 
-## Longitudinal arcs
+Use these qualitatively. Do not convert them into a universal mastery percentage.
 
-Prefer real arcs over isolated demo conversations:
+Generated diagrams, textbooks, PDFs, code, and passing test suites are learning context. They become capability evidence only when the learner can reason with the underlying knowledge.
 
-    session 1: establish the frontier
-    session 2: retrieve and extend
-    session 3: change representation / assumption / context
-    session 4: transfer or delayed revisit when valuable
+## Two evaluation tracks
 
-Important questions:
+### 1. Real longitudinal dogfood
 
-- Did AbleArc identify the actual confusion?
-- Did it over-question or over-explain?
-- Did scaffolding recede?
-- Did later retrieval survive without replay?
-- Did the learner apply or transfer the idea?
-- Did a companion Skill solve a real learning bottleneck?
-- Did the generated artifact become useful learning material rather than an endpoint?
+Use real learning/work arcs to observe:
 
-## Artifacts in this directory
+- whether AbleArc correctly stays out of the way during Delegate work;
+- whether it catches high-value Core decisions;
+- whether interventions are sparse and discriminative;
+- whether scaffolding recedes;
+- whether later retrieval survives without replay;
+- whether debugging and design become more independent;
+- whether transfer survives changed assumptions or contexts.
 
-- SESSION.md — compact record of one meaningful real session.
-- ARC.md — cross-session learning arc.
-- RUNBOOK.md — how to dogfood the Skill without turning study into an evaluation form.
-- PROMOTION.md — evidence gate before adding general Skill rules.
-- FAILURE-TAXONOMY.md — classify repeated failures before changing the core.
-- DOMAINS.md — useful domain coverage.
-- REPRESENTATIONS.md — evaluate whether representation changes help learning.
-- REVIEW-SIGNALS.md — delayed retrieval/review observations.
-- PRIVACY.md — keep real learner evidence private and minimized.
-- arcs/ — reusable arc briefs.
+Use:
 
-Synthetic scenarios in tests/SKILL-BEHAVIOR.md are regression specifications, not real learner evidence.
+- SESSION.md — one meaningful session;
+- ARC.md — a cross-session capability arc;
+- RUNBOOK.md — dogfooding procedure;
+- FAILURE-TAXONOMY.md — classify repeated failures;
+- PROMOTION.md — evidence gate before promoting a new Skill rule;
+- PRIVACY.md — minimize private learner evidence.
+
+### 2. Controlled baseline comparison
+
+The benchmark skeleton in [benchmark/](benchmark/) compares:
+
+1. foundation model only;
+2. foundation model + Work × Learn prompt;
+3. foundation model + AbleArc and longitudinal context.
+
+The benchmark is intentionally a framework, not evidence by itself.
+
+It focuses on:
+
+- task success;
+- intervention precision;
+- unnecessary-interruption rate;
+- missed-learning-opportunity rate;
+- learner reasoning quality;
+- transfer and delayed retrieval;
+- scaffold dependence;
+- turn/token overhead.
+
+## Promotion rule
+
+Do not add a general Skill rule because one conversation felt awkward.
+
+Prefer:
+
+    observation
+    → failure classification
+    → competing hypotheses
+    → smallest policy change
+    → regression scenario
+    → real dogfood / benchmark evidence
+
+Synthetic scenarios in tests/SKILL-BEHAVIOR.md are regression specifications, not learner-outcome evidence.

@@ -10,8 +10,10 @@ Use powerful AI without outsourcing the thinking worth keeping.
 ![Architecture](https://img.shields.io/badge/architecture-skill--first-111827)
 ![Mode](https://img.shields.io/badge/default-continue%20normally-2563EB)
 ![Focus](https://img.shields.io/badge/focus-human%20capability-0F766E)
+![License](https://img.shields.io/badge/license-Apache--2.0-4B5563)
+![Agent Skills](https://img.shields.io/badge/Agent%20Skills-spec--validated-7C3AED)
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Learning capabilities](#learning-capabilities) · [Architecture](#architecture) · [Docs](#documentation)
+[Quick start](#quick-start) · [Examples](#examples) · [Evaluation](#evaluation) · [Compatibility](docs/COMPATIBILITY.md) · [Docs](#documentation)
 
 </div>
 
@@ -139,6 +141,16 @@ Canonical policy:
 Use the portable prompt adapter:
 
 [`adapters/generic/SYSTEM_PROMPT.md`](adapters/generic/SYSTEM_PROMPT.md)
+
+---
+
+## Examples
+
+Three small examples show the intended behavior without pretending that illustrative transcripts are evaluation evidence:
+
+- [Software debugging](examples/software-debugging.md) — delegate plumbing, preserve the diagnostic invariant.
+- [Longitudinal CUDA learning](examples/cuda-longitudinal.md) — use delayed retrieval inside a real performance bug.
+- [Paper → implementation](examples/paper-learning.md) — keep source fidelity while preserving implementation/debugging ownership.
 
 ---
 
@@ -351,6 +363,24 @@ No special command syntax is required.
 
 ---
 
+## Evaluation
+
+AbleArc should justify itself against its strongest alternative: **a strong foundation model + a good prompt**.
+
+The baseline benchmark compares:
+
+1. foundation model only;
+2. foundation model + the frozen [Work × Learn baseline](prompts/WORK-LEARN-BASELINE.md);
+3. foundation model + AbleArc and legitimate longitudinal context.
+
+It measures task utility, intervention precision, false-positive interruptions, missed learning opportunities, learner reasoning evidence, transfer, scaffold dependence, and overhead.
+
+See [evaluation/benchmark/](evaluation/benchmark/).
+
+The benchmark protocol is infrastructure for evidence—not evidence by itself.
+
+---
+
 ## Research direction
 
 AbleArc is increasingly less about “how to make an AI tutor explain better”.
@@ -397,10 +427,14 @@ AbleArc/
 │   ├── chatgpt-project/
 │   └── generic/
 │
+├── examples/
 ├── evaluation/
+│   └── benchmark/
 ├── tests/
 ├── docs/
-└── prompts/
+├── prompts/
+├── CONTRIBUTING.md
+└── LICENSE
 ```
 
 The repository intentionally avoids a first-party Web app, custom runtime, database, provider layer, or generic agent framework.
@@ -423,6 +457,10 @@ The repository intentionally avoids a first-party Web app, custom runtime, datab
 ## Documentation
 
 - [Using AbleArc](docs/USAGE.md)
+- [Compatibility](docs/COMPATIBILITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Examples](examples/)
+- [Baseline benchmark](evaluation/benchmark/)
 - [Architecture](docs/SKILL-FIRST-ARCHITECTURE.md)
 - [Current roadmap](ROADMAP.md)
 - [ADR 0013 — Learning control layer](docs/adr/0013-learning-control-layer.md)
@@ -430,6 +468,7 @@ The repository intentionally avoids a first-party Web app, custom runtime, datab
 - [Dogfooding runbook](evaluation/RUNBOOK.md)
 - [Learning capability routing](skills/ablearc/references/companion-skills.md)
 - [Learning opportunity detection](skills/ablearc/references/learning-opportunities.md)
+- [Apache-2.0 license](LICENSE)
 
 ---
 

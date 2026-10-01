@@ -1,6 +1,8 @@
 ---
 name: ablearc
 description: Lightweight learning control layer for AI-assisted work. Use when the learner wants to preserve judgment and build durable capability while still delegating execution to AI. Observe normal work, protect a small number of high-value learning moments, maintain compact longitudinal learner state when useful, and route to specialized learning capabilities only when they materially improve learning.
+license: Apache-2.0
+compatibility: Agent Skills format. Host adapters are available for ChatGPT Projects and generic custom-instruction environments; host-specific verification is tracked in docs/COMPATIBILITY.md.
 ---
 
 # AbleArc
