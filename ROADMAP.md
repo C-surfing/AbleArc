@@ -1,121 +1,157 @@
 # AbleArc roadmap
 
-Status: **Skill-first dogfood active**  
-Decision date: **2026-09-22**
+Status: **Learning-control-layer reset active**  
+Decision date: **2026-10-01**
 
 ## Canonical direction
 
-AbleArc is now a **lightweight adaptive learning Skill**, not a first-party Learning OS, Web product, or MCP-centered application.
+AbleArc is a **lightweight learning control layer for AI-assisted work**.
 
-The canonical entry point is skills/ablearc/SKILL.md.
+It does not need to own the conversation UI. ChatGPT, Claude, and other capable hosts should provide the interaction surface, files, tools, search, and whatever project/session memory they support.
 
-The objective remains capability_after - capability_before, but the implementation strategy changes from protocol-heavy runtime orchestration to **LLM-first teaching judgment with optional lightweight persistence and companion-skill composition**.
+AbleArc should focus on three hard problems:
+
+1. longitudinal learner modeling;
+2. high-value learning opportunity detection;
+3. capability evidence across retrieval, debugging, application, and transfer.
+
+The project should remain useful even as foundation models become much better teachers.
 
 ## Current architecture
 
-    Learner
-      │
-      ▼
-    AbleArc Skill
-      │
-      ├─ Goal
-      ├─ Learner Model
-      ├─ Frontier
-      └─ Next Move
-           │
-           ├─ explain / ask / practice / review
-           ├─ Archify when a visual model helps
-           ├─ University Skill when substantial material helps
-           ├─ research when facts/sources need verification
-           └─ execution when running something has learning value
+    host conversation / project
+              │
+              ▼
+        AbleArc control layer
+     observe · decide · remember
+              │
+       learning opportunity?
+        ├─ no → continue normally
+        └─ yes
+              │
+      smallest useful intervention
+              │
+      prediction / debug / retrieve
+      explain / transfer / perturb
+              │
+              ▼
+       capability evidence update
+              │
+              ▼
+      optional Learning Capabilities
 
-Generated artifacts support the learning move. They do not prove learning happened.
+## Phase C1 — control-layer reset
 
-## Phase S1 — canonical Skill reset
+**In progress in this change.**
 
-**Complete.**
+- redefine AbleArc away from a turn-by-turn tutor loop;
+- make “continue normally” the dominant action;
+- integrate Core / Review / Delegate;
+- add learning-opportunity detection;
+- elevate longitudinal learner state and capability trajectory;
+- add ChatGPT Project and generic host adapters;
+- keep explicit persistence compact;
+- retain existing high-quality learning-material capabilities.
 
-- establish skills/ablearc as the canonical entry;
-- collapse the visible architecture to Goal / Model / Frontier / Move;
-- preserve the strongest teaching policy from the previous Teach/Study skills;
-- remove runtime receipts, MCP calls, provider setup, Web assumptions, and artifact protocols from the default learning path;
-- add companion-skill routing for Archify and University Skill;
-- add behavior-level acceptance scenarios.
+Exit criterion: AbleArc feels like normal fast AI usage, with only occasional high-value cognitive friction.
 
-Exit criterion: AbleArc can be installed as a single Skill directory and used naturally without first-party infrastructure.
+## Phase C2 — ChatGPT Project dogfood
 
-## Phase S2 — repository de-bloat
+Create real projects for several learning/work arcs such as:
 
-**Complete.**
+- paper learning / Grad-CAM;
+- CUDA;
+- software architecture and debugging;
+- research hypothesis development;
+- embedded systems.
 
-The retired Web Workspace, MCP/plugin host, legacy Teach/Study entries, deterministic Runtime/schema/tool stack, root state templates, and product-only docs/tests are no longer part of the current tree.
+Evaluate:
 
-Useful pedagogy was migrated into `skills/ablearc/references/`. Optional persistence is represented by one small Skill-local template instead of a custom runtime.
+- Did AbleArc stay out of the way during Delegate work?
+- Did it correctly identify the few Core decisions?
+- Were interventions high-information rather than frequent?
+- Did project continuity improve later retrieval and transfer?
+- Was LEARNING_STATE.md useful, or did host memory already suffice?
+- Did the learner become more independent in debugging and design?
 
-Git history is the archive for retired implementations.
+## Phase C3 — longitudinal evidence
 
-## Phase S3 — learning effectiveness dogfood
+Focus research and product work on capability trajectory:
 
-**Active.**
+- delayed retrieval;
+- changed-context transfer;
+- debugging independence;
+- decreasing scaffold dependence;
+- recurring misconception repair;
+- understanding-debt detection;
+- cross-project reuse of mental models.
 
-Test the Skill across real topics and sessions:
+Avoid fake mastery percentages.
 
-- programming / software engineering;
-- mathematics;
-- ML/AI;
-- paper learning;
-- review after delay;
-- learner-provided materials;
-- visual explanation;
-- deep generated material;
-- YouTube/Bilibili source-first lecture rendering and follow-up learning.
+## Phase C4 — capability routing
 
-Evaluate behavior, not UI engagement:
+Refine when AbleArc should call specialized Learning Capabilities:
 
-- Did it locate the actual confusion?
-- Did it choose one high-value next move?
-- Did it over-assess?
-- Did it over-explain?
-- Did it use a companion skill only when useful?
-- Could the learner later explain, apply, or transfer the idea?
-- Did the interaction remain natural?
+- Archify;
+- University Skill;
+- YouTube/Bilibili render-to-PDF;
+- programming learning-by-building;
+- corpus-to-skill;
+- research/search;
+- code execution;
+- document/PDF packaging.
 
-Do not fabricate mastery evidence for evaluation.
+Optimize for the smallest artifact that improves learning.
 
-## Phase S4 — portable packaging
+## Phase C5 — portable packaging
 
-Only after the Skill itself is good:
+Only after repeated dogfood:
 
-- make installation straightforward across common Agent Skill hosts;
-- document optional companion installations;
+- simplify installation across skill-compatible hosts;
+- document host adapters;
+- keep third-party capabilities optional;
 - add minimal compatibility metadata where useful;
-- keep third-party skills optional rather than vendored into AbleArc;
-- document source-first video companions separately from topic-first University Skill generation.
+- avoid host-specific infrastructure unless it solves a repeated real failure.
 
-## Explicitly deferred / removed
+## Explicit non-goals
 
-The following are no longer goals unless future real use demonstrates a concrete learning need:
+Do not reintroduce these without repeated learner-visible evidence:
 
-- first-party Web UI;
-- custom learning dashboard;
-- graphical provider setup;
-- timer/Pomodoro product UX;
-- notifications;
+- first-party chat UI;
+- Web dashboard;
+- generic Learning OS;
+- mandatory MCP server;
+- custom provider layer;
 - cloud learner database;
-- generic transcript memory;
-- broad RAG/vector infrastructure;
+- transcript warehouse;
+- deterministic receipt chain for ordinary learning;
+- compulsory session setup;
 - gamification;
-- a dedicated material-generation provider subsystem;
-- deterministic transaction receipts for ordinary learning turns.
+- quiz-every-turn pedagogy.
+
+## Research direction
+
+A central question is:
+
+    How can AI increase task productivity
+    without decreasing long-term human capability?
+
+One useful abstraction is to optimize both:
+
+    Task Utility + λ · Δ Human Capability
+
+rather than Task Utility alone.
+
+This connects AbleArc naturally to longitudinal memory, context compression, learner modeling, intervention policy, credit assignment, retrieval scheduling, and human-agent delegation boundaries.
 
 ## Anti-bloat rule
 
 Before adding a subsystem:
 
 1. identify a repeated learner-visible failure;
-2. show why the current Skill policy and available tools cannot handle it;
-3. prefer clearer instructions or a companion skill over new infrastructure;
-4. add code only when execution or deterministic validation is actually necessary;
-5. keep the default learning path usable without that subsystem.
+2. show why a strong host + AbleArc policy + existing capabilities cannot handle it;
+3. prefer clearer policy or a small adapter over infrastructure;
+4. add code only when deterministic execution or validation is actually necessary;
+5. preserve fast normal conversation as the default experience.
 
-The smallest coherent learning system wins.
+The smallest layer that protects real capability wins.

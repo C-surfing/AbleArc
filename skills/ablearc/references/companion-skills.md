@@ -1,8 +1,8 @@
-# Companion skills
+# Learning capabilities (companion skills)
 
-AbleArc is an orchestrator, not an all-in-one artifact engine.
+AbleArc is a learning control layer, not an all-in-one artifact engine. These capabilities are deliberately retained because they solve material, representation, practice, and source-processing problems that a short prompt should not reimplement.
 
-Use a companion when it is the smallest way to improve the current learning move.
+Use a capability only when it is the smallest way to improve the current work/learning arc. Most turns should use the host model directly.
 
 ## General rule
 
@@ -121,7 +121,7 @@ Good cases:
 - learn Redis by building against a concrete persistence/caching requirement;
 - learn CUDA by implementing and iterating on a kernel rather than only reading explanations.
 
-AbleArc remains the learning orchestrator. The project/tutorial is the practice environment.
+AbleArc remains responsible for ownership and learning-opportunity decisions. The project/tutorial is the practice environment.
 
 Do not use a project merely because the topic is programming. A five-minute conceptual frontier may be better solved inline.
 

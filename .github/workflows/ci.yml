@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate lightweight Skill package
+      - name: Validate lightweight learning-control package
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -23,7 +23,12 @@ jobs:
 
           required_markers = [
               "name: ablearc",
-              "Never steal the learner's moment of discovery",
+              "continue normally",
+              "Core",
+              "Review",
+              "Delegate",
+              "learning opportunity",
+              "Understanding debt",
               "Archify",
               "university-textbook",
               "youtube-render-pdf",
@@ -46,7 +51,11 @@ jobs:
               "skills/ablearc/references/visual-teaching.md",
               "skills/ablearc/references/paper-learning.md",
               "skills/ablearc/references/companion-skills.md",
+              "skills/ablearc/references/learning-opportunities.md",
               "skills/ablearc/templates/learning-state.md",
+              "adapters/chatgpt-project/PROJECT_INSTRUCTIONS.md",
+              "adapters/generic/SYSTEM_PROMPT.md",
+              "docs/adr/0013-learning-control-layer.md",
               "tests/SKILL-BEHAVIOR.md",
           ]
           for path in required_files:
