@@ -1,5 +1,5 @@
 interface:
   display_name: "AbleArc"
-  short_description: "Adaptive learning at your current frontier"
+  short_description: "Preserve human judgment while working with AI"
 policy:
   allow_implicit_invocation: true
